@@ -1,0 +1,1 @@
+﻿// Consultas Supabase de Categorias
