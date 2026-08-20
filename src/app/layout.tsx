@@ -1,15 +1,20 @@
-﻿export const metadata = {
-  title: "Portal Comercial Guairá",
+﻿import Navbar from '@/components/common/Navbar';
+import Footer from '@/components/common/Footer';
+import '@/app/globals.css';
+
+export const metadata = {
+  title: 'Portal Comercial Guairá',
+  description: 'Directorio comercial e industrial del Guairá',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
-      <body>{children}</body>
+      <body className="bg-white text-slate-900 min-h-screen flex flex-col justify-between">
+        <Navbar />
+        <div className="flex-grow">{children}</div>
+        <Footer />
+      </body>
     </html>
   );
 }
