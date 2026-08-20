@@ -1,6 +1,7 @@
 ﻿import Navbar from '@/components/common/Navbar';
 import Footer from '@/components/common/Footer';
-import '@/app/globals.css';
+import '@/globals.css';
+//import '../globals.css';
 
 export const metadata = {
   title: 'Portal Comercial Guairá',

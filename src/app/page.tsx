@@ -1,9 +1,11 @@
 ﻿import { getCategories } from '@/services/categories.service';
+import { getFeaturedShops } from '@/services/shops.service';
 import CategoryGrid from '@/components/home/CategoryGrid';
 import ShopCard from '@/components/shops/ShopCard';
 
 export default async function Home() {
   const categories = await getCategories();
+  const shops = await getFeaturedShops();
 
   return (
     <main className="bg-white text-slate-900 min-h-screen">
@@ -21,7 +23,7 @@ export default async function Home() {
               </span>
             </h1>
             <p className="text-slate-400 text-sm mb-8 max-w-lg leading-relaxed">
-              Descubre tiendas, restaurantes, servicios profesionales y emprendimientos locales en Villarrica y todo el Departamento.
+              Descubre tiendas, restaurantes, servicios profesionales y artesanías en Villarrica y todo el Departamento del Guairá.
             </p>
             <a
               href="#comercios-destacados"
@@ -35,27 +37,45 @@ export default async function Home() {
               <div className="text-center">
                 <span className="text-5xl mb-2 block">🏪</span>
                 <p className="text-xl font-bold text-white">Impulsando el Guairá</p>
+                <p className="text-xs text-slate-400 mt-1">Conectando comercios con la comunidad</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Categorías Principales */}
+      {/* Categorías Principales de Supabase */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <h2 className="text-xl font-bold text-slate-900">Categorías Populares</h2>
         <CategoryGrid categories={categories} />
       </section>
 
-      {/* Comercios Destacados */}
+      {/* Comercios Destacados de Supabase */}
       <section id="comercios-destacados" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mb-12">
         <h2 className="text-2xl font-black text-slate-900 mb-6">Comercios Destacados</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <ShopCard id="1" title="Comercial Villarrica" description="Abarrotes, bazar y productos varios." badge="Destacado" />
-          <ShopCard id="2" title="Gastronomía Guairá" description="Los mejores platos y minutas tradicionales." badge="Popular" />
-          <ShopCard id="3" title="Electrónica Yuty" description="Reparación y venta de insumos tecnológicos." />
-          <ShopCard id="4" title="Moda & Confecciones" description="Prendas exclusivas y ropa de producción local." badge="Nuevo" />
-        </div>
+        {shops.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {shops.map((shop) => (
+              <ShopCard
+                key={shop.id}
+                id={shop.id}
+                nombreComercio={shop.nombre_comercio}
+                descripcion={shop.descripcion}
+                categoriaPrincipal={shop.categoria_principal}
+                logoUrl={shop.logo_url}
+                verificada={shop.verificada}
+              />
+            ))}
+          </div>
+        ) : (
+          /* Muestra de respaldo si aún no han registrado comercios en Supabase */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <ShopCard id="1" nombreComercio="Ao Po'i Villarrica" descripcion="Textiles e indumentaria artesanal." categoriaPrincipal="Ao Po'i" verificada={true} />
+            <ShopCard id="2" nombreComercio="Gastronomía Guairá" descripcion="Los mejores platos tradicionales de la zona." categoriaPrincipal="Gastronomía" verificada={true} />
+            <ShopCard id="3" nombreComercio="Bodega Independencia" description="Vinos artesanales e insumos." categoriaPrincipal="Vinos y Bodegas" />
+            <ShopCard id="4" nombreComercio="Artesanías Yataity" description="Productos hechos a mano en telares tradicionales." categoriaPrincipal="Artesanías" verificada={true} />
+          </div>
+        )}
       </section>
     </main>
   );
