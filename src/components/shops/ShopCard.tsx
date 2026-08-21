@@ -2,21 +2,30 @@
 
 interface ShopCardProps {
   id: string;
-  nombreComercio: string;
+  nombreComercio?: string;
+  title?: string;
   descripcion?: string;
+  description?: string;
   categoriaPrincipal?: string;
   logoUrl?: string;
   verificada?: boolean;
+  badge?: string;
 }
 
 export default function ShopCard({
   id,
   nombreComercio,
+  title,
   descripcion,
+  description,
   categoriaPrincipal,
   logoUrl,
   verificada,
+  badge: _badge,
 }: ShopCardProps) {
+  const nombre = nombreComercio || title || '';
+  const detalle = descripcion || description;
+
   return (
     <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 relative flex flex-col justify-between hover:shadow-xl transition-all duration-300 group">
       {/* Badge de Verificado */}
@@ -29,10 +38,10 @@ export default function ShopCard({
       {/* Imagen o Inicial del Comercio */}
       <div className="w-full h-40 bg-slate-200/60 rounded-xl flex items-center justify-center my-2 overflow-hidden group-hover:scale-[1.02] transition-transform">
         {logoUrl ? (
-          <img src={logoUrl} alt={nombreComercio} className="w-full h-full object-cover" />
+          <img src={logoUrl} alt={nombre} className="w-full h-full object-cover" />
         ) : (
           <span className="text-slate-400 font-extrabold text-3xl select-none">
-            {nombreComercio ? nombreComercio.charAt(0).toUpperCase() : 'G'}
+            {nombre ? nombre.charAt(0).toUpperCase() : 'G'}
           </span>
         )}
       </div>
@@ -43,10 +52,10 @@ export default function ShopCard({
           {categoriaPrincipal || 'Comercio'}
         </span>
         <h3 className="font-bold text-slate-900 text-base mb-1 group-hover:text-blue-600 transition-colors line-clamp-1">
-          {nombreComercio}
+          {nombre}
         </h3>
         <p className="text-xs text-slate-500 line-clamp-2 mb-4">
-          {descripcion || 'Comercio registrado en el Departamento del Guairá.'}
+          {detalle || 'Comercio registrado en el Departamento del Guairá.'}
         </p>
       </div>
 
