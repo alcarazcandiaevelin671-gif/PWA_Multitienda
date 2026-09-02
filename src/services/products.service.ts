@@ -1,83 +1,71 @@
 import { supabase } from '@/lib/supabase';
+import { Product, CreateProductInput } from '@/types/product';
 
-export interface Product {
-  id: string;
-  tienda_id: string;
-  categoria_id: number;
-  titulo: string;
-  descripcion: string;
-  precio_gs: number;
-  imagen_url: string;
-  disponible: boolean;
-  destacado: boolean;
-  vistas_count: number;
-  creado_en: string;
-  actualizado_en: string;
-}
-
-export async function getProducts(): Promise<Product[]> {
-  try {
-    const { data, error } = await supabase
-      .from('productos')
-      .select('*')
-      .eq('disponible', true)
-      .order('creado_en', { ascending: false });
-
-    if (error) throw error;
-    return (data as Product[] | null) || [];
-  } catch (error) {
-    console.error('Error cargando productos desde Supabase:', error);
-    return [];
-  }
-}
-
-export async function getFeaturedProducts(): Promise<Product[]> {
-  try {
-    const { data, error } = await supabase
-      .from('productos')
-      .select('*')
-      .eq('disponible', true)
-      .eq('destacado', true)
-      .order('creado_en', { ascending: false });
-
-    if (error) throw error;
-    return (data as Product[] | null) || [];
-  } catch (error) {
-    console.error('Error cargando productos destacados desde Supabase:', error);
-    return [];
-  }
-}
-
-export async function getProductsByShop(tiendaId: string): Promise<Product[]> {
-  try {
+export const productsService = {
+  /**
+   * Obtiene todos los productos de una tienda específica
+   */
+  async getProductsByShop(tiendaId: string): Promise<Product[]> {
     const { data, error } = await supabase
       .from('productos')
       .select('*')
       .eq('tienda_id', tiendaId)
-      .eq('disponible', true)
-      .order('creado_en', { ascending: false });
+      .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return (data as Product[] | null) || [];
-  } catch (error) {
-    console.error('Error cargando productos de la tienda desde Supabase:', error);
-    return [];
-  }
-}
+    return data || [];
+  },
 
-export async function getProductById(id: string): Promise<Product | null> {
-  try {
+  /**
+   * Crea un nuevo producto
+   */
+  async createProduct(productData: CreateProductInput): Promise<Product> {
     const { data, error } = await supabase
       .from('productos')
-      .select('*')
-      .eq('id', id)
-      .eq('disponible', true)
-      .maybeSingle();
+      .insert([{ ...productData, activo: true }])
+      .select()
+      .single();
 
     if (error) throw error;
-    return data as Product | null;
-  } catch (error) {
-    console.error('Error cargando producto desde Supabase:', error);
-    return null;
+    return data;
+  },
+
+  /**
+   * Actualiza los datos de un producto existente
+   */
+  async updateProduct(id: string, productData: Partial<CreateProductInput>): Promise<Product> {
+    const { data, error } = await supabase
+      .from('productos')
+      .update(productData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Cambia el estado de activación de un producto (Activar / Desactivar)
+   */
+  async toggleProductStatus(id: string, currentStatus: boolean): Promise<void> {
+    const { error } = await supabase
+      .from('productos')
+      .update({ activo: !currentStatus })
+      .eq('id', id);
+
+    if (error) throw error;
+  },
+
+  /**
+   * Elimina un producto de la base de datos
+   */
+  async deleteProduct(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('productos')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
   }
-}
+};
