@@ -61,7 +61,7 @@ export default async function Home() {
         </section>
       )}
 
-      {/* Comercios Registrados en Guairá */}
+      {/* Comercios Registrados */}
       <section id="comercios-destacados" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mb-12">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -69,13 +69,13 @@ export default async function Home() {
             <p className="text-xs text-slate-500 mt-0.5">Explora la lista completa de locales disponibles</p>
           </div>
           <span className="text-xs bg-blue-50 text-blue-700 font-bold px-3 py-1 rounded-full border border-blue-100">
-            {shops.length} {shops.length === 1 ? 'comercio' : 'comercios'}
+            {shops?.length || 0} {shops?.length === 1 ? 'comercio' : 'comercios'}
           </span>
         </div>
 
-        {shops.length > 0 ? (
+        {shops && shops.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {shops.map((shop) => (
+            {shops.map((shop: any) => (
               <ShopCard
                 key={shop.id}
                 id={shop.id}
@@ -90,7 +90,6 @@ export default async function Home() {
             ))}
           </div>
         ) : (
-          /* Mensaje cuando no hay locales registrados todavía */
           <div className="text-center py-16 bg-slate-50 rounded-3xl border border-slate-200/80 p-8">
             <span className="text-4xl mb-3 block">🏪</span>
             <h3 className="text-lg font-bold text-slate-800">Aún no hay comercios activos</h3>

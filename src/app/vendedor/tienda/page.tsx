@@ -217,7 +217,7 @@ export default function MiTiendaPage() {
     }
   };
 
-  if (exitoGuardado) {
+ if (exitoGuardado) {
     return (
       <div className="max-w-xl mx-auto my-16 p-8 bg-white rounded-3xl shadow-lg border border-slate-100 text-center">
         <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
@@ -225,16 +225,26 @@ export default function MiTiendaPage() {
         </div>
         <h2 className="text-2xl font-bold text-slate-900 mb-2">¡Tienda Registrada con Éxito!</h2>
         <p className="text-slate-600 text-sm mb-6">
-          Los datos de <strong className="text-slate-800">{formTienda.nombre_comercio}</strong> ya están visibles en la plataforma.
+          Los datos de <strong className="text-slate-800">{formTienda.nombre_comercio}</strong> se han registrado correctamente. Tienes <strong>30 días de prueba gratuita</strong> activados.
         </p>
-        <button
-          onClick={() => {
-            window.location.href = '/';
-          }}
-          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-sm transition-colors shadow-md"
-        >
-          Volver al Inicio y Ver Tiendas
-        </button>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <button
+            onClick={() => {
+              window.location.href = '/vendedor/dashboard';
+            }}
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-sm transition-colors shadow-md"
+          >
+            🚀 Ir a Administrar mi Tienda
+          </button>
+          <button
+            onClick={() => {
+              window.location.href = '/';
+            }}
+            className="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-sm transition-colors"
+          >
+            Volver al Inicio
+          </button>
+        </div>
       </div>
     );
   }

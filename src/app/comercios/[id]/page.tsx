@@ -1,1 +1,0 @@
-export default function Page({ params }: { params: { id: string } }) { return <main style={{ padding: "2rem" }}><h1>Detalle ID: {params.id}</h1></main>; }
