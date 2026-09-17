@@ -2,9 +2,6 @@
 import { UserRole } from '@/types/user';
 
 export const authService = {
-  /**
-   * Inicia sesión con correo y contraseña para cualquier rol (Cliente, Comerciante, Admin)
-   */
   async signIn(email: string, pass: string) {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -15,9 +12,6 @@ export const authService = {
     return data;
   },
 
-  /**
-   * Inicia sesión o se registra automáticamente utilizando la cuenta de Google
-   */
   async signInWithGoogle() {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -30,9 +24,6 @@ export const authService = {
     return data;
   },
 
-  /**
-   * Registro completo para Comerciantes con la creación inicial de su Tienda
-   */
   async signUpComerciante(params: {
     email: string;
     pass: string;
@@ -42,7 +33,7 @@ export const authService = {
     distritoId?: string;
     direccionTienda?: string;
   }) {
-    // 1. Crear usuario en Supabase Auth con metadatos
+    // 1. Crear usuario en Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: params.email,
       password: params.pass,
@@ -59,7 +50,7 @@ export const authService = {
 
     const userId = authData.user.id;
 
-    // 2. Insertar registro del usuario en la tabla 'usuarios'
+    // 2. Insertar registro en 'usuarios'
     const { error: userError } = await supabase.from('usuarios').insert([
       {
         id: userId,
@@ -72,17 +63,17 @@ export const authService = {
 
     if (userError) console.error('Error guardando perfil de usuario:', userError);
 
-    // 3. Crear automáticamente la Tienda vinculada a este usuario
+    // 3. Crear Tienda con los campos SQL correctos
     const { error: shopError } = await supabase.from('tiendas').insert([
       {
-        usuario_id: userId,
-        nombre: params.nombreTienda,
+        usuario_id: userId, // ✅ UUID de la tabla usuarios
+        nombre_comercio: params.nombreTienda, // ✅ Corregido (antes 'nombre')
         slug: params.nombreTienda.toLowerCase().trim().replace(/[\s\W]+/g, '-'),
         telefono: params.telefono,
         whatsapp: params.telefono,
-        direccion: params.direccionTienda,
+        direccion_texto: params.direccionTienda, // ✅ Corregido (antes 'direccion')
         distrito_id: params.distritoId || null,
-        estado: 'activa',
+        estado: 'pendiente', // ✅ Corregido según el ENUM de la BD
       },
     ]);
 
@@ -91,17 +82,11 @@ export const authService = {
     return authData.user;
   },
 
-  /**
-   * Cierra la sesión activa
-   */
   async signOut() {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   },
 
-  /**
-   * Obtiene los datos del usuario logueado junto con su Rol
-   */
   async getCurrentProfile() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) return null;

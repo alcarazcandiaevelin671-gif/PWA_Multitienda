@@ -5,8 +5,7 @@ export async function getCategories() {
     const { data, error } = await supabase
       .from('categorias')
       .select('*')
-      .eq('activo', true)
-      .order('nombre', { ascending: true });
+      .order('nombre', { ascending: true }); // ✅ Eliminado el .eq('activo', true)
 
     if (error) throw error;
     return data || [];

@@ -1,8 +1,9 @@
-﻿import { getCategories } from '@/services/categories.service';
+﻿import Link from 'next/link';
+import { getCategories } from '@/services/categories.service';
 import { getFeaturedShops } from '@/services/shops.service';
 import CategoryGrid from '@/components/home/CategoryGrid';
 import ShopCard from '@/components/shops/ShopCard';
-import Link from 'next/link';
+import ComerciosGuairaSection from '@/components/ui/ComerciosGuairaSection';
 
 export default async function Home() {
   const categories = await getCategories();
@@ -10,7 +11,7 @@ export default async function Home() {
 
   return (
     <main className="bg-white text-slate-900 min-h-screen">
-      {/* Hero Section */}
+      {/* 1. HERO SECTION */}
       <section className="bg-[#0b0f19] text-white py-16 md:py-20 border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div>
@@ -24,7 +25,7 @@ export default async function Home() {
               </span>
             </h1>
             <p className="text-slate-400 text-sm mb-8 max-w-lg leading-relaxed">
-              Descubre tiendas, restaurantes, servicios profesionales y artesanías en Villarrica y todo el Departamento del Guairá.
+              Descubre tiendas, restaurantes, servicios profesionales y emprendimientos en Villarrica y todo el Departamento del Guairá.
             </p>
             <div className="flex flex-wrap gap-4">
               <a
@@ -41,9 +42,10 @@ export default async function Home() {
               </Link>
             </div>
           </div>
+          
           <div className="flex justify-center">
-            <div className="w-full max-w-md h-64 bg-gradient-to-tr from-blue-900/40 to-slate-800/80 rounded-3xl border border-slate-700/60 flex items-center justify-center p-8 shadow-2xl">
-              <div className="text-center">
+            <div className="w-full max-w-md h-64 bg-gradient-to-tr from-blue-900/40 to-slate-800/80 rounded-3xl border border-slate-700/60 flex items-center justify-center p-8 shadow-2xl relative overflow-hidden">
+              <div className="text-center z-10">
                 <span className="text-5xl mb-2 block">🏪</span>
                 <p className="text-xl font-bold text-white">Impulsando el Guairá</p>
                 <p className="text-xs text-slate-400 mt-1">Conectando comercios con la comunidad</p>
@@ -53,7 +55,29 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Categorías Principales */}
+      {/* 2. ICON BANNERS */}
+      <section className="border-b border-slate-100 bg-slate-50/50 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+          <div className="p-3">
+            <p className="font-bold text-xs text-slate-900">Locales Verificados</p>
+            <p className="text-[11px] text-slate-500">Información confiable y directa</p>
+          </div>
+          <div className="p-3">
+            <p className="font-bold text-xs text-slate-900">Directorio Actualizado</p>
+            <p className="text-[11px] text-slate-500">Contactos y ubicación precisa</p>
+          </div>
+          <div className="p-3">
+            <p className="font-bold text-xs text-slate-900">Apoyo al Comercio</p>
+            <p className="text-[11px] text-slate-500">Fomento de la economía regional</p>
+          </div>
+          <div className="p-3">
+            <p className="font-bold text-xs text-slate-900">Acceso 24/7</p>
+            <p className="text-[11px] text-slate-500">Consulta desde cualquier dispositivo</p>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. CATEGORÍAS PRINCIPALES */}
       {categories && categories.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <h2 className="text-xl font-bold text-slate-900 mb-4">Categorías Populares</h2>
@@ -61,19 +85,20 @@ export default async function Home() {
         </section>
       )}
 
-      {/* Comercios Registrados */}
-      <section id="comercios-destacados" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mb-12">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-black text-slate-900">Comercios del Guairá</h2>
-            <p className="text-xs text-slate-500 mt-0.5">Explora la lista completa de locales disponibles</p>
-          </div>
-          <span className="text-xs bg-blue-50 text-blue-700 font-bold px-3 py-1 rounded-full border border-blue-100">
-            {shops?.length || 0} {shops?.length === 1 ? 'comercio' : 'comercios'}
-          </span>
-        </div>
+      {/* 4. SECCIÓN DINÁMICA DE COMERCIOS */}
+      <section id="comercios-destacados" className="py-2">
+        <ComerciosGuairaSection />
+      </section>
 
-        {shops && shops.length > 0 ? (
+      {/* 5. LOCALES VERIFICADOS (MAPEO DINÁMICO) */}
+      {shops && shops.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mb-12">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-extrabold text-slate-900">Locales Verificados</h2>
+            <span className="text-xs bg-slate-100 text-slate-600 font-bold px-3 py-1 rounded-full">
+              {shops.length} verificados
+            </span>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {shops.map((shop: any) => (
               <ShopCard
@@ -81,29 +106,33 @@ export default async function Home() {
                 id={shop.id}
                 nombreComercio={shop.nombre_comercio}
                 descripcion={shop.descripcion}
-                categoriaPrincipal={shop.categoria_principal}
+                categoriaPrincipal={shop.categoria || shop.categoria_principal}
                 logoUrl={shop.logo_url}
+                bannerUrl={shop.banner_url || shop.portada_url}
                 verificada={shop.verificada}
                 whatsapp={shop.whatsapp}
-                distrito={shop.distritos?.nombre}
+                distrito={shop.distrito || shop.distritos?.nombre}
               />
             ))}
           </div>
-        ) : (
-          <div className="text-center py-16 bg-slate-50 rounded-3xl border border-slate-200/80 p-8">
-            <span className="text-4xl mb-3 block">🏪</span>
-            <h3 className="text-lg font-bold text-slate-800">Aún no hay comercios activos</h3>
-            <p className="text-slate-500 text-sm max-w-md mx-auto mt-1 mb-6">
-              Sé el primero en posicionar tu negocio en el mapa y catálogo del Departamento del Guairá.
-            </p>
-            <Link
-              href="/vendedor/tienda"
-              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm px-6 py-3 rounded-xl shadow-md transition-all"
+        </section>
+      )}
+
+      {/* 6. BANNER PROMOCIONAL INFERIOR */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
+        <div className="bg-[#0b0f19] text-white rounded-3xl p-8 md:p-12 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 border border-slate-800">
+          <div className="max-w-xl z-10">
+            <span className="text-blue-400 font-bold text-xs uppercase tracking-wider block mb-2">¿Tienes un comercio?</span>
+            <h3 className="text-2xl md:text-4xl font-extrabold mb-4">Registra tu local en el portal de la ciudad</h3>
+            <p className="text-slate-400 text-xs md:text-sm mb-6">Forma parte del catálogo digital más grande del Departamento del Guairá y llega a más clientes.</p>
+            <Link 
+              href="/vendedor/tienda" 
+              className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-3 px-6 rounded-xl transition-colors"
             >
-              Registrar Mi Comercio Ahora
+              Registrar mi Comercio →
             </Link>
           </div>
-        )}
+        </div>
       </section>
     </main>
   );

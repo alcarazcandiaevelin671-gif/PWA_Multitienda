@@ -14,3 +14,7 @@ export interface Product {
 }
 
 export type CreateProductInput = Omit<Product, 'id' | 'created_at'>;
+
+
+// Tipo para actualizar un producto existente
+export type UpdateProductInput = Partial<CreateProductInput>;

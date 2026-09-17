@@ -1,11 +1,6 @@
-﻿import { createBrowserClient } from '@supabase/ssr';
+﻿import { supabase } from '@/lib/supabase';
 
 export async function getFeaturedShops() {
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-
   const { data: shops, error } = await supabase
     .from('tiendas')
     .select(`
@@ -15,8 +10,8 @@ export async function getFeaturedShops() {
         nombre
       )
     `)
-    .eq('activo', true)
-    .order('created_at', { ascending: false });
+    .eq('estado', 'aprobado') // ✅ Cambiado 'activo' por 'estado' (ajusta 'aprobado' según tu ENUM)
+    .order('creado_en', { ascending: false }); // ✅ Cambiado 'created_at' por 'creado_en'
 
   if (error) {
     console.error('Error al obtener tiendas:', error.message);

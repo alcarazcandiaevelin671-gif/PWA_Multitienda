@@ -1,3 +1,5 @@
+import { Product } from './product';
+
 export interface Shop {
   id: string;
   nombre: string;
@@ -18,3 +20,11 @@ export interface Shop {
 }
 
 export type CreateShopInput = Omit<Shop, 'id' | 'created_at' | 'activo'>;
+
+// Extensión para cuando consultas una tienda junto con sus productos
+export interface ShopWithProducts extends Shop {
+  productos?: Product[];
+}
+
+// Tipo para actualizar un comercio sin requerir todos los campos
+export type UpdateShopInput = Partial<CreateShopInput>;

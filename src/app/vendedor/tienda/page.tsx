@@ -1,531 +1,943 @@
 'use client';
-
 import { useState, useEffect } from 'react';
-import dynamic from 'next/dynamic';
 import { createBrowserClient } from '@supabase/ssr';
+import Image from 'next/image';
+import dynamic from 'next/dynamic';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
+// Mapa dinámico evitando SSR
 const LocationPicker = dynamic(() => import('@/components/ui/LocationPicker'), {
   ssr: false,
   loading: () => (
-    <div className="h-64 w-full bg-slate-100 rounded-xl animate-pulse flex items-center justify-center text-slate-400 text-sm">
-      Cargando mapa de Guairá...
+    <div className="h-64 bg-slate-100 animate-pulse rounded-2xl flex items-center justify-center text-slate-400 text-xs font-bold border border-slate-200">
+      📍 Cargando Mapa del Guairá...
     </div>
   ),
 });
 
-export default function MiTiendaPage() {
-  const [loading, setLoading] = useState(false);
-  const [cargandoDistritos, setCargandoDistritos] = useState(true);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [exitoGuardado, setExitoGuardado] = useState(false);
-  const [usuarioActual, setUsuarioActual] = useState<any>(null);
-  const [distritos, setDistritos] = useState<Array<{ id: number; nombre: string }>>([]);
+// Lista de respaldo de Distritos del Guairá
+const DISTRITOS_GUAIRA = [
+  { id: 1, nombre: 'Villarrica' },
+  { id: 2, nombre: 'Borja' },
+  { id: 3, nombre: 'Colonia Independencia' },
+  { id: 4, nombre: 'Coronel Martínez' },
+  { id: 5, nombre: 'Dr. Botrell' },
+  { id: 6, nombre: 'Félix Pérez Cardozo' },
+  { id: 7, nombre: 'General Eugenio A. Garay' },
+  { id: 8, nombre: 'Itapé' },
+  { id: 9, nombre: 'Iturbe' },
+  { id: 10, nombre: 'José Fassardi' },
+  { id: 11, nombre: 'Mbocayaty del Guairá' },
+  { id: 12, nombre: 'Natalicio Talavera' },
+  { id: 13, nombre: 'Ñumí' },
+  { id: 14, nombre: 'Paso Yobái' },
+  { id: 15, nombre: 'San Salvador' },
+  { id: 16, nombre: 'Tebicuary' },
+  { id: 17, nombre: 'Yataity del Guairá' },
+];
 
-  const [emailAuth, setEmailAuth] = useState('');
-  const [passwordAuth, setPasswordAuth] = useState('');
-  const [nombreUsuario, setNombreUsuario] = useState('');
-  const [modoAuth, setModoAuth] = useState<'login' | 'register'>('register');
+// Lista de respaldo de Categorías
+const CATEGORIAS_DEFAULT = [
+  { id: 1, nombre: 'Gastronomía y Comidas' },
+  { id: 2, nombre: 'Ropa y Calzados' },
+  { id: 3, nombre: 'Electrónica y Tecnología' },
+  { id: 4, nombre: 'Supermercado y Almacén' },
+  { id: 5, nombre: 'Hogar y Muebles' },
+  { id: 6, nombre: 'Salud y Belleza' },
+  { id: 7, nombre: 'Servicios Profesionales' },
+  { id: 8, nombre: 'Artesanía y Regalos' },
+  { id: 9, nombre: 'Ferretería y Construcción' },
+  { id: 10, nombre: 'Otros Rubros' },
+];
 
+export default function VendedorTiendaPage() {
+  const router = useRouter();
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  const [formTienda, setFormTienda] = useState({
+  // Estados de sesión y carga
+  const [sessionUser, setSessionUser] = useState<any>(null);
+  const [fetching, setFetching] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
+
+  // Estado del Formulario de Autenticación
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [authData, setAuthData] = useState({
+    nombre_completo: '',
+    email: '',
+    password: '',
+    telefono_contacto: '',
+  });
+
+  // Estados para subida de imágenes y mensajes
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingPortada, setUploadingPortada] = useState(false);
+  const [mensaje, setMensaje] = useState<{ tipo: 'exito' | 'error'; texto: string } | null>(null);
+  const [guardadoExitoso, setGuardadoExitoso] = useState(false);
+
+  // Selectores de datos
+  const [distritos, setDistritos] = useState<{ id: number; nombre: string }[]>(DISTRITOS_GUAIRA);
+  const [categorias, setCategorias] = useState<{ id: number; nombre: string }[]>(CATEGORIAS_DEFAULT);
+
+  // Datos del Usuario
+  const [userData, setUserData] = useState({
+    nombre_completo: '',
+    email: '',
+    telefono_contacto: '',
+  });
+
+  // Datos de la Tienda
+  const [formData, setFormData] = useState({
     nombre_comercio: '',
-    categoria_principal: 'Gastronomía',
-    distrito_id: '',
     descripcion: '',
+    categoria_principal: 'Gastronomía y Comidas',
+    distrito_id: 1,
+    direccion_texto: '',
+    latitud: -25.7808,
+    longitud: -56.4486,
     whatsapp: '',
     telefono: '',
     email: '',
-    facebook: '',
-    instagram: '',
-    tiktok: '',
-    direccion_texto: '',
-    latitud: -25.7806,
-    longitud: -56.4486,
+    instagram_username: '',
+    facebook_url: '',
+    logo_url: '',
+    portada_url: '',
   });
 
+  // 1. Verificar Sesión e Inicializar Datos
   useEffect(() => {
-    const inicializarDatos = async () => {
-      // 1. Obtener sesión de usuario
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUsuarioActual(user);
-        setFormTienda((prev) => ({ ...prev, email: user.email || '' }));
-      }
-
-      // 2. Obtener lista real de distritos desde public.distritos
+    async function loadData() {
       try {
-        setCargandoDistritos(true);
-        const { data, error } = await supabase
+        setFetching(true);
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (!session) {
+          setSessionUser(null);
+          setFetching(false);
+          return;
+        }
+
+        setSessionUser(session.user);
+        const userId = session.user.id;
+
+        // Cargar Distritos
+        const { data: distBD } = await supabase
           .from('distritos')
           .select('id, nombre')
-          .eq('activo', true)
-          .order('nombre', { ascending: true });
+          .order('nombre');
+        if (distBD && distBD.length > 0) setDistritos(distBD);
 
-        if (error) {
-          console.error('Error al obtener distritos:', error.message);
-        } else if (data && data.length > 0) {
-          setDistritos(data);
-          // Asigna por defecto Villarrica o el primer elemento obtenido
-          setFormTienda((prev) => ({ ...prev, distrito_id: data[0].id.toString() }));
+        // Cargar Categorías
+        const { data: catBD } = await supabase
+          .from('categorias')
+          .select('id, nombre')
+          .order('nombre');
+        if (catBD && catBD.length > 0) setCategorias(catBD);
+
+        // Cargar Datos del Usuario desde BD
+        const { data: userBD } = await supabase
+          .from('usuarios')
+          .select('*')
+          .eq('id', userId)
+          .maybeSingle();
+
+        const emailUsuario = userBD?.email || session.user.email || '';
+
+        setUserData({
+          nombre_completo: userBD?.nombre_completo || session.user.user_metadata?.nombre_completo || '',
+          email: emailUsuario,
+          telefono_contacto: userBD?.telefono_contacto || session.user.user_metadata?.telefono_contacto || '',
+        });
+
+        // Cargar Datos de la Tienda desde BD
+        const { data: tiendaBD } = await supabase
+          .from('tiendas')
+          .select('*')
+          .eq('usuario_id', userId)
+          .maybeSingle();
+
+        if (tiendaBD) {
+          setFormData({
+            nombre_comercio: tiendaBD.nombre_comercio || '',
+            descripcion: tiendaBD.descripcion || '',
+            categoria_principal: tiendaBD.categoria_principal || 'Gastronomía y Comidas',
+            distrito_id: tiendaBD.distrito_id || 1,
+            direccion_texto: tiendaBD.direccion_texto || '',
+            latitud: tiendaBD.latitud ? Number(tiendaBD.latitud) : -25.7808,
+            longitud: tiendaBD.longitud ? Number(tiendaBD.longitud) : -56.4486,
+            whatsapp: tiendaBD.whatsapp || '',
+            telefono: tiendaBD.telefono || '',
+            email: tiendaBD.email || emailUsuario,
+            instagram_username: tiendaBD.instagram_username || '',
+            facebook_url: tiendaBD.facebook_url || '',
+            logo_url: tiendaBD.logo_url || '',
+            portada_url: tiendaBD.portada_url || '',
+          });
+        } else {
+          setFormData((prev) => ({
+            ...prev,
+            email: emailUsuario,
+            whatsapp: userBD?.telefono_contacto || '',
+          }));
         }
       } catch (err) {
-        console.error('Error inesperado leyendo distritos:', err);
+        console.error('Error al cargar datos:', err);
       } finally {
-        setCargandoDistritos(false);
+        setFetching(false);
       }
-    };
+    }
 
-    inicializarDatos();
+    loadData();
   }, [supabase]);
 
-  const handleGoogleLogin = async () => {
+  // Manejar Autenticación
+  const handleAuthSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthLoading(true);
+    setMensaje(null);
+
     try {
-      setLoading(true);
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/vendedor/tienda`,
-        },
-      });
-      if (error) throw error;
+      if (authMode === 'login') {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: authData.email,
+          password: authData.password,
+        });
+
+        if (error) throw error;
+        setSessionUser(data.session?.user);
+        setMensaje({ tipo: 'exito', texto: 'Sesión iniciada correctamente.' });
+      } else {
+        const { data, error } = await supabase.auth.signUp({
+          email: authData.email,
+          password: authData.password,
+          options: {
+            data: {
+              nombre_completo: authData.nombre_completo,
+              telefono_contacto: authData.telefono_contacto,
+              rol: 'vendedor',
+            },
+          },
+        });
+
+        if (error) throw error;
+
+        if (data.user) {
+          await supabase.from('usuarios').upsert({
+            id: data.user.id,
+            nombre_completo: authData.nombre_completo,
+            email: authData.email,
+            telefono_contacto: authData.telefono_contacto,
+            rol: 'vendedor',
+          }, { onConflict: 'id' });
+
+          setSessionUser(data.user);
+          setUserData({
+            nombre_completo: authData.nombre_completo,
+            email: authData.email,
+            telefono_contacto: authData.telefono_contacto,
+          });
+          setMensaje({ tipo: 'exito', texto: '¡Cuenta creada con éxito! Completa los datos de tu tienda.' });
+        }
+      }
     } catch (err: any) {
-      setErrorMsg(err.message || 'Error al conectar con Google.');
-      setLoading(false);
+      console.error('Error de autenticación:', err);
+      setMensaje({ tipo: 'error', texto: err.message || 'Error al autenticar usuario.' });
+    } finally {
+      setAuthLoading(false);
     }
   };
 
-  const obtenerUbicacionGps = () => {
-    if (!navigator.geolocation) {
-      alert('Tu navegador no soporta geolocalización.');
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setSessionUser(null);
+    setMensaje({ tipo: 'exito', texto: 'Has cerrado sesión.' });
+  };
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setGuardadoExitoso(false);
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === 'distrito_id' ? Number(value) : value,
+    }));
+  };
+
+  const handleUserChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setGuardadoExitoso(false);
+    setUserData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const uploadImage = async (file: File, type: 'logo' | 'portada') => {
+    try {
+      if (type === 'logo') setUploadingLogo(true);
+      if (type === 'portada') setUploadingPortada(true);
+      setMensaje(null);
+
+      if (!sessionUser) throw new Error('Sesión no encontrada.');
+
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const cleanFileName = `${sessionUser.id}_${type}_${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('tiendas-media')
+        .upload(cleanFileName, file, { cacheControl: '3600', upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrlData } = supabase.storage
+        .from('tiendas-media')
+        .getPublicUrl(cleanFileName);
+
+      if (type === 'logo') {
+        setFormData((prev) => ({ ...prev, logo_url: publicUrlData.publicUrl }));
+      } else {
+        setFormData((prev) => ({ ...prev, portada_url: publicUrlData.publicUrl }));
+      }
+
+      setMensaje({ tipo: 'exito', texto: 'Imagen cargada correctamente.' });
+    } catch (err: any) {
+      setMensaje({ tipo: 'error', texto: err.message || 'Error al subir la imagen.' });
+    } finally {
+      if (type === 'logo') setUploadingLogo(false);
+      if (type === 'portada') setUploadingPortada(false);
+    }
+  };
+
+  const slugify = (text: string) => {
+    return text
+      .toString()
+      .toLowerCase()
+      .trim()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/[^\w\-]+/g, '')
+      .replace(/\-\-+/g, '-');
+  };
+
+  const irAGestionarProductos = async () => {
+    if (!sessionUser) return;
+    
+    const { data: tiendaBD } = await supabase
+      .from('tiendas')
+      .select('id')
+      .eq('usuario_id', sessionUser.id)
+      .maybeSingle();
+
+    if (!tiendaBD) {
+      setMensaje({
+        tipo: 'error',
+        texto: 'Aún no has guardado los datos de tu tienda. Completa el formulario y presiona "Guardar Datos de la Tienda".',
+      });
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setFormTienda((prev) => ({
-          ...prev,
-          latitud: position.coords.latitude,
-          longitud: position.coords.longitude,
-        }));
-        alert('¡Ubicación GPS obtenida con éxito!');
-      },
-      () => {
-        alert('Error al obtener la ubicación GPS.');
-      }
-    );
+    router.push('/vendedor/productos');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setErrorMsg(null);
+    setMensaje(null);
 
     try {
-      let activeUser = usuarioActual;
+      if (!sessionUser) throw new Error('No estás autenticado.');
 
-      if (!activeUser) {
-        if (!emailAuth || !passwordAuth) {
-          throw new Error('Por favor ingresa un correo y contraseña para continuar.');
-        }
+      const userId = sessionUser.id;
 
-        if (modoAuth === 'register') {
-          const { data, error } = await supabase.auth.signUp({
-            email: emailAuth,
-            password: passwordAuth,
-            options: {
-              data: { full_name: nombreUsuario || formTienda.nombre_comercio },
-            },
-          });
-          if (error) throw error;
-          activeUser = data.user;
-        } else {
-          const { data, error } = await supabase.auth.signInWithPassword({
-            email: emailAuth,
-            password: passwordAuth,
-          });
-          if (error) throw error;
-          activeUser = data.user;
-        }
-      }
-
-      if (!activeUser) {
-        throw new Error('No se pudo establecer la sesión del usuario.');
-      }
-
-      const nombreAUsar = formTienda.nombre_comercio || nombreUsuario || activeUser.email;
-
-      // 1. Actualización / Inserción del usuario
-      const { error: userError } = await supabase.from('usuarios').upsert(
-        {
-          id: activeUser.id,
-          email: activeUser.email,
-          nombre: nombreAUsar,
+      const { error: userError } = await supabase
+        .from('usuarios')
+        .upsert({
+          id: userId,
+          nombre_completo: userData.nombre_completo,
+          email: userData.email,
+          telefono_contacto: userData.telefono_contacto,
           rol: 'comerciante',
-          telefono: formTienda.whatsapp || formTienda.telefono || null,
-        },
-        { onConflict: 'id' }
-      );
+          actualizado_en: new Date().toISOString(),
+        }, { onConflict: 'id' });
 
-      if (userError) {
-        console.error('Error al actualizar rol de usuario:', userError);
-      }
+      if (userError) throw new Error(`Error en Usuario: ${userError.message}`);
 
-      // 2. Generar slug único para la tienda
-      const slugBase = formTienda.nombre_comercio
-        .toLowerCase()
-        .trim()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/[\s_-]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-      const slugFinal = `${slugBase}-${Date.now().toString().slice(-4)}`;
+      const generatedSlug = slugify(formData.nombre_comercio) || `tienda-${userId.slice(0, 8)}`;
 
-      // 3. Registrar la tienda
-      const { error: tiendaError } = await supabase.from('tiendas').insert([
-        {
-          usuario_id: activeUser.id,
-          distrito_id: Number(formTienda.distrito_id),
-          nombre_comercio: formTienda.nombre_comercio,
-          slug: slugFinal,
-          descripcion: formTienda.descripcion || null,
-          categoria_principal: formTienda.categoria_principal,
-          whatsapp: formTienda.whatsapp,
-          telefono: formTienda.telefono || formTienda.whatsapp || null,
-          email: formTienda.email || activeUser.email,
-          facebook: formTienda.facebook || null,
-          instagram: formTienda.instagram || null,
-          tiktok: formTienda.tiktok || null,
-          direccion_texto: formTienda.direccion_texto || null,
-          latitud: formTienda.latitud,
-          longitud: formTienda.longitud,
-          estado: 'activa',
-        },
-      ]);
+      const tiendaPayload = {
+        usuario_id: userId,
+        distrito_id: formData.distrito_id,
+        nombre_comercio: formData.nombre_comercio,
+        slug: generatedSlug,
+        descripcion: formData.descripcion,
+        categoria_principal: formData.categoria_principal,
+        logo_url: formData.logo_url,
+        portada_url: formData.portada_url,
+        whatsapp: formData.whatsapp,
+        telefono: formData.telefono,
+        email: formData.email,
+        instagram_username: formData.instagram_username,
+        facebook_url: formData.facebook_url,
+        direccion_texto: formData.direccion_texto,
+        latitud: formData.latitud,
+        longitud: formData.longitud,
+        actualizado_en: new Date().toISOString(),
+      };
 
-      if (tiendaError) {
-        throw new Error(tiendaError.message);
-      }
+      const { error: tiendaError } = await supabase
+        .from('tiendas')
+        .upsert(tiendaPayload, { onConflict: 'usuario_id' });
 
-      setExitoGuardado(true);
+      if (tiendaError) throw new Error(`Error en Tienda: ${tiendaError.message}`);
+
+      setGuardadoExitoso(true);
+      setMensaje({
+        tipo: 'exito',
+        texto: '¡Excelente! Los datos de tu tienda se guardaron correctamente.',
+      });
+
     } catch (err: any) {
-      setErrorMsg(err.message || 'Ocurrió un error al intentar registrar el comercio.');
+      console.error('Error al guardar:', err);
+      setGuardadoExitoso(false);
+      setMensaje({
+        tipo: 'error',
+        texto: err.message || 'No se pudo guardar la tienda.',
+      });
     } finally {
       setLoading(false);
     }
   };
 
- if (exitoGuardado) {
+  if (fetching) {
     return (
-      <div className="max-w-xl mx-auto my-16 p-8 bg-white rounded-3xl shadow-lg border border-slate-100 text-center">
-        <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
-          ✓
-        </div>
-        <h2 className="text-2xl font-bold text-slate-900 mb-2">¡Tienda Registrada con Éxito!</h2>
-        <p className="text-slate-600 text-sm mb-6">
-          Los datos de <strong className="text-slate-800">{formTienda.nombre_comercio}</strong> se han registrado correctamente. Tienes <strong>30 días de prueba gratuita</strong> activados.
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <p className="text-xs font-bold text-slate-500 animate-pulse">
+          ⏳ Verificando sesión de vendedor...
         </p>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <button
-            onClick={() => {
-              window.location.href = '/vendedor/dashboard';
-            }}
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-sm transition-colors shadow-md"
-          >
-            🚀 Ir a Administrar mi Tienda
-          </button>
-          <button
-            onClick={() => {
-              window.location.href = '/';
-            }}
-            className="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-sm transition-colors"
-          >
-            Volver al Inicio
-          </button>
+      </div>
+    );
+  }
+
+  if (!sessionUser) {
+    return (
+      <div className="min-h-screen bg-slate-50 py-12 px-4 flex items-center justify-center">
+        <div className="max-w-md w-full bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+          
+          <div className="bg-[#0b0f19] text-white p-8 text-center border-b border-slate-800">
+            <span className="text-4xl">🏪</span>
+            <h1 className="text-xl font-black mt-2">Portal de Vendedores</h1>
+            <p className="text-slate-400 text-xs mt-1">
+              {authMode === 'login'
+                ? 'Ingresa tus credenciales para administrar tu tienda'
+                : 'Crea tu cuenta de vendedor y publica tu comercio'}
+            </p>
+          </div>
+
+          <div className="flex border-b border-slate-100 bg-slate-50">
+            <button
+              type="button"
+              onClick={() => { setAuthMode('login'); setMensaje(null); }}
+              className={`flex-1 py-3 text-xs font-bold transition-all ${
+                authMode === 'login'
+                  ? 'bg-white text-blue-600 border-b-2 border-blue-600'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              🔑 Iniciar Sesión
+            </button>
+            <button
+              type="button"
+              onClick={() => { setAuthMode('register'); setMensaje(null); }}
+              className={`flex-1 py-3 text-xs font-bold transition-all ${
+                authMode === 'register'
+                  ? 'bg-white text-blue-600 border-b-2 border-blue-600'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              📝 Crear Cuenta
+            </button>
+          </div>
+
+          {mensaje && (
+            <div className={`p-4 mx-6 mt-6 rounded-2xl text-xs font-bold ${
+              mensaje.tipo === 'exito'
+                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                : 'bg-rose-50 text-rose-800 border border-rose-200'
+            }`}>
+              {mensaje.texto}
+            </div>
+          )}
+
+          <form onSubmit={handleAuthSubmit} className="p-6 space-y-4">
+            {authMode === 'register' && (
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Nombre Completo *</label>
+                <input
+                  type="text"
+                  required
+                  value={authData.nombre_completo}
+                  onChange={(e) => setAuthData({ ...authData, nombre_completo: e.target.value })}
+                  placeholder="Tu nombre y apellido"
+                  className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600"
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Correo Electrónico *</label>
+              <input
+                type="email"
+                required
+                value={authData.email}
+                onChange={(e) => setAuthData({ ...authData, email: e.target.value })}
+                placeholder="tu@correo.com"
+                className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">Contraseña *</label>
+              <input
+                type="password"
+                required
+                minLength={6}
+                value={authData.password}
+                onChange={(e) => setAuthData({ ...authData, password: e.target.value })}
+                placeholder="••••••••"
+                className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600"
+              />
+            </div>
+
+            {authMode === 'register' && (
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Teléfono Personal / WhatsApp</label>
+                <input
+                  type="text"
+                  value={authData.telefono_contacto}
+                  onChange={(e) => setAuthData({ ...authData, telefono_contacto: e.target.value })}
+                  placeholder="Ej: 0981123456"
+                  className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600"
+                />
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={authLoading}
+              className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs py-4 rounded-xl transition-all shadow-md disabled:opacity-50 cursor-pointer"
+            >
+              {authLoading
+                ? 'Procesando...'
+                : authMode === 'login'
+                ? '🔑 Ingresar al Panel'
+                : '🚀 Registrarme como Vendedor'}
+            </button>
+          </form>
+
+          <div className="p-4 bg-slate-50 border-t border-slate-100 text-center">
+            <Link href="/" className="text-xs font-bold text-slate-500 hover:text-blue-600">
+              ← Volver a la página principal
+            </Link>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto py-10 px-4">
-      <h1 className="text-2xl font-bold text-slate-900 mb-1">Registro de Vendedor y Comercio</h1>
-      <p className="text-slate-600 text-sm mb-6">
-        Configura los accesos de tu cuenta y posiciona tu tienda en el mapa interactivo de Guairá.
-      </p>
-
-      {errorMsg && (
-        <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100 flex items-center justify-between">
-          <span>{errorMsg}</span>
-          <button onClick={() => setErrorMsg(null)} className="font-bold text-xs">✕</button>
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* SECCIÓN 1: DATOS DE ACCESO / CUENTA */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-          <h2 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
-            <span>👤</span> 1. Cuenta de Acceso Vendedor
-          </h2>
-
-          {usuarioActual ? (
-            <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between">
-              <div>
-                <p className="text-xs text-emerald-700 font-medium">Sesión activa detectada:</p>
-                <p className="text-sm font-bold text-emerald-900">{usuarioActual.email}</p>
-              </div>
-              <span className="text-xs bg-emerald-200 text-emerald-800 px-2 py-1 rounded-md font-semibold">
-                Conectado
-              </span>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <button
-                type="button"
-                onClick={handleGoogleLogin}
-                className="w-full py-2.5 px-4 bg-slate-50 hover:bg-slate-100 border border-slate-300 text-slate-700 font-semibold rounded-xl text-sm transition-colors flex items-center justify-center gap-2 shadow-sm"
-              >
-                <svg className="w-4 h-4" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                </svg>
-                Iniciar Sesión con Google
-              </button>
-
-              <div className="relative flex py-1 items-center">
-                <div className="flex-grow border-t border-slate-200"></div>
-                <span className="flex-shrink mx-4 text-xs text-slate-400 uppercase font-semibold">o con correo</span>
-                <div className="flex-grow border-t border-slate-200"></div>
-              </div>
-
-              {modoAuth === 'register' && (
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Nombre Completo *</label>
-                  <input
-                    type="text"
-                    placeholder="Ej: Juan Pérez"
-                    value={nombreUsuario}
-                    onChange={(e) => setNombreUsuario(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Correo Electrónico *</label>
-                  <input
-                    type="email"
-                    placeholder="tu@correo.com"
-                    value={emailAuth}
-                    onChange={(e) => setEmailAuth(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Contraseña *</label>
-                  <input
-                    type="password"
-                    placeholder="••••••••"
-                    value={passwordAuth}
-                    onChange={(e) => setPasswordAuth(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
-                <span>
-                  {modoAuth === 'register' ? '¿Ya tienes una cuenta?' : '¿Eres un comerciante nuevo?'}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setModoAuth(modoAuth === 'register' ? 'login' : 'register')}
-                  className="text-blue-600 font-bold hover:underline"
-                >
-                  {modoAuth === 'register' ? 'Iniciar Sesión' : 'Crear Cuenta Nueva'}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* SECCIÓN 2: DATOS DEL COMERCIO */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-          <h2 className="text-base font-bold text-slate-800 mb-2 flex items-center gap-2">
-            <span>🏪</span> 2. Información del Comercio
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Nombre del Comercio *</label>
-              <input
-                type="text"
-                required
-                placeholder="Ej: Comercial San José"
-                value={formTienda.nombre_comercio}
-                onChange={(e) => setFormTienda({ ...formTienda, nombre_comercio: e.target.value })}
-                className="w-full px-4 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Categoría Principal *</label>
-              <select
-                value={formTienda.categoria_principal}
-                onChange={(e) => setFormTienda({ ...formTienda, categoria_principal: e.target.value })}
-                className="w-full px-4 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="Gastronomía">Gastronomía</option>
-                <option value="Indumentaria">Indumentaria / Moda</option>
-                <option value="Electrónica">Electrónica / Tecnología</option>
-                <option value="Artesanía">Artesanía / Ao Po'i</option>
-                <option value="Servicios">Servicios</option>
-                <option value="Supermercado">Supermercado / Almacén</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">WhatsApp de Pedidos *</label>
-              <input
-                type="text"
-                required
-                placeholder="Ej: 0981123456"
-                value={formTienda.whatsapp}
-                onChange={(e) => setFormTienda({ ...formTienda, whatsapp: e.target.value })}
-                className="w-full px-4 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Distrito (Guairá) *</label>
-              <select
-                required
-                value={formTienda.distrito_id}
-                onChange={(e) => setFormTienda({ ...formTienda, distrito_id: e.target.value })}
-                className="w-full px-4 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                disabled={cargandoDistritos}
-              >
-                {cargandoDistritos ? (
-                  <option value="">Cargando distritos del Guairá...</option>
-                ) : distritos.length > 0 ? (
-                  distritos.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.nombre}
-                    </option>
-                  ))
-                ) : (
-                  <option value="">No se encontraron distritos</option>
-                )}
-              </select>
-            </div>
-          </div>
-
+    <div className="min-h-screen bg-slate-50 py-10 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        
+        {/* Banner Superior */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-6">
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">Descripción corta</label>
-            <textarea
-              rows={2}
-              placeholder="Descripción de los productos o servicios ofrecidos..."
-              value={formTienda.descripcion}
-              onChange={(e) => setFormTienda({ ...formTienda, descripcion: e.target.value })}
-              className="w-full px-4 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <h1 className="text-2xl font-black text-slate-900">Perfil de Vendedor</h1>
+            <p className="text-slate-500 text-xs mt-1">Configura la información de tu comercio</p>
           </div>
-        </div>
+          <div className="flex flex-wrap gap-2">
+            {/* LINK 1 INTEGRADO DE FORMA SEGURA */}
+            {formData.nombre_comercio && (
+              <Link
+                href={`/tienda/${slugify(formData.nombre_comercio)}`}
+                target="_blank"
+                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 shadow-sm"
+              >
+                👁️ Ver mi tienda pública
+              </Link>
+            )}
 
-        {/* SECCIÓN 3: REDES SOCIALES */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-          <h2 className="text-base font-bold text-slate-800 mb-2 flex items-center gap-2">
-            <span>🌐</span> 3. Redes Sociales (Opcional)
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">Instagram (@usuario)</label>
-              <input
-                type="text"
-                placeholder="@mitienda"
-                value={formTienda.instagram}
-                onChange={(e) => setFormTienda({ ...formTienda, instagram: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">Facebook (Página / Usuario)</label>
-              <input
-                type="text"
-                placeholder="mitienda.py"
-                value={formTienda.facebook}
-                onChange={(e) => setFormTienda({ ...formTienda, facebook: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">TikTok (@usuario)</label>
-              <input
-                type="text"
-                placeholder="@mitienda.py"
-                value={formTienda.tiktok}
-                onChange={(e) => setFormTienda({ ...formTienda, tiktok: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* SECCIÓN 4: UBICACIÓN Y MAPA */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
-              <span>📍</span> 4. Ubicación del Local
-            </h2>
             <button
-              type="button"
-              onClick={obtenerUbicacionGps}
-              className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-lg border border-emerald-200 transition-colors"
+              onClick={irAGestionarProductos}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer flex items-center gap-2"
             >
-              📍 Usar mi ubicación GPS
+              📦 Gestionar Mis Productos
             </button>
           </div>
-
-          <LocationPicker
-            latInicial={formTienda.latitud}
-            lngInicial={formTienda.longitud}
-            onLocationChange={(lat, lng) => {
-              setFormTienda((prev) => ({ ...prev, latitud: lat, longitud: lng }));
-            }}
-          />
-
-          <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">
-              Dirección o Referencia
-            </label>
-            <input
-              type="text"
-              placeholder="Ej: Frente a la plaza principal, Barrio Ybaroty"
-              value={formTienda.direccion_texto}
-              onChange={(e) => setFormTienda({ ...formTienda, direccion_texto: e.target.value })}
-              className="w-full px-4 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-2xl transition-colors text-base shadow-lg disabled:opacity-50"
-        >
-          {loading ? 'Guardando datos...' : 'Completar Registro y Publicar Tienda'}
-        </button>
-      </form>
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+          {/* Cabecera */}
+          <div className="bg-[#0b0f19] text-white p-6 sm:p-8 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span className="text-xs text-slate-400 font-medium">
+                  Conectado como: <strong className="text-white font-bold">{userData.nombre_completo || sessionUser.email}</strong>
+                </span>
+              </div>
+              <h1 className="text-2xl font-black tracking-tight">⚙️ Perfil Comercial y Tienda</h1>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Link
+                href="/"
+                className="text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2.5 rounded-xl border border-slate-700 transition-all flex items-center gap-1.5"
+              >
+                🏠 Ir al Inicio
+              </Link>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="text-xs font-bold bg-rose-950/40 hover:bg-rose-900 text-rose-300 px-4 py-2.5 rounded-xl border border-rose-800/50 transition-all cursor-pointer"
+              >
+                🚪 Cerrar Sesión
+              </button>
+            </div>
+          </div>
+
+          {/* Mensajes de Alerta y Directo a Productos o Ver Tienda */}
+          {mensaje && (
+            <div className={`p-4 mx-8 mt-6 rounded-2xl text-xs font-bold flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+              mensaje.tipo === 'exito'
+                ? 'bg-emerald-50 text-emerald-900 border border-emerald-200'
+                : 'bg-rose-50 text-rose-900 border border-rose-200'
+            }`}>
+              <span>{mensaje.texto}</span>
+              {guardadoExitoso && (
+                <div className="flex items-center gap-2">
+                  {/* LINK 2 INTEGRADO EN MENSAJE DE ÉXITO */}
+                  <Link
+                    href={`/tienda/${slugify(formData.nombre_comercio)}`}
+                    target="_blank"
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-5 py-2.5 rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap"
+                  >
+                    🚀 Ver mi tienda pública →
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={irAGestionarProductos}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-black text-xs px-5 py-2.5 rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap"
+                  >
+                    📦 Cargar Productos Ahora →
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="p-8 space-y-8">
+
+            {/* SECCIÓN 1: PROPIETARIO */}
+            <div className="space-y-4 border-b border-slate-100 pb-8">
+              <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider">
+                👤 Datos del Propietario
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Nombre Completo *</label>
+                  <input
+                    type="text"
+                    name="nombre_completo"
+                    required
+                    value={userData.nombre_completo}
+                    onChange={handleUserChange}
+                    placeholder="Tu nombre y apellido"
+                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Correo Electrónico</label>
+                  <input
+                    type="email"
+                    name="email"
+                    readOnly
+                    disabled
+                    value={userData.email}
+                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 bg-slate-100 text-slate-500 cursor-not-allowed"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Teléfono Personal</label>
+                  <input
+                    type="text"
+                    name="telefono_contacto"
+                    value={userData.telefono_contacto}
+                    onChange={handleUserChange}
+                    placeholder="Ej: 0981123456"
+                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* SECCIÓN 2: MULTIMEDIA */}
+            <div className="space-y-4 border-b border-slate-100 pb-8">
+              <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider">
+                🖼️ Logos e Imágenes
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                  <label className="block text-xs font-bold text-slate-700 mb-2">Logo del Comercio</label>
+                  <div className="flex items-center gap-4">
+                    <div className="relative w-20 h-20 rounded-2xl bg-white border border-slate-200 overflow-hidden flex items-center justify-center flex-shrink-0 shadow-sm">
+                      {formData.logo_url ? (
+                        <Image src={formData.logo_url} alt="Logo" fill className="object-cover" />
+                      ) : (
+                        <span className="text-3xl text-slate-300">🏪</span>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) uploadImage(file, 'logo');
+                        }}
+                        disabled={uploadingLogo}
+                        className="text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer"
+                      />
+                      {uploadingLogo && <p className="text-[10px] text-blue-600 font-bold mt-1">Subiendo logo...</p>}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                  <label className="block text-xs font-bold text-slate-700 mb-2">Portada del Comercio</label>
+                  <div className="flex items-center gap-4">
+                    <div className="relative w-28 h-20 rounded-2xl bg-white border border-slate-200 overflow-hidden flex items-center justify-center flex-shrink-0 shadow-sm">
+                      {formData.portada_url ? (
+                        <Image src={formData.portada_url} alt="Portada" fill className="object-cover" />
+                      ) : (
+                        <span className="text-3xl text-slate-300">🖼️</span>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) uploadImage(file, 'portada');
+                        }}
+                        disabled={uploadingPortada}
+                        className="text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer"
+                      />
+                      {uploadingPortada && <p className="text-[10px] text-blue-600 font-bold mt-1">Subiendo portada...</p>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* SECCIÓN 3: INFORMACIÓN DE TIENDA */}
+            <div className="space-y-4 border-b border-slate-100 pb-8">
+              <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider">
+                🏪 Información del Comercio
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Nombre Comercial *</label>
+                  <input
+                    type="text"
+                    name="nombre_comercio"
+                    required
+                    value={formData.nombre_comercio}
+                    onChange={handleChange}
+                    placeholder="Ej: Bodega Guairá"
+                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Categoría Principal *</label>
+                  <select
+                    name="categoria_principal"
+                    value={formData.categoria_principal}
+                    onChange={handleChange}
+                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 bg-white"
+                  >
+                    {categorias.map((cat) => (
+                      <option key={cat.id} value={cat.nombre}>
+                        {cat.nombre}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Descripción corta</label>
+                <textarea
+                  name="descripcion"
+                  rows={3}
+                  value={formData.descripcion}
+                  onChange={handleChange}
+                  placeholder="Cuenta brevemente qué productos o servicios ofrece tu negocio..."
+                  className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 resize-none"
+                />
+              </div>
+            </div>
+
+            {/* SECCIÓN 4: CONTACTO Y REDES */}
+            <div className="space-y-4 border-b border-slate-100 pb-8">
+              <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider">
+                💬 Contacto y Redes
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    WhatsApp Comercial *
+                  </label>
+                  <input
+                    type="text"
+                    name="whatsapp"
+                    required
+                    value={formData.whatsapp}
+                    onChange={handleChange}
+                    placeholder="Ej: 0981123456"
+                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Teléfono Alternativo (Opcional)
+                  </label>
+                  <input
+                    type="text"
+                    name="telefono"
+                    value={formData.telefono}
+                    onChange={handleChange}
+                    placeholder="Ej: 0541 40000"
+                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Usuario Instagram (Opcional)
+                  </label>
+                  <input
+                    type="text"
+                    name="instagram_username"
+                    value={formData.instagram_username}
+                    onChange={handleChange}
+                    placeholder="@mi_comercio"
+                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    URL Facebook (Opcional)
+                  </label>
+                  <input
+                    type="url"
+                    name="facebook_url"
+                    value={formData.facebook_url}
+                    onChange={handleChange}
+                    placeholder="https://facebook.com/mi_comercio"
+                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* SECCIÓN 5: UBICACIÓN */}
+            <div className="space-y-4 pb-4">
+              <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider">
+                📍 Ubicación Geográfica
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Distrito *</label>
+                  <select
+                    name="distrito_id"
+                    value={formData.distrito_id}
+                    onChange={handleChange}
+                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 bg-white"
+                  >
+                    {distritos.map((dist) => (
+                      <option key={dist.id} value={dist.id}>
+                        {dist.nombre}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Dirección Escrita</label>
+                  <input
+                    type="text"
+                    name="direccion_texto"
+                    value={formData.direccion_texto}
+                    onChange={handleChange}
+                    placeholder="Ej: Av. General Díaz c/ Coronel Bogado"
+                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-2">
+                  Selecciona la ubicación exacta en el mapa
+                </label>
+                <LocationPicker
+                  latInicial={formData.latitud}
+                  lngInicial={formData.longitud}
+                  onLocationChange={(lat: number, lng: number) => {
+                    setGuardadoExitoso(false);
+                    setFormData((prev) => ({ ...prev, latitud: lat, longitud: lng }));
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* BOTÓN DE GUARDADO DINÁMICO */}
+            <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row justify-end items-center gap-4">
+              <button
+                type="submit"
+                disabled={loading}
+                className={`w-full sm:w-auto font-extrabold text-xs px-8 py-4 rounded-xl transition-all shadow-md cursor-pointer ${
+                  guardadoExitoso
+                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                } disabled:opacity-50`}
+              >
+                {loading
+                  ? '⏳ Guardando Comercio...'
+                  : guardadoExitoso
+                  ? '✅ ¡Datos Guardados con Éxito!'
+                  : '💾 Guardar Datos de la Tienda'}
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
     </div>
   );
 }

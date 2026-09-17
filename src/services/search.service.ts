@@ -5,18 +5,18 @@ const MAX_RESULTS = 20;
 
 export interface Shop {
   id: string;
-  distrito_id: number;
+  distrito_id?: string; // ✅ Cambiado de number a string (UUID)
   nombre_comercio: string;
   slug: string;
-  descripcion: string;
-  categoria_principal: string;
+  descripcion?: string;
+  categoria_principal?: string;
   estado: string;
   verificada: boolean;
-  whatsapp: string;
-  telefono: string;
-  direccion_texto: string;
-  latitud: number;
-  longitud: number;
+  whatsapp?: string;
+  telefono?: string;
+  direccion_texto?: string;
+  latitud?: number;
+  longitud?: number;
 }
 
 function getSearchTerm(term: string): string | null {
@@ -35,8 +35,7 @@ export async function searchProducts(term: string): Promise<Product[]> {
       .select('*')
       .eq('disponible', true)
       .or(`titulo.ilike.%${searchTerm}%,descripcion.ilike.%${searchTerm}%`)
-      .order('destacado', { ascending: false })
-      .order('creado_en', { ascending: false })
+      .order('creado_en', { ascending: false }) // ✅ Eliminado .order('destacado')
       .limit(MAX_RESULTS);
 
     if (error) throw error;
@@ -56,7 +55,7 @@ export async function searchShops(term: string): Promise<Shop[]> {
     const { data, error } = await supabase
       .from('tiendas')
       .select('*')
-      .eq('estado', 'activa')
+      .eq('estado', 'aprobado') // ✅ Cambiado de 'activa' a 'aprobado'
       .or(
         `nombre_comercio.ilike.%${searchTerm}%,descripcion.ilike.%${searchTerm}%,categoria_principal.ilike.%${searchTerm}%`,
       )

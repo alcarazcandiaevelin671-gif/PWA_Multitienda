@@ -5,8 +5,21 @@ import { createBrowserClient } from '@supabase/ssr';
 import Image from 'next/image';
 import Link from 'next/link';
 
+// Helper para convertir nombres a slugs limpios
+const crearSlug = (texto: string) => {
+  return texto
+    .toLowerCase()
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Elimina acentos
+    .replace(/[^a-z0-9 -]/g, '')    // Elimina caracteres especiales
+    .replace(/\s+/g, '-')           // Reemplaza espacios por guiones
+    .replace(/-+/g, '-');           // Elimina guiones dobles
+};
+
 interface Tienda {
   id: string;
+  slug?: string;
   nombre_comercio: string;
   descripcion: string | null;
   whatsapp: string;
@@ -34,7 +47,7 @@ export default function VendedorDashboardPage() {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [activeTab, setActiveTab] = useState<'perfil' | 'productos'>('productos');
 
-  // Estados del Formulario de Perfil
+  // Estados Formulario Perfil
   const [perfilForm, setPerfilForm] = useState({
     nombre_comercio: '',
     descripcion: '',
@@ -42,7 +55,7 @@ export default function VendedorDashboardPage() {
   });
   const [subiendoLogo, setSubiendoLogo] = useState(false);
 
-  // Estados del Formulario de Producto
+  // Estados Formulario Producto
   const [prodForm, setProdForm] = useState({
     nombre: '',
     descripcion: '',
@@ -73,7 +86,6 @@ export default function VendedorDashboardPage() {
         return;
       }
 
-      // 1. Obtener la tienda del usuario logueado
       const { data: tiendaData, error: tiendaError } = await supabase
         .from('tiendas')
         .select('*')
@@ -94,7 +106,6 @@ export default function VendedorDashboardPage() {
         whatsapp: tiendaData.whatsapp || '',
       });
 
-      // 2. Obtener los productos de esta tienda
       const { data: prodData, error: prodError } = await supabase
         .from('productos')
         .select('*')
@@ -110,7 +121,6 @@ export default function VendedorDashboardPage() {
     }
   };
 
-  // --- CÁLCULO DE DÍAS DE PRUEBA ---
   const calcularDiasRestantes = () => {
     if (!tienda?.fecha_fin_prueba) return 0;
     const fin = new Date(tienda.fecha_fin_prueba).getTime();
@@ -119,7 +129,6 @@ export default function VendedorDashboardPage() {
     return diferenciaDias > 0 ? diferenciaDias : 0;
   };
 
-  // --- SUBIR LOGO / FOTO DE PERFIL DE LA TIENDA ---
   const handleUploadLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !tienda) return;
@@ -160,7 +169,7 @@ export default function VendedorDashboardPage() {
     }
   };
 
-  // --- ACTUALIZAR DATOS DE LA TIENDA ---
+  // Reemplazo de handleGuardarPerfil con soporte para Slug
   const handleGuardarPerfil = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!tienda) return;
@@ -168,11 +177,14 @@ export default function VendedorDashboardPage() {
     setMsgExito(null);
     setMsgError(null);
 
+    const nuevoSlug = crearSlug(perfilForm.nombre_comercio);
+
     try {
       const { error } = await supabase
         .from('tiendas')
         .update({
           nombre_comercio: perfilForm.nombre_comercio,
+          slug: nuevoSlug,
           descripcion: perfilForm.descripcion || null,
           whatsapp: perfilForm.whatsapp,
         })
@@ -180,14 +192,13 @@ export default function VendedorDashboardPage() {
 
       if (error) throw error;
 
-      setTienda({ ...tienda, ...perfilForm });
-      setMsgExito('Datos de la tienda actualizados.');
+      setTienda({ ...tienda, ...perfilForm, slug: nuevoSlug });
+      setMsgExito('Datos de la tienda actualizados correctamente.');
     } catch (err: any) {
       setMsgError(err.message);
     }
   };
 
-  // --- REGISTRAR NUEVO PRODUCTO ---
   const handleGuardarProducto = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!tienda) return;
@@ -246,6 +257,21 @@ export default function VendedorDashboardPage() {
     }
   };
 
+  const handleEliminarProducto = async (id: string) => {
+    if (!confirm('¿Estás seguro de que deseas eliminar este producto?')) return;
+
+    try {
+      const { error } = await supabase.from('productos').delete().eq('id', id);
+
+      if (error) throw error;
+
+      setProductos(productos.filter((prod) => prod.id !== id));
+      setMsgExito('Producto eliminado correctamente.');
+    } catch (err: any) {
+      setMsgError('Error al eliminar producto: ' + err.message);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -261,7 +287,6 @@ export default function VendedorDashboardPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-16">
-      {/* BANNER DE PRUEBA */}
       <div className={`py-3 px-4 text-center text-sm font-medium ${diasPrueba > 0 ? 'bg-amber-500 text-slate-950' : 'bg-red-600 text-white'}`}>
         {diasPrueba > 0 ? (
           <span>
@@ -275,7 +300,6 @@ export default function VendedorDashboardPage() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 pt-8">
-        {/* ENCABEZADO DE LA TIENDA */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
           <div className="flex items-center gap-4">
             <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 flex items-center justify-center flex-shrink-0">
@@ -296,7 +320,18 @@ export default function VendedorDashboardPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Botón a la tienda pública */}
+            {tienda?.slug && (
+              <Link
+                href={`/tienda/${tienda.slug}`}
+                target="_blank"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1 shadow-sm"
+              >
+                🏪 Ver Mi Tienda Pública
+              </Link>
+            )}
+
             <Link
               href="/"
               className="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1"
@@ -317,7 +352,6 @@ export default function VendedorDashboardPage() {
           </div>
         </div>
 
-        {/* NOTIFICACIONES */}
         {msgExito && (
           <div className="mb-6 p-4 bg-emerald-50 text-emerald-700 rounded-xl text-sm border border-emerald-200 flex justify-between items-center">
             <span>{msgExito}</span>
@@ -331,7 +365,6 @@ export default function VendedorDashboardPage() {
           </div>
         )}
 
-        {/* NAVEGACIÓN PESTAÑAS */}
         <div className="flex border-b border-slate-200 mb-6 gap-6">
           <button
             onClick={() => setActiveTab('productos')}
@@ -355,7 +388,6 @@ export default function VendedorDashboardPage() {
           </button>
         </div>
 
-        {/* CONTENIDO 1: CATÁLOGO DE PRODUCTOS */}
         {activeTab === 'productos' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 h-fit">
@@ -366,7 +398,7 @@ export default function VendedorDashboardPage() {
                   <input
                     type="text"
                     required
-                    placeholder="Ej: Empanada de Carne"
+                    placeholder="Ej: Chipa al Paso"
                     value={prodForm.nombre}
                     onChange={(e) => setProdForm({ ...prodForm, nombre: e.target.value })}
                     className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
@@ -379,7 +411,7 @@ export default function VendedorDashboardPage() {
                     <input
                       type="number"
                       required
-                      placeholder="5000"
+                      placeholder="15000"
                       value={prodForm.precio}
                       onChange={(e) => setProdForm({ ...prodForm, precio: e.target.value })}
                       className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
@@ -437,22 +469,33 @@ export default function VendedorDashboardPage() {
                 </div>
               ) : (
                 productos.map((prod) => (
-                  <div key={prod.id} className="bg-white p-4 rounded-2xl border border-slate-200 flex items-center gap-4 shadow-sm">
-                    <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-100 flex items-center justify-center">
-                      {prod.imagen_url ? (
-                        <Image src={prod.imagen_url} alt={prod.titulo || prod.nombre || 'Producto'} fill className="object-cover" />
-                      ) : (
-                        <span className="text-xl">📦</span>
-                      )}
-                    </div>
-                    <div className="flex-grow">
-                      <h3 className="font-bold text-slate-900 text-sm">{prod.titulo || prod.nombre}</h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="font-bold text-blue-600 text-sm">
-                          {Number(prod.precio_gs).toLocaleString('es-PY')} Gs.
-                        </span>
+                  <div key={prod.id} className="bg-white p-4 rounded-2xl border border-slate-200 flex items-center justify-between gap-4 shadow-sm">
+                    <div className="flex items-center gap-4">
+                      <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-100 flex items-center justify-center">
+                        {prod.imagen_url ? (
+                          <Image src={prod.imagen_url} alt={prod.titulo || prod.nombre || 'Producto'} fill className="object-cover" />
+                        ) : (
+                          <span className="text-xl">📦</span>
+                        )}
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-slate-900 text-sm">{prod.titulo || prod.nombre}</h3>
+                        <p className="font-bold text-blue-600 text-sm mt-0.5">
+                          Gs. {Number(prod.precio_gs).toLocaleString('es-PY')}
+                        </p>
+                        {prod.descripcion && (
+                          <p className="text-xs text-slate-500 line-clamp-1 mt-0.5">{prod.descripcion}</p>
+                        )}
                       </div>
                     </div>
+
+                    <button
+                      onClick={() => handleEliminarProducto(prod.id)}
+                      title="Eliminar producto"
+                      className="text-slate-400 hover:text-rose-600 p-2 rounded-lg transition-colors text-sm"
+                    >
+                      🗑️
+                    </button>
                   </div>
                 ))
               )}
@@ -460,7 +503,6 @@ export default function VendedorDashboardPage() {
           </div>
         )}
 
-        {/* CONTENIDO 2: EDITAR PERFIL DE TIENDA */}
         {activeTab === 'perfil' && (
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 max-w-2xl mx-auto">
             <h2 className="text-base font-bold text-slate-900 mb-4">⚙️ Datos Principales de la Tienda</h2>

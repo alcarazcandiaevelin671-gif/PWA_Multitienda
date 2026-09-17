@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -17,7 +17,7 @@ const customIcon = L.icon({
 interface LocationPickerProps {
   latInicial?: number;
   lngInicial?: number;
-  onLocationChange: (lat: number, lng: number) => void;
+  onLocationChange?: (lat: number, lng: number) => void;
 }
 
 // Componente interno para capturar el clic en el mapa
@@ -39,7 +39,10 @@ export default function LocationPicker({
 
   const handleSelect = (lat: number, lng: number) => {
     setPosition([lat, lng]);
-    onLocationChange(lat, lng);
+    // Protección para evitar el runtime error "is not a function"
+    if (typeof onLocationChange === 'function') {
+      onLocationChange(lat, lng);
+    }
   };
 
   const handleUseGPS = () => {
@@ -48,9 +51,11 @@ export default function LocationPicker({
         (pos) => {
           const { latitude, longitude } = pos.coords;
           setPosition([latitude, longitude]);
-          onLocationChange(latitude, longitude);
+          if (typeof onLocationChange === 'function') {
+            onLocationChange(latitude, longitude);
+          }
         },
-        (error) => {
+        (_error) => {
           alert('No se pudo obtener la ubicación actual. Revisa los permisos de tu navegador.');
         }
       );
@@ -66,7 +71,7 @@ export default function LocationPicker({
         <button
           type="button"
           onClick={handleUseGPS}
-          className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
+          className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
         >
           📍 Usar mi ubicación actual
         </button>
