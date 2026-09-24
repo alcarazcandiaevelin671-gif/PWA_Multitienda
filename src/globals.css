@@ -1,3 +1,110 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+  .app-message-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(3px);
+    animation: app-message-fade 0.2s ease-out;
+  }
+
+  .app-message-card {
+    width: min(100%, 28rem);
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    border-radius: 1.25rem;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.2);
+    padding: 1.1rem;
+    animation: app-message-rise 0.25s ease-out;
+  }
+
+  .app-message-icon {
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: rgba(14, 165, 233, 0.12);
+    color: #0369a1;
+    font-weight: 800;
+    font-size: 0.95rem;
+    margin: 0 auto;
+  }
+
+  .app-message-content {
+    text-align: center;
+  }
+
+  .app-message-content h3 {
+    margin: 0 0 0.4rem;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #0f172a;
+  }
+
+  .app-message-content p {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #475569;
+    word-break: break-word;
+  }
+
+  .app-message-button {
+    width: 100%;
+    border: 0;
+    border-radius: 0.9rem;
+    background: linear-gradient(135deg, #2563eb, #0ea5e9);
+    color: #fff;
+    font-weight: 700;
+    padding: 0.8rem 1rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
+  }
+
+  .app-message-button-secondary {
+    width: 100%;
+    border: 1px solid rgba(148, 163, 184, 0.8);
+    border-radius: 0.9rem;
+    background: white;
+    color: #334155;
+    font-weight: 700;
+    padding: 0.8rem 1rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .app-message-button:hover,
+  .app-message-button-secondary:hover {
+    transform: translateY(-1px);
+  }
+
+  @keyframes app-message-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes app-message-rise {
+    from {
+      opacity: 0;
+      transform: translateY(18px) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+}

@@ -4,11 +4,13 @@ import { useState } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { showAppMessage } from '@/lib/app-message';
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [esRegistro, setEsRegistro] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -34,6 +36,97 @@ export default function LoginPage() {
     }
   };
 
+  const handleRegisterCliente = async () => {
+    try {
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: email,
+        password: password,
+      });
+
+      if (signUpError) throw signUpError;
+
+      if (signUpData.user) {
+        const { error: errorUsuario } = await supabase.from('usuarios').insert([
+          {
+            identificacion: signUpData.user.id,
+            correo_electronico: email,
+            nombre_completo: email.split('@')[0],
+            telefono_contacto: '',
+            rol: 'cliente',
+            activo: true,
+          },
+        ]);
+
+        if (errorUsuario) {
+          console.error('Error al registrar usuario:', errorUsuario);
+          alert(errorUsuario.message || 'No se pudo registrar el usuario.');
+          return;
+        }
+      }
+
+      showAppMessage('¡Cuenta creada con éxito!', 'Registro completado', 'success');
+    } catch (error: any) {
+      console.error('Error al registrar cliente:', error);
+      alert(error?.message || 'Ocurrió un error al registrar la cuenta.');
+      setErrorMsg(error?.message || 'Ocurrió un error al registrar la cuenta.');
+    }
+  };
+
+  const handleLogin = async () => {
+    try {
+      const { data: { user }, error: signInError } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
+
+      if (signInError) throw signInError;
+      if (!user) throw new Error('No se pudo iniciar sesión.');
+
+      let rolFinal = user.user_metadata?.rol;
+
+      if (!rolFinal) {
+        const { data: usuario } = await supabase
+          .from('usuarios')
+          .select('rol')
+          .eq('identificacion', user.id)
+          .maybeSingle();
+
+        rolFinal = usuario?.rol;
+      }
+
+      rolFinal = String(rolFinal || 'cliente').toLowerCase();
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('rol_usuario', rolFinal);
+      }
+
+      if (rolFinal === 'vendedor') {
+        router.push('/vendedor/dashboard');
+        router.refresh();
+        return;
+      }
+
+      if (rolFinal === 'cliente') {
+        router.push('/perfil');
+        router.refresh();
+        return;
+      }
+
+      if (rolFinal === 'administrador') {
+        router.push('/admin');
+        router.refresh();
+        return;
+      }
+
+      router.push('/');
+      router.refresh();
+    } catch (error: any) {
+      console.error('Error al iniciar sesión:', error);
+      alert(error?.message || 'Ocurrió un error validando tus credenciales.');
+      setErrorMsg(error?.message || 'Ocurrió un error validando tus credenciales.');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -41,34 +134,19 @@ export default function LoginPage() {
 
     try {
       if (esRegistro) {
-        const { error } = await supabase.auth.signUp({
-          email: email,
-          password: password,
-        });
-        if (error) throw error;
-
-        alert('¡Cuenta creada con éxito!');
+        await handleRegisterCliente();
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email: email,
-          password: password,
-        });
-        if (error) throw error;
+        await handleLogin();
       }
-
-      router.push('/');
-      router.refresh();
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Ocurrió un error. Verifica tus datos.');
-    } fontally {
+    } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white p-8 rounded-3xl shadow-lg border border-slate-100">
-        <h1 className="text-2xl font-bold text-slate-900 text-center mb-2">
+    <div className="min-h-[80vh] flex items-center justify-center px-4 py-8">
+      <div className="max-w-lg w-full bg-white p-7 sm:p-8 rounded-3xl shadow-xl border border-slate-200/80">
+        <h1 className="text-2xl font-black text-slate-900 text-center mb-2">
           {esRegistro ? 'Crear Cuenta Nueva' : 'Iniciar Sesión'}
         </h1>
         <p className="text-slate-500 text-xs text-center mb-6">
@@ -90,7 +168,7 @@ export default function LoginPage() {
           onClick={handleGoogleLogin}
           disabled={loading}
           type="button"
-          className="w-full py-3 px-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-semibold rounded-xl text-sm transition-colors flex items-center justify-center gap-3 shadow-sm mb-4 disabled:opacity-50"
+          className="w-full py-3 px-4 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-semibold rounded-xl text-sm transition-colors flex items-center justify-center gap-3 shadow-sm mb-4 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-slate-200"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path
@@ -128,11 +206,13 @@ export default function LoginPage() {
             </label>
             <input
               type="email"
+              inputMode="email"
+              autoComplete="email"
               required
               placeholder="correo@ejemplo.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50"
             />
           </div>
 
@@ -140,20 +220,42 @@ export default function LoginPage() {
             <label className="block text-xs font-semibold text-slate-700 mb-1">
               Contraseña
             </label>
-            <input
-              type="password"
-              required
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                required
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-2.5 pr-11 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+                aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+              >
+                {showPassword ? (
+                  <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-[1.8]" aria-hidden="true">
+                    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-[1.8]" aria-hidden="true">
+                    <path d="M3 3l18 18" />
+                    <path d="M10.58 10.58A2 2 0 0 0 13.42 13.42" />
+                    <path d="M9.88 5.08A10.94 10.94 0 0 1 12 5c6.5 0 10 7 10 7a17.7 17.7 0 0 1-4.29 5.3" />
+                    <path d="M6.61 6.61A17.75 17.75 0 0 0 2 12s3.5 7 10 7a10.65 10.65 0 0 0 5.39-1.61" />
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors text-sm shadow-md disabled:opacity-50"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors text-sm shadow-md disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-200"
           >
             {loading ? 'Procesando...' : esRegistro ? 'Registrarme' : 'Iniciar Sesión'}
           </button>

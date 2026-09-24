@@ -40,7 +40,7 @@ export const authService = {
       options: {
         data: {
           nombre_completo: params.nombreCompleto,
-          rol: 'comerciante',
+          rol: 'vendedor',
         },
       },
     });
@@ -51,15 +51,17 @@ export const authService = {
     const userId = authData.user.id;
 
     // 2. Insertar registro en 'usuarios'
-    const { error: userError } = await supabase.from('usuarios').insert([
+    const { error: userError } = await supabase.from('usuarios').upsert(
       {
-        id: userId,
-        email: params.email,
+        identificacion: userId,
+        correo_electronico: params.email,
         nombre_completo: params.nombreCompleto,
-        telefono: params.telefono,
-        rol: 'comerciante' as UserRole,
+        telefono_contacto: params.telefono,
+        rol: 'vendedor' as UserRole,
+        activo: true,
       },
-    ]);
+      { onConflict: 'identificacion' }
+    );
 
     if (userError) console.error('Error guardando perfil de usuario:', userError);
 
@@ -94,8 +96,8 @@ export const authService = {
     const { data } = await supabase
       .from('usuarios')
       .select('*')
-      .eq('id', session.user.id)
-      .single();
+      .eq('identificacion', session.user.id)
+      .maybeSingle();
 
     return data;
   },

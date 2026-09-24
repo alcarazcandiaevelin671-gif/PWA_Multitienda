@@ -92,13 +92,7 @@ export default function ComerciosGuairaSection() {
           <div className="bg-white rounded-3xl p-8 text-center border border-slate-200 shadow-sm">
             <span className="text-4xl block mb-2">🏬</span>
             <p className="text-sm font-bold text-slate-700">Aún no hay comercios registrados</p>
-            <p className="text-xs text-slate-500 mt-1 mb-4">Sé el primero en publicar tu negocio en Guairá.</p>
-            <Link
-              href="/vendedor/tienda"
-              className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs px-5 py-3 rounded-xl transition-all shadow-md"
-            >
-              🚀 Registrar mi Tienda
-            </Link>
+            <p className="text-xs text-slate-500 mt-1">El directorio se actualizará cuando haya nuevos comercios disponibles.</p>
           </div>
         </div>
       </section>

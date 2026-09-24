@@ -2,6 +2,7 @@
 import { CartProvider } from '@/context/CartContext';
 import Navbar from '@/components/common/Navbar';
 import Footer from '@/components/common/Footer';
+import AppMessageLayer from '@/components/ui/AppMessageLayer';
 
 export const metadata = {
   title: 'Portal Guairá - Multitienda',
@@ -18,6 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {children}
           </main>
           <Footer />
+          <AppMessageLayer />
         </CartProvider>
       </body>
     </html>

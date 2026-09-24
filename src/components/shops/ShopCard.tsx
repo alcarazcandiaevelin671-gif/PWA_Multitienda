@@ -1,25 +1,32 @@
 ﻿import Link from 'next/link';
+import Image from 'next/image';
 
 interface ShopCardProps {
   id: string;
+  slug?: string;
   nombreComercio?: string;
   title?: string;
   descripcion?: string;
   description?: string;
   categoriaPrincipal?: string;
   logoUrl?: string;
+  bannerUrl?: string;
   verificada?: boolean;
+  whatsapp?: string;
+  distrito?: string;
   badge?: string;
 }
 
 export default function ShopCard({
   id,
+  slug,
   nombreComercio,
   title,
   descripcion,
   description,
   categoriaPrincipal,
   logoUrl,
+  bannerUrl,
   verificada,
   badge: _badge,
 }: ShopCardProps) {
@@ -37,8 +44,8 @@ export default function ShopCard({
 
       {/* Imagen o Inicial del Comercio */}
       <div className="w-full h-40 bg-slate-200/60 rounded-xl flex items-center justify-center my-2 overflow-hidden group-hover:scale-[1.02] transition-transform">
-        {logoUrl ? (
-          <img src={logoUrl} alt={nombre} className="w-full h-full object-cover" />
+        {logoUrl || bannerUrl ? (
+          <Image src={logoUrl || bannerUrl || ''} alt={nombre} fill unoptimized className="object-cover" />
         ) : (
           <span className="text-slate-400 font-extrabold text-3xl select-none">
             {nombre ? nombre.charAt(0).toUpperCase() : 'G'}
@@ -61,7 +68,7 @@ export default function ShopCard({
 
       {/* Botón de Perfil */}
       <Link
-        href={`/comercios/${id}`}
+        href={`/tienda/${slug || id}`}
         className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2.5 px-4 rounded-xl text-center transition-colors shadow-md shadow-blue-500/20"
       >
         Ver Local →

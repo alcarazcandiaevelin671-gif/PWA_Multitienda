@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import Image from 'next/image';
 import Link from 'next/link';
+import { showAppConfirm } from '@/lib/app-message';
 
 export default function VendedorProductosPage() {
   const supabase = createBrowserClient(
@@ -178,7 +179,8 @@ export default function VendedorProductosPage() {
 
   // Eliminar producto
   const handleEliminarProducto = async (id: string) => {
-    if (!confirm('¿Estás seguro de que deseas eliminar este producto?')) return;
+    const confirmed = await showAppConfirm('¿Estás seguro de que deseas eliminar este producto?');
+    if (!confirmed) return;
 
     try {
       const { error } = await supabase.from('productos').delete().eq('id', id);

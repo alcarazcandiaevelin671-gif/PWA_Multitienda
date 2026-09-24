@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
@@ -53,9 +53,12 @@ const CATEGORIAS_DEFAULT = [
 
 export default function VendedorTiendaPage() {
   const router = useRouter();
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  const supabase = useMemo(
+    () => createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    ),
+    []
   );
 
   // Estados de sesión y carga
@@ -72,6 +75,12 @@ export default function VendedorTiendaPage() {
     password: '',
     telefono_contacto: '',
   });
+  const [recoveryStep, setRecoveryStep] = useState<0 | 1 | 2 | 3>(0);
+  const [recoveryEmail, setRecoveryEmail] = useState('');
+  const [recoveryOtp, setRecoveryOtp] = useState(['', '', '', '', '', '']);
+  const [recoveryPassword, setRecoveryPassword] = useState('');
+  const [recoveryLoading, setRecoveryLoading] = useState(false);
+  const recoveryInputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   // Estados para subida de imágenes y mensajes
   const [uploadingLogo, setUploadingLogo] = useState(false);
@@ -142,10 +151,10 @@ export default function VendedorTiendaPage() {
         const { data: userBD } = await supabase
           .from('usuarios')
           .select('*')
-          .eq('id', userId)
+          .eq('identificacion', userId)
           .maybeSingle();
 
-        const emailUsuario = userBD?.email || session.user.email || '';
+        const emailUsuario = userBD?.correo_electronico || session.user.email || '';
 
         setUserData({
           nombre_completo: userBD?.nombre_completo || session.user.user_metadata?.nombre_completo || '',
@@ -227,12 +236,13 @@ export default function VendedorTiendaPage() {
 
         if (data.user) {
           await supabase.from('usuarios').upsert({
-            id: data.user.id,
+            identificacion: data.user.id,
             nombre_completo: authData.nombre_completo,
-            email: authData.email,
+            correo_electronico: authData.email,
             telefono_contacto: authData.telefono_contacto,
             rol: 'vendedor',
-          }, { onConflict: 'id' });
+            activo: true,
+          }, { onConflict: 'identificacion' });
 
           setSessionUser(data.user);
           setUserData({
@@ -251,10 +261,101 @@ export default function VendedorTiendaPage() {
     }
   };
 
+  const handleRecoveryRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setRecoveryLoading(true);
+    setMensaje(null);
+
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: recoveryEmail,
+        options: { shouldCreateUser: false },
+      });
+
+      if (error) throw error;
+      setRecoveryStep(2);
+      setMensaje({ tipo: 'exito', texto: 'Te enviamos un código de 6 dígitos a tu correo.' });
+    } catch (err: any) {
+      setMensaje({ tipo: 'error', texto: err.message || 'No se pudo enviar el código.' });
+    } finally {
+      setRecoveryLoading(false);
+    }
+  };
+
+  const handleRecoveryVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setRecoveryLoading(true);
+    setMensaje(null);
+
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email: recoveryEmail,
+        token: recoveryOtp.join(''),
+        type: 'email',
+      });
+
+      if (error) throw error;
+      setRecoveryStep(3);
+      setMensaje({ tipo: 'exito', texto: 'Código verificado. Define tu nueva contraseña.' });
+    } catch (err: any) {
+      setMensaje({ tipo: 'error', texto: err.message || 'El código no es válido o ya expiró.' });
+    } finally {
+      setRecoveryLoading(false);
+    }
+  };
+
+  const handleRecoveryPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setRecoveryLoading(true);
+    setMensaje(null);
+
+    try {
+      const { error } = await supabase.auth.updateUser({ password: recoveryPassword });
+      if (error) throw error;
+
+      setRecoveryStep(0);
+      setRecoveryOtp(['', '', '', '', '', '']);
+      setRecoveryPassword('');
+      setAuthData((prev) => ({ ...prev, email: recoveryEmail, password: '' }));
+      setMensaje({ tipo: 'exito', texto: 'Contraseña actualizada. Ya puedes iniciar sesión.' });
+    } catch (err: any) {
+      setMensaje({ tipo: 'error', texto: err.message || 'No se pudo actualizar la contraseña.' });
+    } finally {
+      setRecoveryLoading(false);
+    }
+  };
+
+  const handleRecoveryOtpChange = (index: number, value: string) => {
+    const digit = value.replace(/\D/g, '').slice(-1);
+    const nextOtp = [...recoveryOtp];
+    nextOtp[index] = digit;
+    setRecoveryOtp(nextOtp);
+
+    if (digit && index < recoveryInputRefs.current.length - 1) {
+      recoveryInputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleRecoveryOtpKeyDown = (index: number, event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Backspace' && !recoveryOtp[index] && index > 0) {
+      recoveryInputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleRecoveryOtpPaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
+    event.preventDefault();
+    const pastedCode = event.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    const nextOtp = [...recoveryOtp];
+    pastedCode.split('').forEach((digit, index) => { nextOtp[index] = digit; });
+    setRecoveryOtp(nextOtp);
+    recoveryInputRefs.current[Math.min(pastedCode.length, 6) - 1]?.focus();
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setSessionUser(null);
     setMensaje({ tipo: 'exito', texto: 'Has cerrado sesión.' });
+    window.location.href = '/';
   };
 
   const handleChange = (
@@ -430,13 +531,15 @@ export default function VendedorTiendaPage() {
             <span className="text-4xl">🏪</span>
             <h1 className="text-xl font-black mt-2">Portal de Vendedores</h1>
             <p className="text-slate-400 text-xs mt-1">
-              {authMode === 'login'
+              {recoveryStep > 0
+                ? 'Recupera el acceso a tu cuenta de vendedor'
+                : authMode === 'login'
                 ? 'Ingresa tus credenciales para administrar tu tienda'
                 : 'Crea tu cuenta de vendedor y publica tu comercio'}
             </p>
           </div>
 
-          <div className="flex border-b border-slate-100 bg-slate-50">
+          <div className={`${recoveryStep > 0 ? 'hidden' : 'flex'} border-b border-slate-100 bg-slate-50`}>
             <button
               type="button"
               onClick={() => { setAuthMode('login'); setMensaje(null); }}
@@ -471,7 +574,7 @@ export default function VendedorTiendaPage() {
             </div>
           )}
 
-          <form onSubmit={handleAuthSubmit} className="p-6 space-y-4">
+          <form onSubmit={handleAuthSubmit} className={`${recoveryStep > 0 ? 'hidden' : 'block'} p-6 space-y-4`}>
             {authMode === 'register' && (
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">Nombre Completo *</label>
@@ -490,6 +593,8 @@ export default function VendedorTiendaPage() {
               <label className="block text-xs font-bold text-slate-700 mb-1">Correo Electrónico *</label>
               <input
                 type="email"
+                inputMode="email"
+                autoComplete="email"
                 required
                 value={authData.email}
                 onChange={(e) => setAuthData({ ...authData, email: e.target.value })}
@@ -511,6 +616,16 @@ export default function VendedorTiendaPage() {
               />
             </div>
 
+            {authMode === 'login' && (
+              <button
+                type="button"
+                onClick={() => { setRecoveryStep(1); setMensaje(null); }}
+                className="text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline"
+              >
+                ¿Olvidaste tu contraseña?
+              </button>
+            )}
+
             {authMode === 'register' && (
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">Teléfono Personal / WhatsApp</label>
@@ -524,6 +639,70 @@ export default function VendedorTiendaPage() {
               </div>
             )}
 
+            {authMode === 'register' && (
+              <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4 space-y-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h2 className="text-sm font-black text-slate-900">Plan Vendedor (Membresía)</h2>
+                    <p className="mt-1 text-xs text-slate-600">Acceso al panel y publicación de tu comercio.</p>
+                  </div>
+                  <span className="whitespace-nowrap text-sm font-black text-blue-700">50.000 PYG / mes</span>
+                </div>
+
+                <div className="rounded-xl bg-white p-1 border border-blue-100">
+                  <label className="cursor-pointer">
+                    <input type="radio" name="metodo_pago" value="tarjeta" defaultChecked className="peer sr-only" />
+                    <span className="block rounded-lg bg-blue-600 px-3 py-2 text-center text-xs font-bold text-white">
+                      Tarjeta
+                    </span>
+                  </label>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Número de tarjeta *</label>
+                    <input
+                      type="text"
+                      required
+                      inputMode="numeric"
+                      pattern="[0-9 ]{13,19}"
+                      placeholder="0000 0000 0000 0000"
+                      className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-blue-600"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">MM/AA *</label>
+                      <input
+                        type="text"
+                        required
+                        inputMode="numeric"
+                        pattern="(0[1-9]|1[0-2])/[0-9]{2}"
+                        placeholder="MM/AA"
+                        className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-blue-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">CVC *</label>
+                      <input
+                        type="text"
+                        required
+                        inputMode="numeric"
+                        pattern="[0-9]{3,4}"
+                        maxLength={4}
+                        placeholder="123"
+                        className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-blue-600"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-800">
+                  Modo Prototipo: Sin cobro real
+                </p>
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={authLoading}
@@ -533,9 +712,109 @@ export default function VendedorTiendaPage() {
                 ? 'Procesando...'
                 : authMode === 'login'
                 ? '🔑 Ingresar al Panel'
-                : '🚀 Registrarme como Vendedor'}
+                : '🚀 Confirmar Pago y Registrarme'}
             </button>
           </form>
+
+          {recoveryStep > 0 && (
+            <div className="mx-6 mb-6 rounded-2xl border border-blue-100 bg-blue-50/60 p-5">
+              <div className="mb-4">
+                <p className="text-[10px] font-black uppercase tracking-wider text-blue-600">Recuperar contraseña</p>
+                <h2 className="mt-1 text-lg font-black text-slate-900">
+                  {recoveryStep === 1 && 'Solicita tu código'}
+                  {recoveryStep === 2 && 'Verifica tu correo'}
+                  {recoveryStep === 3 && 'Crea una nueva contraseña'}
+                </h2>
+                <p className="mt-1 text-xs text-slate-500">
+                  {recoveryStep === 1 && 'Te enviaremos un código de 6 dígitos.'}
+                  {recoveryStep === 2 && `Ingresa el código enviado a ${recoveryEmail}.`}
+                  {recoveryStep === 3 && 'La nueva contraseña debe tener al menos 6 caracteres.'}
+                </p>
+              </div>
+
+              {recoveryStep === 1 && (
+                <form onSubmit={handleRecoveryRequest} className="space-y-3">
+                  <input
+                    type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    required
+                    value={recoveryEmail}
+                    onChange={(e) => setRecoveryEmail(e.target.value)}
+                    placeholder="tu@correo.com"
+                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-blue-600"
+                  />
+                  <button
+                    type="submit"
+                    disabled={recoveryLoading}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs py-3 rounded-xl transition-all shadow-md disabled:opacity-50"
+                  >
+                    {recoveryLoading ? 'Enviando...' : 'Enviar código'}
+                  </button>
+                </form>
+              )}
+
+              {recoveryStep === 2 && (
+                <form onSubmit={handleRecoveryVerify} className="space-y-4">
+                  <div className="flex justify-between gap-2">
+                    {recoveryOtp.map((digit, index) => (
+                      <input
+                        key={index}
+                        ref={(element) => { recoveryInputRefs.current[index] = element; }}
+                        type="text"
+                        inputMode="numeric"
+                        autoComplete={index === 0 ? 'one-time-code' : 'off'}
+                        maxLength={1}
+                        required
+                        value={digit}
+                        onChange={(e) => handleRecoveryOtpChange(index, e.target.value)}
+                        onKeyDown={(e) => handleRecoveryOtpKeyDown(index, e)}
+                        onPaste={handleRecoveryOtpPaste}
+                        aria-label={`Dígito ${index + 1} del código`}
+                        className="h-12 w-10 rounded-xl border border-slate-200 bg-white text-center text-lg font-black text-slate-900 focus:ring-2 focus:ring-blue-600"
+                      />
+                    ))}
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={recoveryLoading || recoveryOtp.join('').length !== 6}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs py-3 rounded-xl transition-all shadow-md disabled:opacity-50"
+                  >
+                    {recoveryLoading ? 'Verificando...' : 'Verificar código'}
+                  </button>
+                </form>
+              )}
+
+              {recoveryStep === 3 && (
+                <form onSubmit={handleRecoveryPassword} className="space-y-3">
+                  <input
+                    type="password"
+                    required
+                    minLength={6}
+                    value={recoveryPassword}
+                    onChange={(e) => setRecoveryPassword(e.target.value)}
+                    placeholder="Nueva contraseña"
+                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-blue-600"
+                  />
+                  <button
+                    type="submit"
+                    disabled={recoveryLoading}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs py-3 rounded-xl transition-all shadow-md disabled:opacity-50"
+                  >
+                    {recoveryLoading ? 'Actualizando...' : 'Guardar nueva contraseña'}
+                  </button>
+                </form>
+              )}
+
+              <button
+                type="button"
+                onClick={() => { setRecoveryStep(0); setMensaje(null); }}
+                className="mt-4 w-full text-xs font-bold text-slate-500 hover:text-blue-600"
+              >
+                ← Volver al inicio de sesión
+              </button>
+            </div>
+          )}
 
           <div className="p-4 bg-slate-50 border-t border-slate-100 text-center">
             <Link href="/" className="text-xs font-bold text-slate-500 hover:text-blue-600">
@@ -664,6 +943,8 @@ export default function VendedorTiendaPage() {
                   <label className="block text-xs font-bold text-slate-700 mb-1">Correo Electrónico</label>
                   <input
                     type="email"
+                    inputMode="email"
+                    autoComplete="email"
                     name="email"
                     readOnly
                     disabled

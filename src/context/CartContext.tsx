@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Product } from '@/types/product';
 import { CartItem } from '@/types/cart';
+import { showAppConfirm } from '@/lib/app-message';
 
 interface CartContextType {
   items: CartItem[];
@@ -12,7 +13,13 @@ interface CartContextType {
   clearCart: () => void;
   totalAmount: number;
   totalItems: number;
-  generateWhatsAppLink: (merchantPhone: string, merchantName: string) => string;
+  generateWhatsAppLink: (
+    merchantPhone: string,
+    merchantName: string,
+    paymentMethod?: string,
+    customerName?: string,
+    customerAddress?: string,
+  ) => string;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -41,10 +48,12 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     setItems((prevItems) => {
       // Validar si es de la misma tienda (opcional: limpiar si es de otra tienda)
       if (prevItems.length > 0 && prevItems[0].product.tienda_id !== product.tienda_id) {
-        if (!confirm('Tu carrito contiene productos de otra tienda. ¿Deseas vaciar el carrito para agregar productos de esta nueva tienda?')) {
-          return prevItems;
-        }
-        return [{ product, cantidad }];
+        void showAppConfirm('Tu carrito contiene productos de otra tienda. ¿Deseas vaciar el carrito para agregar productos de esta nueva tienda?').then((confirmed) => {
+          if (confirmed) {
+            setItems([{ product, cantidad }]);
+          }
+        });
+        return prevItems;
       }
 
       const existingIndex = prevItems.findIndex((item) => item.product.id === product.id);
@@ -87,7 +96,13 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   /**
    * Estructura la orden según Ley N.° 4017/10 de Mensajes de Datos
    */
-  const generateWhatsAppLink = (merchantPhone: string, merchantName: string) => {
+  const generateWhatsAppLink = (
+    merchantPhone: string,
+    merchantName: string,
+    paymentMethod = 'Efectivo',
+    customerName = 'Cliente',
+    customerAddress = 'No especificada',
+  ) => {
     // Formatear el número de teléfono para Paraguay (ej: 0981123456 -> 595981123456)
     let cleanPhone = merchantPhone.replace(/\D/g, '');
     if (cleanPhone.startsWith('0')) {
@@ -97,20 +112,21 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     let message = `🛒 *NUEVO PEDIDO - ${merchantName.toUpperCase()}*\n`;
-    message += `-----------------------------------\n\n`;
+    message += `👤 Nombre del Cliente: ${customerName}\n\n`;
+    message += `📍 Dirección del Cliente: ${customerAddress}\n\n`;
 
     items.forEach((item, index) => {
       const precioUnitario = item.product.precio_oferta || item.product.precio;
       const subtotal = precioUnitario * item.cantidad;
       message += `${index + 1}. *${item.product.nombre}*\n`;
-      message += `   • Cantidad: ${item.cantidad}\n`;
-      message += `   • Precio: Gs. ${precioUnitario.toLocaleString('es-PY')}\n`;
-      message += `   • Subtotal: Gs. ${subtotal.toLocaleString('es-PY')}\n\n`;
+      message += `Cantidad: ${item.cantidad}\n`;
+      message += `Precio: Gs. ${precioUnitario.toLocaleString('es-PY')}\n`;
+      message += `Subtotal: Gs. ${subtotal.toLocaleString('es-PY')}\n\n`;
     });
 
-    message += `-----------------------------------\n`;
     message += `💰 *TOTAL A PAGAR: Gs. ${totalAmount.toLocaleString('es-PY')}*\n\n`;
-    message += `📍 _Pedido generado desde el Portal Multitienda Guairá_`;
+    message += `💳 *MÉTODO DE PAGO: ${paymentMethod}*\n\n`;
+    message += `📌 _Pedido generado desde el Portal Multitienda Guairá_`;
 
     return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
   };

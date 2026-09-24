@@ -1,9 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import Image from 'next/image';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
+import { showAppConfirm } from '@/lib/app-message';
+
+const LocationPicker = dynamic(() => import('@/components/ui/LocationPicker'), { ssr: false });
 
 // Helper para convertir nombres a slugs limpios
 const crearSlug = (texto: string) => {
@@ -25,6 +29,10 @@ interface Tienda {
   whatsapp: string;
   logo_url: string | null;
   portada_url: string | null;
+  categoria_principal?: string | null;
+  direccion_texto?: string | null;
+  latitud?: number | null;
+  longitud?: number | null;
   plan_tipo: string;
   fecha_fin_prueba: string;
   estado: string;
@@ -39,7 +47,13 @@ interface Producto {
   precio_gs: number;
   imagen_url: string | null;
   disponible: boolean;
+  categoria_id?: string | null;
 }
+
+const supabase = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export default function VendedorDashboardPage() {
   const [loading, setLoading] = useState(true);
@@ -52,8 +66,14 @@ export default function VendedorDashboardPage() {
     nombre_comercio: '',
     descripcion: '',
     whatsapp: '',
+    categoria_principal: '',
+    direccion_texto: '',
+    latitud: -25.7806,
+    longitud: -56.4486,
   });
   const [subiendoLogo, setSubiendoLogo] = useState(false);
+  const [subiendoPortada, setSubiendoPortada] = useState(false);
+  const [categorias, setCategorias] = useState<{ id: string; nombre: string }[]>([]);
 
   // Estados Formulario Producto
   const [prodForm, setProdForm] = useState({
@@ -61,22 +81,15 @@ export default function VendedorDashboardPage() {
     descripcion: '',
     precio: '',
     precio_oferta: '',
+    categoria_id: '',
   });
-  const [imagenProducto, setImagenProducto] = useState<File | null>(null);
+  const [imagenesProducto, setImagenesProducto] = useState<File[]>([]);
+  const [editandoProducto, setEditandoProducto] = useState<string | null>(null);
   const [guardandoProd, setGuardandoProd] = useState(false);
   const [msgExito, setMsgExito] = useState<string | null>(null);
   const [msgError, setMsgError] = useState<string | null>(null);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-
-  useEffect(() => {
-    cargarDatosVendedor();
-  }, []);
-
-  const cargarDatosVendedor = async () => {
+  const cargarDatosVendedor = useCallback(async () => {
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -104,7 +117,17 @@ export default function VendedorDashboardPage() {
         nombre_comercio: tiendaData.nombre_comercio || '',
         descripcion: tiendaData.descripcion || '',
         whatsapp: tiendaData.whatsapp || '',
+        categoria_principal: tiendaData.categoria_principal || '',
+        direccion_texto: tiendaData.direccion_texto || '',
+        latitud: Number(tiendaData.latitud) || -25.7806,
+        longitud: Number(tiendaData.longitud) || -56.4486,
       });
+
+      const { data: categoriasData } = await supabase
+        .from('categorias')
+        .select('id, nombre')
+        .order('nombre');
+      setCategorias(categoriasData || []);
 
       const { data: prodData, error: prodError } = await supabase
         .from('productos')
@@ -119,7 +142,11 @@ export default function VendedorDashboardPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    cargarDatosVendedor();
+  }, [cargarDatosVendedor]);
 
   const calcularDiasRestantes = () => {
     if (!tienda?.fecha_fin_prueba) return 0;
@@ -187,6 +214,10 @@ export default function VendedorDashboardPage() {
           slug: nuevoSlug,
           descripcion: perfilForm.descripcion || null,
           whatsapp: perfilForm.whatsapp,
+          categoria_principal: perfilForm.categoria_principal || null,
+          direccion_texto: perfilForm.direccion_texto || null,
+          latitud: perfilForm.latitud,
+          longitud: perfilForm.longitud,
         })
         .eq('id', tienda.id);
 
@@ -196,6 +227,30 @@ export default function VendedorDashboardPage() {
       setMsgExito('Datos de la tienda actualizados correctamente.');
     } catch (err: any) {
       setMsgError(err.message);
+    }
+  };
+
+  const handleUploadPortada = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !tienda) return;
+
+    setSubiendoPortada(true);
+    try {
+      const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const filePath = `tiendas/portada_${tienda.id}_${Date.now()}.${extension}`;
+      const { error: uploadError } = await supabase.storage.from('tiendas-media').upload(filePath, file, { upsert: true });
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from('tiendas-media').getPublicUrl(filePath);
+      const { error: dbError } = await supabase.from('tiendas').update({ portada_url: data.publicUrl }).eq('id', tienda.id);
+      if (dbError) throw dbError;
+
+      setTienda({ ...tienda, portada_url: data.publicUrl });
+      setMsgExito('Portada actualizada correctamente.');
+    } catch (err: any) {
+      setMsgError('Error al subir la portada: ' + err.message);
+    } finally {
+      setSubiendoPortada(false);
     }
   };
 
@@ -210,14 +265,15 @@ export default function VendedorDashboardPage() {
     try {
       let prodImagenUrl: string | null = null;
 
-      if (imagenProducto) {
-        const fileExt = imagenProducto.name.split('.').pop();
+      if (imagenesProducto.length > 0) {
+        const imagenSubida = imagenesProducto[0];
+        const fileExt = imagenSubida.name.split('.').pop();
         const fileName = `prod_${tienda.id}_${Date.now()}.${fileExt}`;
         const filePath = `productos/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
           .from('tiendas-media')
-          .upload(filePath, imagenProducto);
+          .upload(filePath, imagenSubida);
 
         if (uploadError) throw uploadError;
 
@@ -228,28 +284,45 @@ export default function VendedorDashboardPage() {
         prodImagenUrl = publicUrlData.publicUrl;
       }
 
-      const { data: nuevoProd, error: insertError } = await supabase
-        .from('productos')
-        .insert([
-          {
-            tienda_id: tienda.id,
-            titulo: prodForm.nombre,
-            nombre: prodForm.nombre,
-            descripcion: prodForm.descripcion || null,
-            precio_gs: Number(prodForm.precio),
-            imagen_url: prodImagenUrl,
-            disponible: true,
-          },
-        ])
-        .select()
-        .single();
+      const productData = {
+        titulo: prodForm.nombre,
+        nombre: prodForm.nombre,
+        descripcion: prodForm.descripcion || null,
+        categoria_id: prodForm.categoria_id || null,
+        precio_gs: Number(prodForm.precio),
+        precio_oferta: prodForm.precio_oferta ? Number(prodForm.precio_oferta) : null,
+        imagen_url: prodImagenUrl,
+      };
+      let nuevoProd: Producto | null = null;
+      let insertError = null;
+
+      if (editandoProducto) {
+        const result = await supabase
+          .from('productos')
+          .update(productData)
+          .eq('id', editandoProducto)
+          .select()
+          .single();
+        nuevoProd = result.data as Producto | null;
+        insertError = result.error;
+      } else {
+        const result = await supabase
+          .from('productos')
+          .insert([{ tienda_id: tienda.id, ...productData, disponible: true }])
+          .select()
+          .single();
+        nuevoProd = result.data as Producto | null;
+        insertError = result.error;
+      }
 
       if (insertError) throw insertError;
+      if (!nuevoProd) throw new Error('No se pudo guardar el producto.');
 
-      setProductos([nuevoProd, ...productos]);
-      setProdForm({ nombre: '', descripcion: '', precio: '', precio_oferta: '' });
-      setImagenProducto(null);
-      setMsgExito('¡Producto publicado con éxito!');
+      setProductos(editandoProducto ? productos.map((prod) => prod.id === editandoProducto ? nuevoProd : prod) : [nuevoProd, ...productos]);
+      setProdForm({ nombre: '', descripcion: '', precio: '', precio_oferta: '', categoria_id: '' });
+      setImagenesProducto([]);
+      setEditandoProducto(null);
+      setMsgExito(editandoProducto ? 'Producto actualizado correctamente.' : '¡Producto publicado con éxito!');
     } catch (err: any) {
       setMsgError('Error al guardar el producto: ' + err.message);
     } finally {
@@ -257,8 +330,35 @@ export default function VendedorDashboardPage() {
     }
   };
 
+  const editarProducto = (producto: Producto) => {
+    setEditandoProducto(producto.id);
+    setProdForm({
+      nombre: producto.titulo || producto.nombre || '',
+      descripcion: producto.descripcion || '',
+      precio: String(producto.precio_gs || ''),
+      precio_oferta: '',
+      categoria_id: producto.categoria_id || '',
+    });
+    setActiveTab('productos');
+  };
+
+  const cambiarDisponibilidad = async (producto: Producto) => {
+    const { error } = await supabase.from('productos').update({ disponible: !producto.disponible }).eq('id', producto.id);
+    if (error) {
+      setMsgError('Error al cambiar la disponibilidad: ' + error.message);
+      return;
+    }
+    setProductos(productos.map((prod) => prod.id === producto.id ? { ...prod, disponible: !producto.disponible } : prod));
+  };
+
+  const handleCerrarSesion = async () => {
+    await supabase.auth.signOut();
+    window.location.href = '/auth/login';
+  };
+
   const handleEliminarProducto = async (id: string) => {
-    if (!confirm('¿Estás seguro de que deseas eliminar este producto?')) return;
+    const confirmed = await showAppConfirm('¿Estás seguro de que deseas eliminar este producto?');
+    if (!confirmed) return;
 
     try {
       const { error } = await supabase.from('productos').delete().eq('id', id);
@@ -300,6 +400,16 @@ export default function VendedorDashboardPage() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 pt-8">
+        <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-emerald-700">Membresía</p>
+            <h2 className="mt-1 text-lg font-black text-slate-900">Suscripción Activa (Prototipo)</h2>
+          </div>
+          <p className="text-sm font-semibold text-emerald-800">
+            Próximo vencimiento: {tienda?.fecha_fin_prueba ? new Date(tienda.fecha_fin_prueba).toLocaleDateString('es-PY') : 'No definido'}
+          </p>
+        </div>
+
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
           <div className="flex items-center gap-4">
             <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 flex items-center justify-center flex-shrink-0">
@@ -339,6 +449,14 @@ export default function VendedorDashboardPage() {
               🌐 Ver Sitio Principal
             </Link>
 
+            <button
+              type="button"
+              onClick={handleCerrarSesion}
+              className="bg-rose-50 hover:bg-rose-100 text-rose-700 px-4 py-2 rounded-xl text-xs font-bold transition-colors"
+            >
+              🚪 Cerrar Sesión
+            </button>
+
             <label className="cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold transition-colors">
               {subiendoLogo ? 'Subiendo...' : '📷 Cambiar Logo'}
               <input
@@ -348,6 +466,10 @@ export default function VendedorDashboardPage() {
                 disabled={subiendoLogo}
                 className="hidden"
               />
+            </label>
+            <label className="cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs font-bold transition-colors">
+              {subiendoPortada ? 'Subiendo...' : '🖼️ Cambiar Portada'}
+              <input type="file" accept="image/*" onChange={handleUploadPortada} disabled={subiendoPortada} className="hidden" />
             </label>
           </div>
         </div>
@@ -430,11 +552,24 @@ export default function VendedorDashboardPage() {
                 </div>
 
                 <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Categoría</label>
+                  <select
+                    value={prodForm.categoria_id}
+                    onChange={(e) => setProdForm({ ...prodForm, categoria_id: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Seleccionar categoría</option>
+                    {categorias.map((categoria) => <option key={categoria.id} value={categoria.id}>{categoria.nombre}</option>)}
+                  </select>
+                </div>
+
+                <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">Imagen del Producto</label>
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={(e) => setImagenProducto(e.target.files?.[0] || null)}
+                    multiple
+                    onChange={(e) => setImagenesProducto(Array.from(e.target.files || []))}
                     className="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                   />
                 </div>
@@ -455,7 +590,7 @@ export default function VendedorDashboardPage() {
                   disabled={guardandoProd}
                   className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-colors shadow-md disabled:opacity-50"
                 >
-                  {guardandoProd ? 'Guardando...' : 'Publicar Producto'}
+                  {guardandoProd ? 'Guardando...' : editandoProducto ? 'Guardar Cambios' : 'Publicar Producto'}
                 </button>
               </form>
             </div>
@@ -489,6 +624,20 @@ export default function VendedorDashboardPage() {
                       </div>
                     </div>
 
+                    <button
+                      onClick={() => editarProducto(prod)}
+                      title="Editar producto"
+                      className="text-slate-400 hover:text-blue-600 p-2 rounded-lg transition-colors text-sm"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      onClick={() => cambiarDisponibilidad(prod)}
+                      title={prod.disponible ? 'Pausar producto' : 'Activar producto'}
+                      className={`px-2 py-1 rounded-lg text-xs font-bold ${prod.disponible ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'}`}
+                    >
+                      {prod.disponible ? 'Pausar' : 'Activar'}
+                    </button>
                     <button
                       onClick={() => handleEliminarProducto(prod.id)}
                       title="Eliminar producto"
@@ -530,6 +679,18 @@ export default function VendedorDashboardPage() {
               </div>
 
               <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Categoría</label>
+                <select
+                  value={perfilForm.categoria_principal}
+                  onChange={(e) => setPerfilForm({ ...perfilForm, categoria_principal: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Seleccionar categoría</option>
+                  {categorias.map((categoria) => <option key={categoria.id} value={categoria.nombre}>{categoria.nombre}</option>)}
+                </select>
+              </div>
+
+              <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Descripción</label>
                 <textarea
                   rows={3}
@@ -538,6 +699,22 @@ export default function VendedorDashboardPage() {
                   className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Dirección / Ubicación</label>
+                <input
+                  type="text"
+                  value={perfilForm.direccion_texto}
+                  onChange={(e) => setPerfilForm({ ...perfilForm, direccion_texto: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <LocationPicker
+                latInicial={perfilForm.latitud}
+                lngInicial={perfilForm.longitud}
+                onLocationChange={(lat, lng) => setPerfilForm({ ...perfilForm, latitud: lat, longitud: lng })}
+              />
 
               <button
                 type="submit"

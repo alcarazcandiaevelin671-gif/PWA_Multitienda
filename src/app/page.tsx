@@ -1,5 +1,4 @@
-﻿import Link from 'next/link';
-import { getCategories } from '@/services/categories.service';
+﻿import { getCategories } from '@/services/categories.service';
 import { getFeaturedShops } from '@/services/shops.service';
 import CategoryGrid from '@/components/home/CategoryGrid';
 import ShopCard from '@/components/shops/ShopCard';
@@ -34,12 +33,6 @@ export default async function Home() {
               >
                 Explorar Locales →
               </a>
-              <Link
-                href="/vendedor/tienda"
-                className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-sm px-6 py-3 rounded-xl transition-all"
-              >
-                + Registrar mi Tienda
-              </Link>
             </div>
           </div>
           
@@ -104,6 +97,7 @@ export default async function Home() {
               <ShopCard
                 key={shop.id}
                 id={shop.id}
+                slug={shop.slug}
                 nombreComercio={shop.nombre_comercio}
                 descripcion={shop.descripcion}
                 categoriaPrincipal={shop.categoria || shop.categoria_principal}
@@ -118,22 +112,6 @@ export default async function Home() {
         </section>
       )}
 
-      {/* 6. BANNER PROMOCIONAL INFERIOR */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
-        <div className="bg-[#0b0f19] text-white rounded-3xl p-8 md:p-12 relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 border border-slate-800">
-          <div className="max-w-xl z-10">
-            <span className="text-blue-400 font-bold text-xs uppercase tracking-wider block mb-2">¿Tienes un comercio?</span>
-            <h3 className="text-2xl md:text-4xl font-extrabold mb-4">Registra tu local en el portal de la ciudad</h3>
-            <p className="text-slate-400 text-xs md:text-sm mb-6">Forma parte del catálogo digital más grande del Departamento del Guairá y llega a más clientes.</p>
-            <Link 
-              href="/vendedor/tienda" 
-              className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-3 px-6 rounded-xl transition-colors"
-            >
-              Registrar mi Comercio →
-            </Link>
-          </div>
-        </div>
-      </section>
     </main>
   );
 }

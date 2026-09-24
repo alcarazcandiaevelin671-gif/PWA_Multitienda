@@ -10,7 +10,7 @@ export async function getFeaturedShops() {
         nombre
       )
     `)
-    .eq('estado', 'aprobado') // ✅ Cambiado 'activo' por 'estado' (ajusta 'aprobado' según tu ENUM)
+    .eq('estado', 'activa')
     .order('creado_en', { ascending: false }); // ✅ Cambiado 'created_at' por 'creado_en'
 
   if (error) {
@@ -20,3 +20,16 @@ export async function getFeaturedShops() {
 
   return shops || [];
 }
+
+export const shopsService = {
+  async getShopsByOwner(ownerId: string) {
+    const { data, error } = await supabase
+      .from('tiendas')
+      .select('*')
+      .eq('usuario_id', ownerId)
+      .order('creado_en', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+};

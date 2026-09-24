@@ -3,13 +3,14 @@ import { cookies } from 'next/headers';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import StorefrontCart from '@/components/cart/StorefrontCart';
 
 interface Props {
-  params: Promise<{ slug: string }>;
+  params: { slug: string };
 }
 
 export default async function TiendaPerfilPage({ params }: Props) {
-  const { slug } = await params;
+  const { slug } = params;
   const cookieStore = await cookies();
 
   const supabase = createServerClient(
@@ -43,8 +44,13 @@ export default async function TiendaPerfilPage({ params }: Props) {
     .eq('disponible', true)
     .order('creado_en', { ascending: false });
 
+  const { data: categorias } = await supabase
+    .from('categorias')
+    .select('id, nombre');
+
   const cleanWhatsapp = tienda.whatsapp ? tienda.whatsapp.replace(/\D/g, '') : '';
   const listaProductos = productos || [];
+  const listaCategorias = categorias || [];
 
   return (
     <div className="min-h-screen bg-slate-50 pb-16">
@@ -117,67 +123,19 @@ export default async function TiendaPerfilPage({ params }: Props) {
             <p className="text-slate-400 text-xs mt-1">Vuelve a consultar más tarde.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {listaProductos.map((prod) => {
-              const nombreProducto = prod.titulo || prod.nombre || 'Producto';
-              const mensajeWsp = encodeURIComponent(
-                `Hola ${tienda.nombre_comercio}, estoy interesado/a en comprar: *${nombreProducto}*`
-              );
-
-              return (
-                <div
-                  key={prod.id}
-                  className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="relative w-full h-48 bg-slate-100 flex items-center justify-center">
-                      {prod.imagen_url ? (
-                        <Image
-                          src={prod.imagen_url}
-                          alt={nombreProducto}
-                          fill
-                          className="object-cover"
-                        />
-                      ) : (
-                        <span className="text-4xl text-slate-300">📦</span>
-                      )}
-                    </div>
-
-                    <div className="p-4">
-                      <h3 className="font-bold text-slate-900 text-base line-clamp-1">
-                        {nombreProducto}
-                      </h3>
-                      {prod.descripcion && (
-                        <p className="text-slate-500 text-xs mt-1 line-clamp-2">
-                          {prod.descripcion}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="p-4 pt-0 border-t border-slate-100 mt-2 flex items-center justify-between">
-                    <div>
-                      <span className="text-xs text-slate-400 block font-medium">Precio</span>
-                      <span className="font-extrabold text-blue-600 text-base">
-                        {Number(prod.precio_gs || 0).toLocaleString('es-PY')} Gs.
-                      </span>
-                    </div>
-
-                    {cleanWhatsapp && (
-                      <a
-                        href={`https://wa.me/${cleanWhatsapp}?text=${mensajeWsp}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs px-3 py-2 rounded-xl transition-colors"
-                      >
-                        Pedir 💬
-                      </a>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <StorefrontCart
+            products={listaProductos}
+            categories={listaCategorias.map((categoria) => ({
+              id: categoria.id,
+              nombre: categoria.nombre,
+            }))}
+            shop={{
+              id: tienda.id,
+              nombre: tienda.nombre_comercio,
+              whatsapp: tienda.whatsapp,
+              telefono: tienda.telefono,
+            }}
+          />
         )}
       </main>
     </div>

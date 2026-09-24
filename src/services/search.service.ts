@@ -55,7 +55,7 @@ export async function searchShops(term: string): Promise<Shop[]> {
     const { data, error } = await supabase
       .from('tiendas')
       .select('*')
-      .eq('estado', 'aprobado') // ✅ Cambiado de 'activa' a 'aprobado'
+      .eq('estado', 'activa')
       .or(
         `nombre_comercio.ilike.%${searchTerm}%,descripcion.ilike.%${searchTerm}%,categoria_principal.ilike.%${searchTerm}%`,
       )

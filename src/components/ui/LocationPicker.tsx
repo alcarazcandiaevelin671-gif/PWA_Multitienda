@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { showAppMessage } from '@/lib/app-message';
 
 // Corregir icono por defecto de Leaflet en Next.js
 const customIcon = L.icon({
@@ -56,7 +57,7 @@ export default function LocationPicker({
           }
         },
         (_error) => {
-          alert('No se pudo obtener la ubicación actual. Revisa los permisos de tu navegador.');
+          showAppMessage('No se pudo obtener la ubicación actual. Revisa los permisos de tu navegador.', 'Ubicación no disponible', 'error');
         }
       );
     }

@@ -10,7 +10,7 @@ export default function Footer() {
             <p className="text-blue-100 text-xs">Recibe las últimas promociones y comercios del Guairá.</p>
           </div>
           <div className="flex w-full md:w-auto max-w-md gap-2">
-            <input type="email" placeholder="Ingresa tu correo" className="px-4 py-2 rounded-lg text-slate-900 text-sm w-full outline-none" />
+            <input type="email" inputMode="email" autoComplete="email" placeholder="Ingresa tu correo" className="px-4 py-2 rounded-lg text-slate-900 text-sm w-full outline-none" />
             <button className="bg-[#0b0f19] hover:bg-slate-900 text-white font-semibold px-4 py-2 rounded-lg text-xs transition-colors whitespace-nowrap">
               Suscribirme
             </button>

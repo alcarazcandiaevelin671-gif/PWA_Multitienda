@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { productsService } from '@/services/products.service';
 import { shopsService } from '@/services/shops.service';
 import { authService } from '@/services/auth.service';
 import { Product } from '@/types/product';
+import { showAppConfirm, showAppMessage } from '@/lib/app-message';
 
 export default function GestionProductosPage() {
   const [loading, setLoading] = useState(true);
@@ -96,7 +98,7 @@ export default function GestionProductosPage() {
       setModalOpen(false);
       cargarDatos();
     } catch (error) {
-      alert('Error al guardar el producto');
+      showAppMessage('Error al guardar el producto', 'Error', 'error');
     }
   };
 
@@ -105,18 +107,19 @@ export default function GestionProductosPage() {
       await productsService.toggleProductStatus(prod.id, prod.activo);
       cargarDatos();
     } catch (error) {
-      alert('Error cambiando estado del producto');
+      showAppMessage('Error cambiando estado del producto', 'Error', 'error');
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('¿Seguro que deseas eliminar este producto?')) {
-      try {
-        await productsService.deleteProduct(id);
-        cargarDatos();
-      } catch (error) {
-        alert('Error eliminando producto');
-      }
+    const confirmed = await showAppConfirm('¿Seguro que deseas eliminar este producto?');
+    if (!confirmed) return;
+
+    try {
+      await productsService.deleteProduct(id);
+      cargarDatos();
+    } catch (error) {
+      showAppMessage('Error eliminando producto', 'Error', 'error');
     }
   };
 
@@ -154,7 +157,7 @@ export default function GestionProductosPage() {
             <div key={prod.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
               <div className="h-48 bg-gray-100 relative">
                 {prod.imagen_url ? (
-                  <img src={prod.imagen_url} alt={prod.nombre} className="w-full h-full object-cover" />
+                  <Image src={prod.imagen_url} alt={prod.nombre} fill unoptimized className="object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">Sin Imagen</div>
                 )}

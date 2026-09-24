@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import type { Product as AdminProduct } from '@/types/product';
 
 export interface Product {
   id?: string;
@@ -56,3 +57,46 @@ export async function deleteProduct(productId: string) {
     throw error;
   }
 }
+
+export const productsService = {
+  async getProductsByShop(shopId: string): Promise<AdminProduct[]> {
+    const { data, error } = await supabase
+      .from('productos')
+      .select('*')
+      .eq('tienda_id', shopId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return (data || []) as AdminProduct[];
+  },
+  async createProduct(product: Omit<AdminProduct, 'id' | 'created_at'>) {
+    const { data, error } = await supabase
+      .from('productos')
+      .insert([product])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as AdminProduct;
+  },
+  deleteProduct,
+  async updateProduct(productId: string, updates: Partial<AdminProduct>) {
+    const { data, error } = await supabase
+      .from('productos')
+      .update(updates)
+      .eq('id', productId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as AdminProduct;
+  },
+  async toggleProductStatus(productId: string, activo: boolean) {
+    const { error } = await supabase
+      .from('productos')
+      .update({ activo: !activo })
+      .eq('id', productId);
+
+    if (error) throw error;
+  },
+};

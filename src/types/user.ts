@@ -1,4 +1,29 @@
-export type UserRole = 'admin' | 'comerciante' | 'cliente';
+export type UserRole = 'admin' | 'comerciante' | 'vendedor' | 'cliente';
+
+export interface Usuario {
+  identificacion: string;
+  correo_electronico?: string | null;
+  nombre_completo?: string | null;
+  telefono_contacto?: string | null;
+  rol?: 'vendedor' | 'cliente' | 'administrador' | null;
+  activo?: boolean | null;
+}
+
+export interface Tienda {
+  id?: string;
+  usuario_id?: string | null;
+  distrito_id?: number | null;
+  nombre_comercio?: string | null;
+  slug?: string | null;
+  descripcion?: string | null;
+}
+
+export interface Distrito {
+  identificacion?: number | null;
+  departamento_id?: number | null;
+  nombre?: string | null;
+  activo?: boolean | null;
+}
 
 export interface UserProfile {
   id: string; // UUID de Supabase Auth
