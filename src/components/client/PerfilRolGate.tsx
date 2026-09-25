@@ -5,27 +5,38 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import PerfilCliente from '@/components/client/PerfilCliente';
 
+const normalizeRole = (value: unknown): 'admin' | 'vendedor' | 'cliente' => {
+  const normalized = String(value ?? 'cliente').trim().toLowerCase();
+
+  if (['admin', 'administrador'].includes(normalized)) return 'admin';
+  if (['comerciante', 'vendedor'].includes(normalized)) return 'vendedor';
+  return 'cliente';
+};
+
 export default function PerfilRolGate() {
-  const [rol, setRol] = useState<'cliente' | 'vendedor' | 'administrador' | 'loading'>('loading');
+  const [rol, setRol] = useState<'cliente' | 'vendedor' | 'admin' | 'loading'>('loading');
 
   useEffect(() => {
-    const cargarRol = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
+    const verificarSesion = async () => {
+      setRol('loading');
 
-        if (!user) {
-          setRol('cliente');
-          return;
-        }
+      const { data: { session } } = await supabase.auth.getSession();
 
-        const { data: usuario } = await supabase
-          .from('usuarios')
-          .select('rol')
-          .eq('identificacion', user.id)
-          .maybeSingle();
+      if (!session?.user) {
+        setRol('cliente');
+        return;
+      }
 
-        const rolDetectado = usuario?.rol || user.user_metadata?.rol || localStorage.getItem('rol_usuario') || 'cliente';
-        const rolNormalizado = String(rolDetectado).toLowerCase();
+      const user = session.user;
+
+      const { data: dbUser } = await supabase
+        .from('usuarios')
+        .select('nombre_completo, email, telefono_contacto, rol')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (dbUser) {
+        const rolNormalizado = normalizeRole(dbUser.rol || user.user_metadata?.rol || 'cliente');
 
         if (typeof window !== 'undefined') {
           localStorage.setItem('rol_usuario', rolNormalizado);
@@ -36,23 +47,44 @@ export default function PerfilRolGate() {
           return;
         }
 
-        if (rolNormalizado === 'administrador') {
-          setRol('administrador');
+        if (rolNormalizado === 'admin') {
+          setRol('admin');
           return;
         }
 
         setRol('cliente');
-      } catch (error) {
-        console.error('Error al detectar el rol del usuario:', error);
-        setRol('cliente');
+        return;
       }
+
+      const rolNormalizado = normalizeRole(user.user_metadata?.rol || 'cliente');
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('rol_usuario', rolNormalizado);
+      }
+
+      if (rolNormalizado === 'vendedor') {
+        setRol('vendedor');
+        return;
+      }
+
+      if (rolNormalizado === 'admin') {
+        setRol('admin');
+        return;
+      }
+
+      setRol('cliente');
     };
 
-    void cargarRol();
+    verificarSesion();
   }, []);
 
   if (rol === 'loading') {
-    return <div className="rounded-2xl bg-white p-8 text-center text-sm text-slate-500 shadow-sm">Cargando perfil...</div>;
+    return (
+      <div className="mx-auto max-w-4xl rounded-[28px] border border-slate-200 bg-white p-10 text-center shadow-sm">
+        <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-sky-200 border-t-sky-600" />
+        <p className="mt-4 text-sm font-semibold text-slate-500">Cargando perfil...</p>
+      </div>
+    );
   }
 
   if (rol === 'vendedor') {
@@ -73,7 +105,7 @@ export default function PerfilRolGate() {
     );
   }
 
-  if (rol === 'administrador') {
+  if (rol === 'admin') {
     return (
       <div className="space-y-4">
         <div className="rounded-2xl border border-violet-200 bg-violet-50 px-4 py-3 text-sm text-violet-800 shadow-sm">
@@ -91,5 +123,21 @@ export default function PerfilRolGate() {
     );
   }
 
-  return <PerfilCliente />;
+  return (
+    <div className="mx-auto max-w-3xl rounded-[28px] border border-sky-200 bg-gradient-to-br from-sky-50 via-white to-blue-50 p-8 text-center shadow-[0_20px_60px_rgba(14,116,144,0.12)]">
+      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-sky-100 text-3xl shadow-inner">👤</div>
+      <h2 className="text-2xl font-black text-slate-900">Inicia sesión para ver tu perfil</h2>
+      <p className="mt-3 text-sm text-slate-600">
+        Accede a tu cuenta para gestionar tus compras, favoritos, historial y preferencias.
+      </p>
+      <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+        <Link href="/auth/login" className="rounded-xl bg-sky-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-sky-500/25 transition hover:bg-sky-700">
+          Iniciar sesión
+        </Link>
+        <Link href="/auth/registro" className="rounded-xl border border-sky-200 bg-white px-5 py-3 text-sm font-bold text-sky-700 transition hover:bg-sky-50">
+          Crear cuenta
+        </Link>
+      </div>
+    </div>
+  );
 }

@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
 import Image from 'next/image';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
 
 interface Tienda {
   id: string;
@@ -22,11 +22,6 @@ interface Tienda {
 export default function ComerciosGuairaSection() {
   const [tiendas, setTiendas] = useState<Tienda[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
 
   useEffect(() => {
     async function fetchTiendas() {
@@ -62,7 +57,7 @@ export default function ComerciosGuairaSection() {
     }
 
     fetchTiendas();
-  }, [supabase]);
+  }, []);
 
   if (loading) {
     return (
@@ -100,24 +95,19 @@ export default function ComerciosGuairaSection() {
   }
 
   return (
-    <section className="py-12 bg-slate-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Encabezado */}
-        <div className="flex items-center justify-between mb-8">
+    <section className="bg-slate-50 py-12">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight">🏪 Comercios del Guairá</h2>
-            <p className="text-xs text-slate-500 mt-1">
-              Explora las tiendas y emprendimientos locales en nuestro departamento.
-            </p>
+            <p className="text-[11px] font-black uppercase tracking-[0.24em] text-sky-600">Directorio local</p>
+            <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-900">Comercios del Guairá</h2>
           </div>
-          <span className="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1.5 rounded-full border border-blue-200">
+          <span className="inline-flex items-center rounded-full border border-sky-200 bg-sky-100 px-3 py-1.5 text-xs font-bold text-sky-700">
             {tiendas.length} {tiendas.length === 1 ? 'comercio' : 'comercios'}
           </span>
         </div>
 
-        {/* Grilla estilo Tarjeta de Perfil / Social */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {tiendas.map((tienda) => {
             const distritoNombre = (tienda.distritos as any)?.nombre || 'Guairá';
 
@@ -125,73 +115,56 @@ export default function ComerciosGuairaSection() {
               <Link
                 key={tienda.id}
                 href={`/tienda/${tienda.slug}`}
-                className="group bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col transform hover:-translate-y-1"
+                className="group flex flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_18px_35px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_50px_rgba(14,116,144,0.12)]"
               >
-                {/* Banner/Portada del Comercio */}
-                <div className="relative h-28 w-full bg-slate-800 overflow-hidden">
+                <div className="relative h-36 w-full overflow-hidden bg-slate-800">
                   {tienda.portada_url ? (
                     <Image
                       src={tienda.portada_url}
                       alt={tienda.nombre_comercio}
                       fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-r from-slate-800 via-blue-900 to-slate-900 flex items-center justify-center">
-                      <span className="text-white/20 text-xs font-bold uppercase tracking-widest">Guairá Comercial</span>
+                    <div className="flex h-full items-center justify-center bg-gradient-to-r from-slate-800 via-blue-900 to-slate-900 text-xs font-black uppercase tracking-[0.28em] text-white/20">
+                      Guairá Comercial
                     </div>
                   )}
-                  <span className="absolute top-3 right-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-white/20">
+
+                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-slate-900/45 to-transparent" />
+                  <span className="absolute right-3 top-3 rounded-full border border-white/20 bg-slate-900/60 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur-sm">
                     📍 {distritoNombre}
                   </span>
                 </div>
 
-                {/* Perfil con Foto de Logo superpuesta */}
-                <div className="px-5 pb-5 pt-0 relative flex-1 flex flex-col justify-between">
-                  <div>
-                    {/* Logo circular estilo Instagram */}
-                    <div className="-mt-10 mb-3 flex items-end justify-between">
-                      <div className="relative w-16 h-16 rounded-2xl bg-white border-4 border-white shadow-md overflow-hidden flex-shrink-0">
-                        {tienda.logo_url ? (
-                          <Image
-                            src={tienda.logo_url}
-                            alt={tienda.nombre_comercio}
-                            fill
-                            className="object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-slate-100 flex items-center justify-center text-2xl">
-                            🏪
-                          </div>
-                        )}
-                      </div>
-                      <span className="text-[11px] font-extrabold text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-100">
-                        {tienda.categoria_principal}
-                      </span>
+                <div className="relative flex flex-1 flex-col px-5 pb-5 pt-0">
+                  <div className="-mt-8 mb-3 flex items-end justify-between gap-3">
+                    <div className="relative h-16 w-16 overflow-hidden rounded-[18px] border-4 border-white bg-slate-100 shadow-md">
+                      {tienda.logo_url ? (
+                        <Image src={tienda.logo_url} alt={tienda.nombre_comercio} fill className="object-cover" />
+                      ) : (
+                        <div className="flex h-full items-center justify-center bg-slate-100 text-2xl">🏪</div>
+                      )}
                     </div>
 
-                    {/* Nombre e Información */}
-                    <h3 className="text-base font-extrabold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1">
-                      {tienda.nombre_comercio}
-                    </h3>
-                    
-                    {tienda.descripcion && (
-                      <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">
-                        {tienda.descripcion}
-                      </p>
-                    )}
+                    <span className="rounded-full border border-sky-100 bg-sky-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-sky-700">
+                      {tienda.categoria_principal}
+                    </span>
                   </div>
 
-                  {/* Pie de tarjeta con llamado a la acción */}
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-600">
-                    <span className="group-hover:translate-x-1 transition-transform flex items-center gap-1 text-blue-600">
-                      Ver catálogo de productos →
-                    </span>
-                    {tienda.whatsapp && (
-                      <span className="text-emerald-600 flex items-center gap-1 text-[11px]">
-                        💬 WhatsApp
-                      </span>
-                    )}
+                  <h3 className="line-clamp-1 text-lg font-black text-slate-900 transition-colors group-hover:text-sky-700">
+                    {tienda.nombre_comercio}
+                  </h3>
+
+                  {tienda.descripcion && (
+                    <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-slate-500">
+                      {tienda.descripcion}
+                    </p>
+                  )}
+
+                  <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs font-bold text-slate-600">
+                    <span className="flex items-center gap-1 text-sky-700">Ver catálogo →</span>
+                    {tienda.whatsapp && <span className="text-emerald-600">💬 WhatsApp</span>}
                   </div>
                 </div>
               </Link>

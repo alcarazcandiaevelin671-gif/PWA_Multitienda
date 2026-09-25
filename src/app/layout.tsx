@@ -12,14 +12,16 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
-      <body className="bg-slate-50 text-slate-900 antialiased min-h-screen flex flex-col justify-between">
+      <body className="min-h-screen bg-[radial-gradient(circle_at_top,_#eff6ff_0%,_#f8fafc_35%,_#f1f5f9_100%)] text-slate-900 antialiased">
         <CartProvider>
-          <Navbar />
-          <main className="flex-1">
-            {children}
-          </main>
-          <Footer />
-          <AppMessageLayer />
+          <div className="flex min-h-screen flex-col">
+            <Navbar />
+            <main className="flex-1 w-full">
+              {children}
+            </main>
+            <Footer />
+            <AppMessageLayer />
+          </div>
         </CartProvider>
       </body>
     </html>

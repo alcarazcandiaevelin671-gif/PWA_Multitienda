@@ -1,15 +1,11 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
 import Image from 'next/image';
 import Link from 'next/link';
 import { showAppConfirm } from '@/lib/app-message';
+import { supabase } from '@/lib/supabase';
 
 export default function VendedorProductosPage() {
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
 
   // Estados de carga y sesión
   const [fetching, setFetching] = useState(true);
@@ -93,8 +89,10 @@ export default function VendedorProductosPage() {
     } finally {
       setFetching(false);
     }
-  }, [supabase]);
+  }, []);
 
+  // supabase is a shared singleton instance and does not need to be a dependency.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     cargarTiendaYProductos();
   }, [cargarTiendaYProductos]);

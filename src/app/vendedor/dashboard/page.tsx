@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
 import Image from 'next/image';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { showAppConfirm } from '@/lib/app-message';
+import { supabase } from '@/lib/supabase';
 
 const LocationPicker = dynamic(() => import('@/components/ui/LocationPicker'), { ssr: false });
 
@@ -49,11 +49,6 @@ interface Producto {
   disponible: boolean;
   categoria_id?: string | null;
 }
-
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 export default function VendedorDashboardPage() {
   const [loading, setLoading] = useState(true);

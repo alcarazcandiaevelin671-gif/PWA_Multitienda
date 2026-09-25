@@ -1,10 +1,10 @@
 'use client';
-import { useState, useEffect, useRef, useMemo } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
 // Mapa dinámico evitando SSR
 const LocationPicker = dynamic(() => import('@/components/ui/LocationPicker'), {
@@ -53,13 +53,6 @@ const CATEGORIAS_DEFAULT = [
 
 export default function VendedorTiendaPage() {
   const router = useRouter();
-  const supabase = useMemo(
-    () => createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    ),
-    []
-  );
 
   // Estados de sesión y carga
   const [sessionUser, setSessionUser] = useState<any>(null);
@@ -201,7 +194,7 @@ export default function VendedorTiendaPage() {
     }
 
     loadData();
-  }, [supabase]);
+  }, []);
 
   // Manejar Autenticación
   const handleAuthSubmit = async (e: React.FormEvent) => {

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { createBrowserClient } from '@supabase/ssr';
+import { supabase } from '@/lib/supabase';
 
 type ProductSearchResult = {
   id: string;
@@ -14,6 +14,14 @@ type ProductSearchResult = {
   categoria_id?: number | null;
 };
 
+const normalizeRole = (value: unknown): string => {
+  const normalized = String(value ?? '').trim().toLowerCase();
+
+  if (['admin', 'administrador'].includes(normalized)) return 'admin';
+  if (['comerciante', 'vendedor'].includes(normalized)) return 'vendedor';
+  return 'cliente';
+};
+
 export default function Navbar() {
   const router = useRouter();
   const [rolUsuario, setRolUsuario] = useState<string | null>(null);
@@ -22,11 +30,6 @@ export default function Navbar() {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<ProductSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
 
   useEffect(() => {
     const consultarDatosUsuario = async (userSession: any) => {
@@ -46,9 +49,10 @@ export default function Navbar() {
         .maybeSingle();
 
       if (perfil) {
-        setRolUsuario(perfil.rol);
+        const rolNormalizado = normalizeRole(perfil.rol);
+        setRolUsuario(rolNormalizado);
 
-        if (perfil.rol === 'comerciante' || perfil.rol === 'vendedor') {
+        if (rolNormalizado === 'vendedor') {
           const { data: tienda } = await supabase
             .from('tiendas')
             .select('nombre_comercio')
@@ -79,7 +83,7 @@ export default function Navbar() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, []);
 
   useEffect(() => {
     const normalized = searchTerm.trim();
@@ -135,7 +139,7 @@ export default function Navbar() {
     }, 250);
 
     return () => window.clearTimeout(timeoutId);
-  }, [searchTerm, supabase]);
+  }, [searchTerm]);
 
   const handleSelectProduct = async (product: ProductSearchResult) => {
     try {
@@ -245,7 +249,7 @@ export default function Navbar() {
           </Link>
         )}
 
-        {(rolUsuario === 'comerciante' || rolUsuario === 'vendedor') && (
+        {rolUsuario === 'vendedor' && (
           <>
             <Link
               href="/vendedor/tienda"

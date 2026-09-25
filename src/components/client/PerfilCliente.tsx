@@ -7,6 +7,14 @@ import { supabase } from '@/lib/supabase';
 
 const CATEGORIES = ['Ao Po\'i', 'Artesanías', 'Gastronomía', 'Alimentos', 'Agricultura', 'Servicios'];
 
+const normalizeRole = (value: unknown): 'admin' | 'comerciante' | 'vendedor' | 'cliente' => {
+  const normalized = String(value ?? 'cliente').trim().toLowerCase();
+
+  if (['admin', 'administrador'].includes(normalized)) return 'admin';
+  if (['comerciante', 'vendedor'].includes(normalized)) return 'vendedor';
+  return 'cliente';
+};
+
 type Profile = {
   id: string;
   nombre_completo: string;
@@ -66,22 +74,23 @@ export default function PerfilCliente() {
 
       const { data: usuario } = await supabase
         .from('usuarios')
-        .select('rol, nombre_completo, telefono_contacto')
+        .select('*')
         .eq('identificacion', user.id)
         .maybeSingle();
 
       const rolDetectado = usuario?.rol || user.user_metadata?.rol || localStorage.getItem('rol_usuario') || 'cliente';
+      const nombreBase = usuario?.nombre_completo || user.user_metadata?.nombre_completo || user.email?.split('@')[0] || 'Usuario';
 
       const nextProfile: Profile = {
         id: user.id,
-        nombre_completo: usuario?.nombre_completo || user.user_metadata?.nombre_completo || '',
-        email: user.email || '',
+        nombre_completo: nombreBase,
+        email: usuario?.correo_electronico || user.email || '',
         telefono_contacto: usuario?.telefono_contacto || '',
-        direccion_texto: '',
-        avatar_url: null,
-        latitud: null,
-        longitud: null,
-        rol: String(rolDetectado).toLowerCase() as Profile['rol'],
+        direccion_texto: usuario?.direccion_texto || '',
+        avatar_url: usuario?.avatar_url || null,
+        latitud: usuario?.latitud ?? null,
+        longitud: usuario?.longitud ?? null,
+        rol: normalizeRole(rolDetectado),
       };
 
       setProfile(nextProfile);
@@ -184,20 +193,45 @@ export default function PerfilCliente() {
     }
   };
 
-  if (loading) return <div className="rounded-2xl bg-white p-8 text-center text-sm text-slate-500 shadow-sm">Cargando perfil...</div>;
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-4xl rounded-[28px] border border-slate-200 bg-white p-10 text-center shadow-sm">
+        <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-sky-200 border-t-sky-600" />
+        <p className="mt-4 text-sm font-semibold text-slate-500">Cargando perfil...</p>
+      </div>
+    );
+  }
 
-  const role = profile?.rol || 'cliente';
+  if (!profile) {
+    return (
+      <div className="mx-auto max-w-3xl rounded-[28px] border border-sky-200 bg-gradient-to-br from-sky-50 via-white to-blue-50 p-8 text-center shadow-[0_20px_60px_rgba(14,116,144,0.12)]">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-sky-100 text-3xl shadow-inner">🔐</div>
+        <h2 className="text-2xl font-black text-slate-900">Tu perfil está listo para ser visto</h2>
+        <p className="mt-3 text-sm text-slate-600">Inicia sesión para consultar tus compras, favoritos y preferencias personalizadas.</p>
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+          <button type="button" onClick={() => router.push('/auth/login')} className="rounded-xl bg-sky-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-sky-500/25 transition hover:bg-sky-700">
+            Iniciar sesión
+          </button>
+          <button type="button" onClick={() => router.push('/auth/registro')} className="rounded-xl border border-sky-200 bg-white px-5 py-3 text-sm font-bold text-sky-700 transition hover:bg-sky-50">
+            Crear cuenta
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+const role = normalizeRole(profile?.rol || 'cliente');
   const roleTheme =
     role === 'admin'
       ? {
-          header: 'bg-gradient-to-r from-violet-900 via-purple-800 to-violet-700',
-          pill: 'bg-purple-100 text-purple-800 border border-purple-200',
-          accent: 'text-violet-300',
-          title: 'PANEL DE CONTROL GENERAL - APLICACIÓN MULTITIENDA',
-          subtitle: 'Administrador del Sistema',
-          description: 'Supervisa indicadores globales, comercios activos y la salud del ecosistema local.',
-        }
-      : role === 'comerciante' || role === 'vendedor'
+        header: 'bg-gradient-to-r from-violet-900 via-purple-800 to-violet-700',
+        pill: 'bg-purple-100 text-purple-800 border border-purple-200',
+        accent: 'text-violet-300',
+        title: 'PANEL DE CONTROL GENERAL - APLICACIÓN MULTITIENDA',
+        subtitle: 'Administrador del Sistema',
+        description: 'Supervisa indicadores globales, comercios activos y la salud del ecosistema local.',
+      }
+      : role === 'vendedor'
         ? {
             header: 'bg-gradient-to-r from-emerald-900 via-emerald-700 to-emerald-600',
             pill: 'bg-emerald-100 text-emerald-800 border border-emerald-200',

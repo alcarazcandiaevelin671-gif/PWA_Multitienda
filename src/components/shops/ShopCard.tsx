@@ -32,46 +32,50 @@ export default function ShopCard({
 }: ShopCardProps) {
   const nombre = nombreComercio || title || '';
   const detalle = descripcion || description;
+  const imageUrl = logoUrl || bannerUrl || '';
 
   return (
-    <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 relative flex flex-col justify-between hover:shadow-xl transition-all duration-300 group">
-      {/* Badge de Verificado */}
+    <div className="group relative flex flex-col justify-between overflow-hidden rounded-[26px] border border-slate-200 bg-white p-3 shadow-[0_18px_35px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_50px_rgba(14,116,144,0.12)]">
       {verificada && (
-        <span className="absolute top-4 left-4 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md shadow-sm z-10">
+        <span className="absolute left-5 top-5 z-10 rounded-full border border-blue-200 bg-blue-600 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-white shadow-sm">
           Verificado
         </span>
       )}
 
-      {/* Imagen o Inicial del Comercio */}
-      <div className="w-full h-40 bg-slate-200/60 rounded-xl flex items-center justify-center my-2 overflow-hidden group-hover:scale-[1.02] transition-transform">
-        {logoUrl || bannerUrl ? (
-          <Image src={logoUrl || bannerUrl || ''} alt={nombre} fill unoptimized className="object-cover" />
+      <div className="relative h-44 overflow-hidden rounded-[20px] bg-slate-200">
+        {imageUrl ? (
+          <Image src={imageUrl} alt={nombre} fill unoptimized className="object-cover transition-transform duration-500 group-hover:scale-105" />
         ) : (
-          <span className="text-slate-400 font-extrabold text-3xl select-none">
+          <div className="flex h-full items-center justify-center bg-gradient-to-br from-slate-200 via-slate-100 to-sky-100 text-4xl font-black text-slate-500">
             {nombre ? nombre.charAt(0).toUpperCase() : 'G'}
-          </span>
+          </div>
         )}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 via-transparent to-transparent" />
       </div>
 
-      {/* Info del Comercio */}
-      <div className="mt-2">
-        <span className="text-[10px] font-semibold text-blue-600 uppercase tracking-wider block mb-1">
-          {categoriaPrincipal || 'Comercio'}
-        </span>
-        <h3 className="font-bold text-slate-900 text-base mb-1 group-hover:text-blue-600 transition-colors line-clamp-1">
+      <div className="mt-4 flex-1">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <span className="text-[10px] font-black uppercase tracking-[0.22em] text-sky-600">
+            {categoriaPrincipal || 'Comercio'}
+          </span>
+          <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-700">
+            Local
+          </span>
+        </div>
+
+        <h3 className="line-clamp-1 text-base font-black text-slate-900 transition-colors group-hover:text-sky-700">
           {nombre}
         </h3>
-        <p className="text-xs text-slate-500 line-clamp-2 mb-4">
+        <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-slate-500">
           {detalle || 'Comercio registrado en el Departamento del Guairá.'}
         </p>
       </div>
 
-      {/* Botón de Perfil */}
       <Link
         href={`/tienda/${slug || id}`}
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2.5 px-4 rounded-xl text-center transition-colors shadow-md shadow-blue-500/20"
+        className="mt-4 inline-flex w-full items-center justify-center rounded-2xl bg-slate-900 px-4 py-3 text-center text-xs font-black text-white transition-all duration-200 hover:bg-sky-700"
       >
-        Ver Local →
+        Ver local →
       </Link>
     </div>
   );

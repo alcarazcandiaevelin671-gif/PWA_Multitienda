@@ -1,11 +1,11 @@
-export type UserRole = 'admin' | 'comerciante' | 'vendedor' | 'cliente';
+export type UserRole = 'admin' | 'administrador' | 'comerciante' | 'vendedor' | 'cliente';
 
 export interface Usuario {
   identificacion: string;
   correo_electronico?: string | null;
   nombre_completo?: string | null;
   telefono_contacto?: string | null;
-  rol?: 'vendedor' | 'cliente' | 'administrador' | null;
+  rol?: 'vendedor' | 'cliente' | 'administrador' | 'admin' | 'comerciante' | null;
   activo?: boolean | null;
 }
 
