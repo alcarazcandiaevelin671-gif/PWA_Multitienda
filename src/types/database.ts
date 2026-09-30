@@ -280,6 +280,7 @@ export interface Tienda {
   nombre_comercio: string | null;
   slug: string | null;
   descripcion: string | null;
+  estado: string | null;
 }
 
 export interface Usuario {

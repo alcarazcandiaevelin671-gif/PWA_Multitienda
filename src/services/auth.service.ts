@@ -26,6 +26,9 @@ export const authService = {
   async signOut() {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
+
+    const response = await fetch('/api/auth/session', { method: 'DELETE' });
+    if (!response.ok) throw new Error('No se pudo cerrar la sesión del servidor.');
   },
 
   async getCurrentProfile() {

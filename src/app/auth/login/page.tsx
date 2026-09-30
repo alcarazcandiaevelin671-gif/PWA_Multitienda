@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { userFacingError } from '@/lib/user-facing-error';
@@ -19,6 +19,11 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [adminAccessNotice, setAdminAccessNotice] = useState(false);
+
+  useEffect(() => {
+    setAdminAccessNotice(new URLSearchParams(window.location.search).get('error') === 'admin_required');
+  }, []);
 
   const handleGoogleLogin = async () => {
     try {
@@ -49,11 +54,29 @@ export default function LoginPage() {
 
       if (error) throw error;
 
+      let destination = '/';
       if (data.session) {
         await supabase.auth.setSession(data.session);
+        const sessionResponse = await fetch('/api/auth/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            access_token: data.session.access_token,
+            refresh_token: data.session.refresh_token,
+          }),
+        });
+        if (!sessionResponse.ok) throw new Error('No se pudo validar la sesión en el servidor.');
+
+        const { data: profile } = await supabase
+          .from('usuarios')
+          .select('rol')
+          .eq('id', data.session.user.id)
+          .maybeSingle();
+
+        if (normalizeRole(profile?.rol) === 'admin') destination = '/admin';
       }
 
-      window.location.href = '/';
+      window.location.href = destination;
     } catch (err: any) {
       console.error('Error al iniciar sesión:', err.message);
       setErrorMsg(userFacingError(err, 'No se pudo iniciar sesión. Revisa tus datos e inténtalo de nuevo.'));
@@ -102,6 +125,12 @@ export default function LoginPage() {
                 Ingresa tus credenciales para continuar.
               </p>
             </div>
+
+            {adminAccessNotice && (
+              <div role="alert" className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm leading-5 text-amber-900">
+                Iniciaste sesión, pero el perfil de Supabase no tiene el rol administrador o no se pudo leer. Verifica `usuarios.rol` y las políticas RLS.
+              </div>
+            )}
 
             {errorMsg && (
               <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">

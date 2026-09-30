@@ -34,6 +34,40 @@ export default function Navbar() {
   const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
+    let syncPromise: Promise<void> | null = null;
+    let syncedAccessToken: string | null = null;
+
+    const syncServerSession = async (userId: string) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session || session.user.id !== userId || session.access_token === syncedAccessToken) return;
+      if (syncPromise) {
+        await syncPromise;
+        return;
+      }
+
+      const accessToken = session.access_token;
+      syncPromise = (async () => {
+        const response = await fetch('/api/auth/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            access_token: session.access_token,
+            refresh_token: session.refresh_token,
+          }),
+        });
+        if (!response.ok) throw new Error('No se pudo sincronizar la sesión del servidor.');
+        syncedAccessToken = accessToken;
+      })();
+
+      try {
+        await syncPromise;
+      } catch (error) {
+        console.error('Error al sincronizar la sesión del servidor:', error);
+      } finally {
+        syncPromise = null;
+      }
+    };
+
     const consultarDatosUsuario = async (userSession: any) => {
       if (!userSession) {
         setUsuario(null);
@@ -43,6 +77,7 @@ export default function Navbar() {
       }
 
       setUsuario(userSession);
+      await syncServerSession(userSession.id);
 
       const { data: perfil } = await supabase
         .from('usuarios')
@@ -79,7 +114,9 @@ export default function Navbar() {
 
     // Escuchar cambios de estado en tiempo real (login/logout)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      consultarDatosUsuario(session?.user ?? null);
+      window.setTimeout(() => {
+        void consultarDatosUsuario(session?.user ?? null);
+      }, 0);
     });
 
     return () => {
