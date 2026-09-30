@@ -11,6 +11,107 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+.admin-theme {
+  --admin-ink: #0f172a;
+  --admin-muted: #64748b;
+  --admin-border: #e2e8f0;
+  color: var(--admin-ink);
+}
+
+.admin-theme [class~="bg-[#091321]"] {
+  background-color: #f8fafc !important;
+}
+
+.admin-theme [class~="bg-[#111f31]"] {
+  background-color: #fff !important;
+}
+
+.admin-theme [class*="bg-white/"] {
+  background-color: #f8fafc !important;
+}
+
+.admin-theme [class*="border-white/"] {
+  border-color: var(--admin-border) !important;
+}
+
+.admin-theme [class~="text-white"],
+.admin-theme [class~="text-slate-100"],
+.admin-theme [class~="text-slate-200"] {
+  color: #0f172a !important;
+}
+
+.admin-theme [class~="bg-blue-600"][class~="text-white"] {
+  color: #fff !important;
+}
+
+.admin-theme [class~="text-slate-300"] {
+  color: #334155 !important;
+}
+
+.admin-theme [class~="text-slate-400"],
+.admin-theme [class~="text-slate-500"] {
+  color: #64748b !important;
+}
+
+.admin-theme [class~="text-sky-300"],
+.admin-theme [class~="text-sky-200"] {
+  color: #0369a1 !important;
+}
+
+.admin-theme [class~="text-cyan-300"] {
+  color: #0e7490 !important;
+}
+
+.admin-theme [class~="text-violet-300"] {
+  color: #6d28d9 !important;
+}
+
+.admin-theme [class~="text-emerald-300"],
+.admin-theme [class~="text-emerald-200"] {
+  color: #047857 !important;
+}
+
+.admin-theme [class~="text-amber-300"],
+.admin-theme [class~="text-amber-200"] {
+  color: #b45309 !important;
+}
+
+.admin-theme [class~="text-green-300"] {
+  color: #15803d !important;
+}
+
+.admin-theme [class~="text-blue-300"] {
+  color: #1d4ed8 !important;
+}
+
+.admin-theme [class~="text-rose-200"] {
+  color: #be123c !important;
+}
+
+.admin-theme [class*="bg-rose-400/10"] {
+  background-color: #fff1f2 !important;
+}
+
+.admin-theme [class*="border-rose-400/30"] {
+  border-color: #fecdd3 !important;
+}
+
+.admin-theme [class*="bg-emerald-400/10"] {
+  background-color: #ecfdf5 !important;
+}
+
+.admin-theme [class*="border-emerald-400/30"] {
+  border-color: #a7f3d0 !important;
+}
+
+.admin-theme [class*="bg-amber-300/10"] {
+  background-color: #fffbeb !important;
+}
+
+.admin-theme [class*="shadow-["] {
+  box-shadow: 0 1px 3px rgb(15 23 42 / 0.08) !important;
+}
+
 * {
   box-sizing: border-box;
 }
