@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import { userFacingError } from '@/lib/user-facing-error';
 
-const normalizeRole = (value: unknown): 'admin' | 'vendedor' | 'cliente' => {
+const normalizeRole = (value: unknown): 'admin' | 'comerciante' | 'cliente' => {
   const normalized = String(value ?? 'cliente').trim().toLowerCase();
 
   if (['admin', 'administrador'].includes(normalized)) return 'admin';
-  if (['comerciante', 'vendedor'].includes(normalized)) return 'vendedor';
+  if (normalized === 'comerciante') return 'comerciante';
   return 'cliente';
 };
 
@@ -30,7 +31,7 @@ export default function LoginPage() {
       });
       if (error) throw error;
     } catch (err: any) {
-      setErrorMsg(err.message || 'Error al conectar con Google.');
+      setErrorMsg(userFacingError(err, 'No se pudo conectar con Google. Inténtalo de nuevo.'));
       setLoading(false);
     }
   };
@@ -52,10 +53,10 @@ export default function LoginPage() {
         await supabase.auth.setSession(data.session);
       }
 
-      window.location.href = '/perfil';
+      window.location.href = '/';
     } catch (err: any) {
       console.error('Error al iniciar sesión:', err.message);
-      setErrorMsg(err.message || 'Credenciales inválidas');
+      setErrorMsg(userFacingError(err, 'No se pudo iniciar sesión. Revisa tus datos e inténtalo de nuevo.'));
     } finally {
       setLoading(false);
     }
@@ -205,7 +206,7 @@ export default function LoginPage() {
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Comercio</p>
               <p className="mt-2 text-sm text-slate-600">¿Quieres vender en el portal del Guairá?</p>
               <Link href="/auth/registro" className="mt-3 inline-block rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white transition hover:bg-slate-700">
-                Registrar nuevo vendedor
+                Registrar nuevo comerciante
               </Link>
             </div>
           </div>

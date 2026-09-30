@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { getMyOrder } from '@/services/orders.service';
 import type { PedidoConTienda } from '@/services/orders.service';
 import type { PedidoDetalle, PedidoEstadoHistorial } from '@/types/database';
+import { userFacingError } from '@/lib/user-facing-error';
 
 type OrderDetails = {
   pedido: PedidoConTienda;
@@ -32,7 +33,7 @@ export default function OrderDetailPage() {
         if (!result) setError('No se encontró este pedido.');
         else setData(result);
       })
-      .catch((loadError) => setError(loadError instanceof Error ? loadError.message : 'No se pudo cargar el pedido.'))
+      .catch((loadError) => setError(userFacingError(loadError, 'No se pudo cargar el pedido. Inténtalo de nuevo.')))
       .finally(() => setLoading(false));
   }, [id]);
 

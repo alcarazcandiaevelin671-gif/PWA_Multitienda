@@ -230,7 +230,7 @@ export async function updateVendorOrderStatus(orderId: string, nextState: string
   const { data, error } = await supabase.rpc('actualizar_estado_pedido', {
     p_pedido_id: orderId,
     p_nuevo_estado: nextState,
-    p_observacion: observacion ?? `Estado actualizado por el vendedor a ${getOrderStateLabel(nextState)}.`,
+    p_observacion: observacion ?? `Estado actualizado por el comerciante a ${getOrderStateLabel(nextState)}.`,
   });
 
   if (error) {

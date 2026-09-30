@@ -32,7 +32,7 @@ const normalizarRol = (valor: unknown): string => {
   const rol = String(valor ?? 'cliente').trim().toLowerCase();
 
   if (['admin', 'administrador'].includes(rol)) return 'admin';
-  if (['comerciante', 'vendedor'].includes(rol)) return 'vendedor';
+  if (rol === 'comerciante') return 'comerciante';
 
   return 'cliente';
 };
@@ -95,7 +95,7 @@ export default function PerfilPage() {
             activo: dbUser?.activo ?? true
           });
 
-          if (rolNormalizado === 'vendedor') {
+          if (rolNormalizado === 'comerciante') {
             const { data: dbTienda } = await supabase
               .from('tiendas')
               .select('*')
@@ -181,8 +181,8 @@ export default function PerfilPage() {
   const rolEtiqueta =
     userData.rol === 'admin'
       ? 'Administrador'
-      : userData.rol === 'vendedor'
-        ? 'Vendedor'
+      : userData.rol === 'comerciante'
+        ? 'Comerciante'
         : 'Cliente';
 
   const iniciales = userData.nombre_completo
@@ -191,7 +191,7 @@ export default function PerfilPage() {
     .map((segmento) => segmento.charAt(0).toUpperCase())
     .join('') || 'U';
 
-  const esVendedor = normalizarRol(userData.rol) === 'vendedor';
+  const esComerciante = normalizarRol(userData.rol) === 'comerciante';
   const estadoTienda = String(tiendaData?.estado || 'sin registrar').trim().toLowerCase();
   const tiendaAprobada = ['activa', 'activo'].includes(estadoTienda);
   const estadoTiendaEtiqueta: Record<string, string> = {
@@ -256,7 +256,7 @@ export default function PerfilPage() {
         </div>
       </div>
 
-      {esVendedor && (
+      {esComerciante && (
         <div className="rounded-[28px] border border-blue-200 bg-blue-50 p-6 shadow-sm">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div className="min-w-0">
@@ -272,8 +272,8 @@ export default function PerfilPage() {
               {!tiendaAprobada && (
                 <p className="mt-3 text-sm leading-relaxed text-slate-600">
                   {estadoTienda === 'pendiente'
-                    ? 'Tu solicitud está en revisión. Las funciones de vendedor estarán disponibles cuando el comercio sea aprobado.'
-                    : 'Las funciones de vendedor no están disponibles hasta que el comercio sea aprobado.'}
+                    ? 'Tu solicitud está en revisión. Las funciones de comerciante estarán disponibles cuando el comercio sea aprobado.'
+                    : 'Las funciones de comerciante no están disponibles hasta que el comercio sea aprobado.'}
                 </p>
               )}
             </div>
@@ -285,8 +285,8 @@ export default function PerfilPage() {
               {tiendaData?.email && <p className="break-all"><span className="font-bold">Correo comercial:</span> {tiendaData.email}</p>}
               {tiendaData?.slug && tiendaAprobada && <Link href={`/tienda/${tiendaData.slug}`} className="font-bold text-blue-700 hover:underline">Ver comercio publicado</Link>}
               {tiendaAprobada && (
-                <Link href="/vendedor/dashboard" className="mt-2 inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/20 transition hover:bg-blue-700">
-                  Ir al Dashboard de Vendedor
+                <Link href="/comerciante/dashboard" className="mt-2 inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/20 transition hover:bg-blue-700">
+                  Ir al panel de mi comercio
                 </Link>
               )}
             </div>

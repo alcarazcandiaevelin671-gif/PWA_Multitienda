@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { getMyStoreOrders, getOrderStateLabel, type PedidoConTienda } from '@/services/orders.service';
+import { userFacingError } from '@/lib/user-facing-error';
 
 export default function VendorOrdersPage() {
   const [orders, setOrders] = useState<PedidoConTienda[]>([]);
@@ -14,7 +15,7 @@ export default function VendorOrdersPage() {
   useEffect(() => {
     getMyStoreOrders()
       .then(setOrders)
-      .catch((loadError) => setError(loadError instanceof Error ? loadError.message : 'No se pudieron cargar los pedidos.'))
+      .catch((loadError) => setError(userFacingError(loadError, 'No se pudieron cargar los pedidos. Inténtalo de nuevo.')))
       .finally(() => setLoading(false));
   }, []);
 
@@ -89,14 +90,14 @@ export default function VendorOrdersPage() {
                   <td className="px-4 py-4 font-semibold text-slate-800">Gs. {Number(order.total).toLocaleString('es-PY')}</td>
                   <td className="px-4 py-4 capitalize text-slate-700">{order.estado_pago}</td>
                   <td className="px-4 py-4"><span className="inline-flex rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-slate-700">{getOrderStateLabel(order.estado)}</span></td>
-                  <td className="px-4 py-4"><Link href={`/vendedor/pedidos/${order.id}`} className="font-bold text-blue-700 hover:underline">Gestionar</Link></td>
+                  <td className="px-4 py-4"><Link href={`/comerciante/pedidos/${order.id}`} className="font-bold text-blue-700 hover:underline">Gestionar</Link></td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
-      <Link href="/vendedor/dashboard" className="mt-6 inline-flex text-sm font-bold text-blue-700 hover:underline">Volver al dashboard</Link>
+      <Link href="/comerciante/dashboard" className="mt-6 inline-flex text-sm font-bold text-blue-700 hover:underline">Volver al dashboard</Link>
     </main>
   );
 }

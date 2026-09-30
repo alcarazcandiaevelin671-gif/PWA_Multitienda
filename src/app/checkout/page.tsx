@@ -6,6 +6,7 @@ import { useCart } from '@/context/CartContext';
 import { supabase } from '@/lib/supabase';
 import { createOrder } from '@/services/orders.service';
 import type { CheckoutConfirmation, CheckoutInput } from '@/types/database';
+import { userFacingError } from '@/lib/user-facing-error';
 
 type CheckoutProduct = {
   id: string;
@@ -84,7 +85,7 @@ export default function CheckoutPage() {
 
       const loadError = productsResult.error || shopResult.error || districtsResult.error;
       if (loadError) {
-        setError(loadError.message);
+        setError(userFacingError(loadError, 'No se pudo cargar la información del pedido. Inténtalo de nuevo.'));
       } else {
         setProducts((productsResult.data || []) as CheckoutProduct[]);
         setShop((shopResult.data || null) as CheckoutShop | null);
@@ -161,7 +162,7 @@ export default function CheckoutPage() {
       setCreatedOrder(result.pedido);
       clearCart();
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : 'No se pudo confirmar el pedido.');
+      setError(userFacingError(submitError, 'No se pudo confirmar el pedido. Inténtalo de nuevo.'));
     } finally {
       setSubmitting(false);
     }

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { getMyStoreInvoices } from '@/services/invoices.service';
 import type { FacturaInterna } from '@/types/database';
+import { userFacingError } from '@/lib/user-facing-error';
 
 export default function VendorInvoicesPage() {
   const [invoices, setInvoices] = useState<FacturaInterna[]>([]);
@@ -14,7 +15,7 @@ export default function VendorInvoicesPage() {
   useEffect(() => {
     getMyStoreInvoices()
       .then(setInvoices)
-      .catch((loadError) => setError(loadError instanceof Error ? loadError.message : 'No se pudieron cargar las facturas.'))
+      .catch((loadError) => setError(userFacingError(loadError, 'No se pudieron cargar las facturas. Inténtalo de nuevo.')))
       .finally(() => setLoading(false));
   }, []);
 
@@ -30,7 +31,7 @@ export default function VendorInvoicesPage() {
           <p className="text-xs font-black uppercase text-emerald-700">Comercio</p>
           <h1 className="mt-1 text-3xl font-black text-slate-900">Facturación</h1>
         </div>
-        <Link href="/vendedor/dashboard" className="text-sm font-bold text-blue-700 hover:underline">Volver al dashboard</Link>
+        <Link href="/comerciante/dashboard" className="text-sm font-bold text-blue-700 hover:underline">Volver al dashboard</Link>
       </div>
 
       <div className="mb-6 max-w-xs rounded-2xl border border-slate-200 bg-white p-4">

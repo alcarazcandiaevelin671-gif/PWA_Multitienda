@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { getMyStoreSales, getMyStoreSalesStats } from '@/services/sales.service';
 import type { Venta } from '@/types/database';
+import { userFacingError } from '@/lib/user-facing-error';
 
 export default function VendorSalesPage() {
   const [sales, setSales] = useState<Venta[]>([]);
@@ -17,7 +18,7 @@ export default function VendorSalesPage() {
         setSales(result);
         setStats(summary);
       })
-      .catch((loadError) => setError(loadError instanceof Error ? loadError.message : 'No se pudieron cargar las ventas.'))
+      .catch((loadError) => setError(userFacingError(loadError, 'No se pudieron cargar las ventas. Inténtalo de nuevo.')))
       .finally(() => setLoading(false));
   }, []);
 
@@ -39,7 +40,7 @@ export default function VendorSalesPage() {
           <p className="text-xs font-black uppercase text-emerald-700">Comercio</p>
           <h1 className="mt-1 text-3xl font-black text-slate-900">Ventas</h1>
         </div>
-        <Link href="/vendedor/dashboard" className="text-sm font-bold text-blue-700 hover:underline">Volver al dashboard</Link>
+        <Link href="/comerciante/dashboard" className="text-sm font-bold text-blue-700 hover:underline">Volver al dashboard</Link>
       </div>
 
       <div className="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-5">

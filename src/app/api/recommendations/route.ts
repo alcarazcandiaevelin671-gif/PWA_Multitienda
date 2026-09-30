@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { userFacingError } from '@/lib/user-facing-error';
 
 type CatalogProduct = {
   id: string;
@@ -211,7 +212,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Error generando recomendaciones:', error);
     return NextResponse.json(
-      { error: error?.message || 'No se pudieron generar recomendaciones.' },
+      { error: userFacingError(error, 'No se pudieron generar recomendaciones. Inténtalo de nuevo.') },
       { status: 500 },
     );
   }

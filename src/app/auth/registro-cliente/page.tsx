@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import { userFacingError } from '@/lib/user-facing-error';
 
 export default function RegistroClientePage() {
   const [formData, setFormData] = useState({
@@ -60,7 +61,7 @@ export default function RegistroClientePage() {
       if (profileError) throw profileError;
       setRegistered(true);
     } catch (caughtError) {
-      setError(caughtError instanceof Error ? caughtError.message : 'Ocurrió un error al crear la cuenta.');
+      setError(userFacingError(caughtError, 'Ocurrió un error al crear la cuenta. Inténtalo de nuevo.'));
     } finally {
       setLoading(false);
     }

@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { userFacingError } from '@/lib/user-facing-error';
 
 // Mapa dinámico evitando SSR
 const LocationPicker = dynamic(() => import('@/components/ui/LocationPicker'), {
@@ -51,7 +52,7 @@ const CATEGORIAS_DEFAULT = [
   { id: 10, nombre: 'Otros Rubros' },
 ];
 
-export default function VendedorTiendaPage() {
+export default function ComercianteTiendaPage() {
   const router = useRouter();
 
   // Estados de sesión y carga
@@ -95,6 +96,7 @@ export default function VendedorTiendaPage() {
   // Datos de la Tienda
   const [formData, setFormData] = useState({
     nombre_comercio: '',
+    slug: '',
     descripcion: '',
     categoria_principal: 'Gastronomía y Comidas',
     distrito_id: 1,
@@ -147,7 +149,7 @@ export default function VendedorTiendaPage() {
           .eq('id', userId)
           .maybeSingle();
 
-        if (!['vendedor', 'comerciante'].includes(String(userBD?.rol || '').toLowerCase())) {
+        if (String(userBD?.rol || '').toLowerCase() !== 'comerciante') {
           window.location.href = '/perfil';
           return;
         }
@@ -170,6 +172,7 @@ export default function VendedorTiendaPage() {
         if (tiendaBD) {
           setFormData({
             nombre_comercio: tiendaBD.nombre_comercio || '',
+            slug: tiendaBD.slug || '',
             descripcion: tiendaBD.descripcion || '',
             categoria_principal: tiendaBD.categoria_principal || 'Gastronomía y Comidas',
             distrito_id: tiendaBD.distrito_id || 1,
@@ -219,11 +222,11 @@ export default function VendedorTiendaPage() {
       });
 
       if (error) throw error;
-      setSessionUser(data.session?.user);
-      setMensaje({ tipo: 'exito', texto: 'Sesión iniciada correctamente.' });
+      if (!data.session) throw new Error('No se pudo iniciar la sesión. Inténtalo de nuevo.');
+      window.location.href = '/';
     } catch (err: any) {
       console.error('Error de autenticación:', err);
-      setMensaje({ tipo: 'error', texto: err.message || 'Error al autenticar usuario.' });
+      setMensaje({ tipo: 'error', texto: userFacingError(err, 'No se pudo autenticar la cuenta. Revisa tus datos e inténtalo de nuevo.') });
     } finally {
       setAuthLoading(false);
     }
@@ -244,7 +247,7 @@ export default function VendedorTiendaPage() {
       setRecoveryStep(2);
       setMensaje({ tipo: 'exito', texto: 'Te enviamos un código de 6 dígitos a tu correo.' });
     } catch (err: any) {
-      setMensaje({ tipo: 'error', texto: err.message || 'No se pudo enviar el código.' });
+      setMensaje({ tipo: 'error', texto: userFacingError(err, 'No se pudo enviar el código. Inténtalo de nuevo.') });
     } finally {
       setRecoveryLoading(false);
     }
@@ -266,7 +269,7 @@ export default function VendedorTiendaPage() {
       setRecoveryStep(3);
       setMensaje({ tipo: 'exito', texto: 'Código verificado. Define tu nueva contraseña.' });
     } catch (err: any) {
-      setMensaje({ tipo: 'error', texto: err.message || 'El código no es válido o ya expiró.' });
+      setMensaje({ tipo: 'error', texto: userFacingError(err, 'El código no es válido o ya expiró.') });
     } finally {
       setRecoveryLoading(false);
     }
@@ -287,7 +290,7 @@ export default function VendedorTiendaPage() {
       setAuthData((prev) => ({ ...prev, email: recoveryEmail, password: '' }));
       setMensaje({ tipo: 'exito', texto: 'Contraseña actualizada. Ya puedes iniciar sesión.' });
     } catch (err: any) {
-      setMensaje({ tipo: 'error', texto: err.message || 'No se pudo actualizar la contraseña.' });
+      setMensaje({ tipo: 'error', texto: userFacingError(err, 'No se pudo actualizar la contraseña. Inténtalo de nuevo.') });
     } finally {
       setRecoveryLoading(false);
     }
@@ -372,7 +375,7 @@ export default function VendedorTiendaPage() {
 
       setMensaje({ tipo: 'exito', texto: 'Imagen cargada correctamente.' });
     } catch (err: any) {
-      setMensaje({ tipo: 'error', texto: err.message || 'Error al subir la imagen.' });
+      setMensaje({ tipo: 'error', texto: userFacingError(err, 'No se pudo subir la imagen. Inténtalo de nuevo.') });
     } finally {
       if (type === 'logo') setUploadingLogo(false);
       if (type === 'portada') setUploadingPortada(false);
@@ -408,7 +411,7 @@ export default function VendedorTiendaPage() {
       return;
     }
 
-    router.push('/vendedor/productos');
+    router.push('/comerciante/productos');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -431,7 +434,7 @@ export default function VendedorTiendaPage() {
         })
         .eq('id', userId);
 
-      if (userError) throw new Error(`Error en Usuario: ${userError.message}`);
+      if (userError) throw userError;
 
       const generatedSlug = slugify(formData.nombre_comercio) || `tienda-${userId.slice(0, 8)}`;
 
@@ -459,8 +462,9 @@ export default function VendedorTiendaPage() {
         .from('tiendas')
         .upsert(tiendaPayload, { onConflict: 'usuario_id' });
 
-      if (tiendaError) throw new Error(`Error en Tienda: ${tiendaError.message}`);
+      if (tiendaError) throw tiendaError;
 
+      setFormData((current) => ({ ...current, slug: generatedSlug }));
       setGuardadoExitoso(true);
       setMensaje({
         tipo: 'exito',
@@ -472,7 +476,7 @@ export default function VendedorTiendaPage() {
       setGuardadoExitoso(false);
       setMensaje({
         tipo: 'error',
-        texto: err.message || 'No se pudo guardar la tienda.',
+        texto: userFacingError(err, 'No se pudieron guardar los datos del comercio. Inténtalo de nuevo.'),
       });
     } finally {
       setLoading(false);
@@ -483,7 +487,7 @@ export default function VendedorTiendaPage() {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
         <p className="text-xs font-bold text-slate-500 animate-pulse">
-          ⏳ Verificando sesión de vendedor...
+          ⏳ Verificando sesión de comerciante...
         </p>
       </div>
     );
@@ -496,13 +500,13 @@ export default function VendedorTiendaPage() {
           
           <div className="bg-[#0b0f19] text-white p-8 text-center border-b border-slate-800">
             <span className="text-4xl">🏪</span>
-            <h1 className="text-xl font-black mt-2">Portal de Vendedores</h1>
+            <h1 className="text-xl font-black mt-2">Portal de Comerciantes</h1>
             <p className="text-slate-400 text-xs mt-1">
               {recoveryStep > 0
-                ? 'Recupera el acceso a tu cuenta de vendedor'
+                ? 'Recupera el acceso a tu cuenta de comerciante'
                 : authMode === 'login'
                 ? 'Ingresa tus credenciales para administrar tu tienda'
-                : 'Crea tu cuenta de vendedor y publica tu comercio'}
+                : 'Crea tu cuenta de comerciante y publica tu comercio'}
             </p>
           </div>
 
@@ -522,7 +526,7 @@ export default function VendedorTiendaPage() {
               href="/auth/registro"
               className="flex-1 py-3 text-center text-xs font-bold text-slate-500 transition-all hover:text-slate-800"
             >
-              Registrar nuevo vendedor
+              Registrar nuevo comerciante
             </Link>
           </div>
 
@@ -605,7 +609,7 @@ export default function VendedorTiendaPage() {
               <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4 space-y-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h2 className="text-sm font-black text-slate-900">Plan Vendedor (Membresía)</h2>
+                    <h2 className="text-sm font-black text-slate-900">Plan Comerciante (Membresía)</h2>
                     <p className="mt-1 text-xs text-slate-600">Acceso al panel y publicación de tu comercio.</p>
                   </div>
                   <span className="whitespace-nowrap text-sm font-black text-blue-700">50.000 PYG / mes</span>
@@ -795,14 +799,14 @@ export default function VendedorTiendaPage() {
         {/* Banner Superior */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-6">
           <div>
-            <h1 className="text-2xl font-black text-slate-900">Perfil de Vendedor</h1>
+            <h1 className="text-2xl font-black text-slate-900">Perfil de Comerciante</h1>
             <p className="text-slate-500 text-xs mt-1">Configura la información de tu comercio</p>
           </div>
           <div className="flex flex-wrap gap-2">
             {/* LINK 1 INTEGRADO DE FORMA SEGURA */}
             {formData.nombre_comercio && (
               <Link
-                href={`/tienda/${slugify(formData.nombre_comercio)}`}
+                href={`/tienda/${formData.slug || slugify(formData.nombre_comercio)}`}
                 target="_blank"
                 className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 shadow-sm"
               >
@@ -861,7 +865,7 @@ export default function VendedorTiendaPage() {
                 <div className="flex items-center gap-2">
                   {/* LINK 2 INTEGRADO EN MENSAJE DE ÉXITO */}
                   <Link
-                    href={`/tienda/${slugify(formData.nombre_comercio)}`}
+                    href={`/tienda/${formData.slug || slugify(formData.nombre_comercio)}`}
                     target="_blank"
                     className="bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs px-5 py-2.5 rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap"
                   >

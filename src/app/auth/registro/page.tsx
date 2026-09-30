@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import { userFacingError } from '@/lib/user-facing-error';
 
 const LocationPicker = dynamic(() => import('@/components/ui/LocationPicker'), {
   ssr: false,
@@ -19,7 +20,7 @@ type Opcion = { id: number; nombre: string };
 const INPUT_CLASS = 'w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-200';
 const LABEL_CLASS = 'mb-1 block text-xs font-bold uppercase tracking-[0.16em] text-slate-600';
 
-export default function RegistroVendedorPage() {
+export default function RegistroComerciantePage() {
   const [formData, setFormData] = useState({
     nombreCompleto: '',
     email: '',
@@ -92,7 +93,7 @@ export default function RegistroVendedorPage() {
 
     setLoading(true);
     try {
-      const response = await fetch('/api/registro-vendedor', {
+      const response = await fetch('/api/registro-comerciante', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -114,7 +115,7 @@ export default function RegistroVendedorPage() {
       if (!response.ok) throw new Error(result.error || 'No se pudo completar el registro.');
       setConfirmationRequired(Boolean(result.confirmationRequired));
     } catch (caughtError) {
-      setError(caughtError instanceof Error ? caughtError.message : 'Ocurrió un error al registrar el comercio.');
+      setError(userFacingError(caughtError, 'Ocurrió un error al registrar el comercio. Inténtalo de nuevo.'));
     } finally {
       setLoading(false);
     }
@@ -151,7 +152,7 @@ export default function RegistroVendedorPage() {
         <div className="p-6 sm:p-8 lg:p-10">
           <div className="mx-auto max-w-2xl">
             <div className="mb-6 text-center">
-              <h2 className="text-2xl font-black text-slate-900">Registro de nuevo vendedor</h2>
+              <h2 className="text-2xl font-black text-slate-900">Registro de nuevo comerciante</h2>
               <p className="mt-2 text-sm text-slate-500">Completa tus datos personales y los de tu comercio para comenzar.</p>
             </div>
 
@@ -163,13 +164,13 @@ export default function RegistroVendedorPage() {
 
             {confirmationRequired ? (
               <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-center">
-                <p className="font-bold text-emerald-900">Tu solicitud de vendedor fue registrada.</p>
+                <p className="font-bold text-emerald-900">Tu solicitud de comerciante fue registrada.</p>
                 <p className="mt-2 text-sm leading-relaxed text-emerald-800">
                   {confirmationRequired
                     ? 'El comercio quedó pendiente de aprobación y no aparecerá como activo hasta que sea revisado. Revisa tu correo para confirmar la cuenta; después podrás iniciar sesión y consultar el estado de la solicitud.'
                     : 'El comercio quedó pendiente de aprobación y no aparecerá como activo hasta que sea revisado. Ya puedes iniciar sesión y consultar el estado de la solicitud.'}
                 </p>
-                <Link href="/auth/login?registro=vendedor" className="mt-5 inline-flex rounded-xl bg-sky-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-sky-500/25 transition hover:bg-sky-700">
+                <Link href="/auth/login?registro=comerciante" className="mt-5 inline-flex rounded-xl bg-sky-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-sky-500/25 transition hover:bg-sky-700">
                   Ir a iniciar sesión
                 </Link>
               </div>
@@ -266,13 +267,13 @@ export default function RegistroVendedorPage() {
                   Al enviar la solicitud, tu comercio quedará pendiente de aprobación. No se publicará como activo antes de la revisión.
                 </div>
                 <button type="submit" disabled={loading || loadingOptions || distritos.length === 0} className="w-full rounded-2xl bg-sky-600 px-4 py-3 text-sm font-black text-white shadow-lg shadow-sky-500/25 transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-50">
-                  {loading ? 'Registrando solicitud...' : 'Registrar nuevo vendedor'}
+                  {loading ? 'Registrando solicitud...' : 'Registrar nuevo comerciante'}
                 </button>
               </form>
             )}
 
             <p className="mt-6 text-center text-sm text-slate-500">
-              ¿Ya tienes cuenta de vendedor?{' '}
+              ¿Ya tienes cuenta de comerciante?{' '}
               <Link href="/auth/login" className="font-bold text-sky-600 hover:underline">Inicia sesión</Link>
             </p>
           </div>

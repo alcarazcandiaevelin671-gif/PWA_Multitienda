@@ -5,16 +5,16 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import PerfilCliente from '@/components/client/PerfilCliente';
 
-const normalizeRole = (value: unknown): 'admin' | 'vendedor' | 'cliente' => {
+const normalizeRole = (value: unknown): 'admin' | 'comerciante' | 'cliente' => {
   const normalized = String(value ?? 'cliente').trim().toLowerCase();
 
   if (['admin', 'administrador'].includes(normalized)) return 'admin';
-  if (['comerciante', 'vendedor'].includes(normalized)) return 'vendedor';
+  if (normalized === 'comerciante') return 'comerciante';
   return 'cliente';
 };
 
 export default function PerfilRolGate() {
-  const [rol, setRol] = useState<'cliente' | 'vendedor' | 'admin' | 'loading'>('loading');
+  const [rol, setRol] = useState<'cliente' | 'comerciante' | 'admin' | 'loading'>('loading');
 
   useEffect(() => {
     const verificarSesion = async () => {
@@ -42,8 +42,8 @@ export default function PerfilRolGate() {
           localStorage.setItem('rol_usuario', rolNormalizado);
         }
 
-        if (rolNormalizado === 'vendedor') {
-          setRol('vendedor');
+        if (rolNormalizado === 'comerciante') {
+          setRol('comerciante');
           return;
         }
 
@@ -62,8 +62,8 @@ export default function PerfilRolGate() {
         localStorage.setItem('rol_usuario', rolNormalizado);
       }
 
-      if (rolNormalizado === 'vendedor') {
-        setRol('vendedor');
+      if (rolNormalizado === 'comerciante') {
+        setRol('comerciante');
         return;
       }
 
@@ -87,16 +87,16 @@ export default function PerfilRolGate() {
     );
   }
 
-  if (rol === 'vendedor') {
+  if (rol === 'comerciante') {
     return (
       <div className="space-y-4">
         <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 shadow-sm">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <span className="inline-flex items-center rounded-full border border-emerald-300 bg-white px-2.5 py-1 text-[11px] font-black uppercase tracking-wide text-emerald-700">
-              Vendedor
+              Comerciante
             </span>
-            <Link href="/vendedor/dashboard" className="text-emerald-700 font-bold hover:underline">
-              Ir al Dashboard de Tienda
+            <Link href="/comerciante/dashboard" className="text-emerald-700 font-bold hover:underline">
+              Ir al panel del comercio
             </Link>
           </div>
         </div>

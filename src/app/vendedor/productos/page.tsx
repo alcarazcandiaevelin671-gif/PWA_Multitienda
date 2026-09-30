@@ -4,8 +4,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { showAppConfirm } from '@/lib/app-message';
 import { supabase } from '@/lib/supabase';
+import { userFacingError } from '@/lib/user-facing-error';
 
-export default function VendedorProductosPage() {
+export default function ComercianteProductosPage() {
 
   // Estados de carga y sesión
   const [fetching, setFetching] = useState(true);
@@ -122,7 +123,7 @@ export default function VendedorProductosPage() {
       setNuevoProducto((prev) => ({ ...prev, imagen_url: publicUrlData.publicUrl }));
       setMensaje({ tipo: 'exito', texto: 'Imagen del producto subida correctamente.' });
     } catch (err: any) {
-      setMensaje({ tipo: 'error', texto: err.message || 'Error al subir la imagen.' });
+      setMensaje({ tipo: 'error', texto: userFacingError(err, 'No se pudo subir la imagen. Inténtalo de nuevo.') });
     } finally {
       setUploadingImg(false);
     }
@@ -169,7 +170,7 @@ export default function VendedorProductosPage() {
       setMensaje({ tipo: 'exito', texto: '¡Producto publicado con éxito en tu tienda!' });
     } catch (err: any) {
       console.error('Error al guardar producto:', err);
-      setMensaje({ tipo: 'error', texto: err.message || 'No se pudo guardar el producto.' });
+      setMensaje({ tipo: 'error', texto: userFacingError(err, 'No se pudo guardar el producto. Inténtalo de nuevo.') });
     } finally {
       setLoading(false);
     }
@@ -187,7 +188,7 @@ export default function VendedorProductosPage() {
       setProductos((prev) => prev.filter((p) => p.id !== id));
       setMensaje({ tipo: 'exito', texto: 'Producto eliminado correctamente.' });
     } catch (err: any) {
-      setMensaje({ tipo: 'error', texto: err.message || 'Error al eliminar el producto.' });
+      setMensaje({ tipo: 'error', texto: userFacingError(err, 'No se pudo eliminar el producto. Inténtalo de nuevo.') });
     }
   };
 
@@ -209,13 +210,13 @@ export default function VendedorProductosPage() {
           <span className="text-4xl">🔒</span>
           <h2 className="text-lg font-black text-slate-900 mt-3">Sesión Requerida</h2>
           <p className="text-slate-500 text-xs mt-1 mb-6">
-            Debes iniciar sesión con tu cuenta de vendedor para gestionar productos.
+            Debes iniciar sesión con tu cuenta de comerciante para gestionar productos.
           </p>
           <Link
-            href="/vendedor/tienda"
+            href="/comerciante/tienda"
             className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs px-6 py-3 rounded-xl transition-all"
           >
-            🔑 Ir al Login de Vendedor
+            🔑 Iniciar sesión como comerciante
           </Link>
         </div>
       </div>
@@ -239,7 +240,7 @@ export default function VendedorProductosPage() {
               🔄 Volver a verificar en la Base de Datos
             </button>
             <Link
-              href="/vendedor/tienda"
+              href="/comerciante/tienda"
               className="bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs py-3 rounded-xl transition-all"
             >
               ⚙️ Registrar / Configurar Mi Tienda
@@ -277,7 +278,7 @@ export default function VendedorProductosPage() {
             </Link>
 
             <Link
-              href="/vendedor/tienda"
+              href="/comerciante/tienda"
               className="text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2.5 rounded-xl border border-slate-700 transition-all flex items-center gap-1.5"
             >
               ⚙️ Configurar Tienda

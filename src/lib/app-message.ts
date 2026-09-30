@@ -1,5 +1,7 @@
 'use client';
 
+import { userFacingError } from '@/lib/user-facing-error';
+
 export type AppMessage = {
   title: string;
   text: string;
@@ -22,11 +24,16 @@ export function showAppMessage(
   title?: string,
   type: AppMessage['type'] = 'info'
 ) {
+  const fallback = type === 'success'
+    ? 'La operación se completó correctamente.'
+    : type === 'error'
+      ? 'Ocurrió un error. Inténtalo de nuevo.'
+      : 'No se pudo completar la acción. Inténtalo de nuevo.';
   const resolvedTitle =
     title ??
     (type === 'success' ? 'Éxito' : type === 'error' ? 'Error' : 'Mensaje');
 
-  listeners.forEach((listener) => listener({ title: resolvedTitle, text, type }));
+  listeners.forEach((listener) => listener({ title: resolvedTitle, text: userFacingError(text, fallback), type }));
 }
 
 export function closeAppMessage() {

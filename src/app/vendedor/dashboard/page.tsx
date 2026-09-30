@@ -6,6 +6,7 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { showAppConfirm } from '@/lib/app-message';
 import { supabase } from '@/lib/supabase';
+import { userFacingError } from '@/lib/user-facing-error';
 
 const LocationPicker = dynamic(() => import('@/components/ui/LocationPicker'), { ssr: false });
 
@@ -50,7 +51,7 @@ interface Producto {
   categoria_id?: string | null;
 }
 
-export default function VendedorDashboardPage() {
+export default function ComercianteDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [tienda, setTienda] = useState<Tienda | null>(null);
   const [productos, setProductos] = useState<Producto[]>([]);
@@ -84,7 +85,7 @@ export default function VendedorDashboardPage() {
   const [msgExito, setMsgExito] = useState<string | null>(null);
   const [msgError, setMsgError] = useState<string | null>(null);
 
-  const cargarDatosVendedor = useCallback(async () => {
+  const cargarDatosComerciante = useCallback(async () => {
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -100,7 +101,7 @@ export default function VendedorDashboardPage() {
         .eq('id', user.id)
         .maybeSingle();
 
-      if (userProfileError || !['vendedor', 'comerciante'].includes(String(userProfile?.rol || '').toLowerCase())) {
+      if (userProfileError || String(userProfile?.rol || '').toLowerCase() !== 'comerciante') {
         window.location.href = '/perfil';
         return;
       }
@@ -114,7 +115,7 @@ export default function VendedorDashboardPage() {
       if (tiendaError) throw tiendaError;
 
       if (!tiendaData) {
-        window.location.href = '/vendedor/tienda';
+        window.location.href = '/comerciante/tienda';
         return;
       }
 
@@ -149,15 +150,15 @@ export default function VendedorDashboardPage() {
       if (prodError) throw prodError;
       setProductos(prodData || []);
     } catch (err: any) {
-      console.error('Error al cargar datos del vendedor:', err.message);
+      console.error('Error al cargar datos del comerciante:', err.message);
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    cargarDatosVendedor();
-  }, [cargarDatosVendedor]);
+    cargarDatosComerciante();
+  }, [cargarDatosComerciante]);
 
   const calcularDiasRestantes = () => {
     if (!tienda?.fecha_fin_prueba) return 0;
@@ -201,7 +202,7 @@ export default function VendedorDashboardPage() {
       setTienda({ ...tienda, logo_url: logoUrl });
       setMsgExito('Foto de perfil actualizada correctamente.');
     } catch (err: any) {
-      setMsgError('Error al subir el logo: ' + err.message);
+      setMsgError(userFacingError(err, 'No se pudo subir el logotipo. Inténtalo de nuevo.'));
     } finally {
       setSubiendoLogo(false);
     }
@@ -237,7 +238,7 @@ export default function VendedorDashboardPage() {
       setTienda({ ...tienda, ...perfilForm, slug: nuevoSlug });
       setMsgExito('Datos de la tienda actualizados correctamente.');
     } catch (err: any) {
-      setMsgError(err.message);
+      setMsgError(userFacingError(err, 'No se pudo guardar la información del comercio. Inténtalo de nuevo.'));
     }
   };
 
@@ -259,7 +260,7 @@ export default function VendedorDashboardPage() {
       setTienda({ ...tienda, portada_url: data.publicUrl });
       setMsgExito('Portada actualizada correctamente.');
     } catch (err: any) {
-      setMsgError('Error al subir la portada: ' + err.message);
+      setMsgError(userFacingError(err, 'No se pudo subir la portada. Inténtalo de nuevo.'));
     } finally {
       setSubiendoPortada(false);
     }
@@ -335,7 +336,7 @@ export default function VendedorDashboardPage() {
       setEditandoProducto(null);
       setMsgExito(editandoProducto ? 'Producto actualizado correctamente.' : '¡Producto publicado con éxito!');
     } catch (err: any) {
-      setMsgError('Error al guardar el producto: ' + err.message);
+      setMsgError(userFacingError(err, 'No se pudo guardar el producto. Inténtalo de nuevo.'));
     } finally {
       setGuardandoProd(false);
     }
@@ -356,7 +357,7 @@ export default function VendedorDashboardPage() {
   const cambiarDisponibilidad = async (producto: Producto) => {
     const { error } = await supabase.from('productos').update({ disponible: !producto.disponible }).eq('id', producto.id);
     if (error) {
-      setMsgError('Error al cambiar la disponibilidad: ' + error.message);
+      setMsgError(userFacingError(error, 'No se pudo cambiar la disponibilidad. Inténtalo de nuevo.'));
       return;
     }
     setProductos(productos.map((prod) => prod.id === producto.id ? { ...prod, disponible: !producto.disponible } : prod));
@@ -379,7 +380,7 @@ export default function VendedorDashboardPage() {
       setProductos(productos.filter((prod) => prod.id !== id));
       setMsgExito('Producto eliminado correctamente.');
     } catch (err: any) {
-      setMsgError('Error al eliminar producto: ' + err.message);
+      setMsgError(userFacingError(err, 'No se pudo eliminar el producto. Inténtalo de nuevo.'));
     }
   };
 

@@ -1,7 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { userFacingError } from '@/lib/user-facing-error';
 
-type RegistroVendedor = {
+type RegistroComerciante = {
   nombreCompleto: string;
   email: string;
   telefono: string;
@@ -16,9 +17,9 @@ type RegistroVendedor = {
   longitud: number;
 };
 
-function isRegistroVendedor(value: unknown): value is RegistroVendedor {
+function isRegistroComerciante(value: unknown): value is RegistroComerciante {
   if (!value || typeof value !== 'object') return false;
-  const input = value as Partial<RegistroVendedor>;
+  const input = value as Partial<RegistroComerciante>;
   const digits = (phone: unknown) => String(phone ?? '').replace(/\D/g, '').length;
 
   return (
@@ -58,7 +59,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'La solicitud no contiene datos válidos.' }, { status: 400 });
   }
 
-  if (!isRegistroVendedor(body)) {
+  if (!isRegistroComerciante(body)) {
     return NextResponse.json({ error: 'Revisa los datos obligatorios del usuario y del comercio.' }, { status: 422 });
   }
 
@@ -68,7 +69,13 @@ export async function POST(request: Request) {
 
   if (!supabaseUrl || !anonKey || !serviceRoleKey) {
     return NextResponse.json(
-      { error: 'El registro de vendedores aún no está configurado en el servidor. Falta SUPABASE_SERVICE_ROLE_KEY.' },
+      { error: 'El registro de comerciantes aún no está configurado en el servidor. Falta SUPABASE_SERVICE_ROLE_KEY.' },
+      { status: 503 }
+    );
+  }
+  if (/^(tu-clave|your-|placeholder|\[)/i.test(serviceRoleKey.trim())) {
+    return NextResponse.json(
+      { error: 'SUPABASE_SERVICE_ROLE_KEY todavía contiene el valor de ejemplo. Reemplázalo por la clave service_role de este proyecto en .env.local y reinicia Next.js.' },
       { status: 503 }
     );
   }
@@ -84,7 +91,7 @@ export async function POST(request: Request) {
   const telefono = body.telefono.trim();
   const nombreComercio = body.nombreComercio.trim();
   const emailRedirectTo = new URL('/auth/callback', request.url);
-  emailRedirectTo.searchParams.set('next', '/auth/login?registro=vendedor');
+  emailRedirectTo.searchParams.set('next', '/auth/login?registro=comerciante');
 
   const { data: district, error: districtError } = await adminClient
     .from('distritos')
@@ -94,7 +101,13 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   if (districtError) {
-    console.error('No se pudo validar el distrito del vendedor:', districtError.message);
+    console.error('No se pudo validar el distrito del comerciante:', districtError.message);
+    if (/invalid api key/i.test(districtError.message)) {
+      return NextResponse.json(
+        { error: 'SUPABASE_SERVICE_ROLE_KEY no es válida para este proyecto. Copia la clave service_role correcta desde Supabase y reinicia Next.js.' },
+        { status: 503 }
+      );
+    }
     return NextResponse.json({ error: 'No se pudo validar el distrito seleccionado.' }, { status: 503 });
   }
   if (!district) {
@@ -111,7 +124,7 @@ export async function POST(request: Request) {
       .maybeSingle();
 
     if (categoryError) {
-      console.error('No se pudo validar la categoría del vendedor:', categoryError.message);
+      console.error('No se pudo validar la categoría del comerciante:', categoryError.message);
       return NextResponse.json({ error: 'No se pudo validar el rubro seleccionado.' }, { status: 503 });
     }
     if (!category) {
@@ -133,7 +146,7 @@ export async function POST(request: Request) {
   });
 
   if (authError) {
-    return NextResponse.json({ error: authError.message }, { status: 422 });
+    return NextResponse.json({ error: userFacingError(authError, 'No se pudo crear la cuenta. Revisa los datos e inténtalo de nuevo.') }, { status: 422 });
   }
 
   const authUser = authData.user;
@@ -147,7 +160,7 @@ export async function POST(request: Request) {
     const { error: authCleanupError } = await adminClient.auth.admin.deleteUser(authUser.id);
 
     if (storeCleanupError || userCleanupError || authCleanupError) {
-      console.error('No se pudo revertir completamente el registro parcial del vendedor.', {
+      console.error('No se pudo revertir completamente el registro parcial del comerciante.', {
         store: storeCleanupError?.message,
         user: userCleanupError?.message,
         auth: authCleanupError?.message,
@@ -161,14 +174,14 @@ export async function POST(request: Request) {
       email,
       nombre_completo: nombreCompleto,
       telefono_contacto: telefono,
-      rol: 'vendedor',
+      rol: 'comerciante',
       activo: true,
     },
     { onConflict: 'id' }
   );
 
   if (userError) {
-    console.error('No se pudo guardar el perfil del vendedor:', userError.message);
+    console.error('No se pudo guardar el perfil del comerciante:', userError.message);
     await rollbackRegistration();
     return NextResponse.json({ error: 'No se pudo guardar el perfil. No se completó el registro.' }, { status: 500 });
   }
@@ -193,13 +206,13 @@ export async function POST(request: Request) {
   );
 
   if (storeError) {
-    console.error('No se pudo crear el comercio del vendedor:', storeError.message);
+    console.error('No se pudo crear el comercio del comerciante:', storeError.message);
     await rollbackRegistration();
     return NextResponse.json({ error: 'No se pudo crear el comercio. No se completó el registro.' }, { status: 500 });
   }
 
   return NextResponse.json(
-    { confirmationRequired: !authData.session, message: 'La solicitud de vendedor quedó registrada y pendiente de aprobación.' },
+    { confirmationRequired: !authData.session, message: 'La solicitud de comerciante quedó registrada y pendiente de aprobación.' },
     { status: 201 }
   );
 }

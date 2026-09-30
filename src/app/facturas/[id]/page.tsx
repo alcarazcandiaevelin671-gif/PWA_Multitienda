@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getInvoiceById } from '@/services/invoices.service';
 import type { FacturaDetalle, FacturaInterna } from '@/types/database';
+import { userFacingError } from '@/lib/user-facing-error';
 
 export default function FacturaDetailPage() {
   const params = useParams<{ id: string }>();
@@ -31,7 +32,7 @@ export default function FacturaDetailPage() {
         setDetalles(result.detalles);
       })
       .catch((loadError) => {
-        setError(loadError instanceof Error ? loadError.message : 'No se pudo cargar la factura.');
+        setError(userFacingError(loadError, 'No se pudo cargar la factura. Inténtalo de nuevo.'));
       })
       .finally(() => setLoading(false));
   }, [itemId]);

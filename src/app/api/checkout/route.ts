@@ -2,6 +2,7 @@ import { createServerClient, type SetAllCookies } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import type { CheckoutInput } from '@/types/database';
+import { userFacingError } from '@/lib/user-facing-error';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -80,8 +81,9 @@ export async function POST(request: Request) {
   });
 
   if (createError || !createdRecords || typeof createdRecords !== 'object' || !('pedido_id' in createdRecords)) {
-    const message = createError?.message || 'La base de datos no devolvió el identificador del pedido.';
-    const migrationMissing = /procesar_checkout_pedido_venta_factura|schema cache|could not find the function/i.test(message);
+    const rawMessage = createError?.message || '';
+    const message = userFacingError(createError, 'No se pudo completar el pedido. Inténtalo de nuevo.');
+    const migrationMissing = /procesar_checkout_pedido_venta_factura|schema cache|could not find the function/i.test(rawMessage);
     return NextResponse.json(
       { error: migrationMissing ? 'Las funciones de checkout aún no están instaladas en Supabase. Ejecuta la migración 20260929130000_checkout_sale_invoice.sql.' : message },
       { status: migrationMissing ? 503 : 422 }

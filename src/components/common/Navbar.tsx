@@ -19,7 +19,7 @@ const normalizeRole = (value: unknown): string => {
   const normalized = String(value ?? '').trim().toLowerCase();
 
   if (['admin', 'administrador'].includes(normalized)) return 'admin';
-  if (['comerciante', 'vendedor'].includes(normalized)) return 'vendedor';
+  if (normalized === 'comerciante') return 'comerciante';
   return 'cliente';
 };
 
@@ -54,7 +54,7 @@ export default function Navbar() {
         const rolNormalizado = normalizeRole(perfil.rol);
         setRolUsuario(rolNormalizado);
 
-        if (rolNormalizado === 'vendedor') {
+        if (rolNormalizado === 'comerciante') {
           const { data: tienda } = await supabase
             .from('tiendas')
             .select('nombre_comercio')
@@ -259,24 +259,24 @@ export default function Navbar() {
           </Link>
         )}
 
-        {rolUsuario === 'vendedor' && (
+        {rolUsuario === 'comerciante' && (
           <>
             <Link
-              href="/vendedor/pedidos"
+              href="/comerciante/pedidos"
               className="bg-amber-100 text-amber-800 hover:bg-amber-200 font-bold text-xs px-3 py-1.5 rounded-lg border border-amber-200 transition-colors flex items-center gap-1"
             >
               <span>🧾</span> Pedidos
             </Link>
 
             <Link
-              href="/vendedor/tienda"
+              href="/comerciante/tienda"
               className="bg-emerald-100 text-emerald-800 hover:bg-emerald-200 font-bold text-xs px-3 py-1.5 rounded-lg border border-emerald-200 transition-colors flex items-center gap-1"
             >
               <span>🏪</span> Mi Tienda
             </Link>
 
             <Link
-              href="/vendedor/productos"
+              href="/comerciante/productos"
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition-colors shadow-sm flex items-center gap-1"
             >
               <span>📦</span> Cargar Productos

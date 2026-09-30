@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { getMyOrders, getOrderStateLabel, type PedidoConTienda } from '@/services/orders.service';
+import { userFacingError } from '@/lib/user-facing-error';
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<PedidoConTienda[]>([]);
@@ -15,7 +16,7 @@ export default function OrdersPage() {
   useEffect(() => {
     getMyOrders()
       .then(setOrders)
-      .catch((loadError) => setError(loadError instanceof Error ? loadError.message : 'No se pudieron cargar los pedidos.'))
+      .catch((loadError) => setError(userFacingError(loadError, 'No se pudieron cargar los pedidos. Inténtalo de nuevo.')))
       .finally(() => setLoading(false));
   }, []);
 

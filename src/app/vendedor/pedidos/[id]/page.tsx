@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { showAppConfirm, showAppMessage } from '@/lib/app-message';
+import { userFacingError } from '@/lib/user-facing-error';
 import { getOrderStateLabel, getStoreOrderById, ORDER_STATUS_FLOW, updateVendorOrderStatus } from '@/services/orders.service';
 import type { PedidoDetalle, PedidoEstadoHistorial } from '@/types/database';
 
@@ -36,7 +37,7 @@ export default function VendorOrderDetailPage() {
       setDetalles(result.detalles);
       setHistorial(result.historial);
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'No se pudo cargar el pedido.');
+      setError(userFacingError(loadError, 'No se pudo cargar el pedido. Inténtalo de nuevo.'));
     } finally {
       setLoading(false);
     }
@@ -53,11 +54,11 @@ export default function VendorOrderDetailPage() {
 
     try {
       setSaving(true);
-      await updateVendorOrderStatus(orderId, nextState, 'Estado actualizado por el vendedor desde la gestión del pedido.');
+      await updateVendorOrderStatus(orderId, nextState, 'Estado actualizado por el comerciante desde la gestión del pedido.');
       await loadOrder();
       showAppMessage('Pedido actualizado correctamente.', 'Éxito', 'success');
     } catch (updateError) {
-      showAppMessage(updateError instanceof Error ? updateError.message : 'No se pudo actualizar el pedido.', 'Error', 'error');
+      showAppMessage(userFacingError(updateError, 'No se pudo actualizar el pedido. Inténtalo de nuevo.'), 'Error', 'error');
     } finally {
       setSaving(false);
     }
@@ -71,7 +72,7 @@ export default function VendorOrderDetailPage() {
     return (
       <main className="mx-auto max-w-5xl px-4 py-12">
         <p role="alert" className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{error || 'No se pudo cargar el pedido.'}</p>
-        <Link href="/vendedor/pedidos" className="mt-5 inline-flex font-bold text-blue-700 hover:underline">Volver a gestión</Link>
+        <Link href="/comerciante/pedidos" className="mt-5 inline-flex font-bold text-blue-700 hover:underline">Volver a gestión</Link>
       </main>
     );
   }
@@ -80,7 +81,7 @@ export default function VendorOrderDetailPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-      <Link href="/vendedor/pedidos" className="text-sm font-bold text-blue-700 hover:underline">← Gestión de pedidos</Link>
+      <Link href="/comerciante/pedidos" className="text-sm font-bold text-blue-700 hover:underline">← Gestión de pedidos</Link>
       <header className="mt-5 flex flex-wrap items-end justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
           <p className="text-xs font-black uppercase text-emerald-700">Pedido</p>

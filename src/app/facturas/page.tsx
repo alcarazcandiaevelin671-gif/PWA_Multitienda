@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { getMyInvoices } from '@/services/invoices.service';
 import type { FacturaInterna } from '@/types/database';
+import { userFacingError } from '@/lib/user-facing-error';
 
 export default function FacturasPage() {
   const [invoices, setInvoices] = useState<FacturaInterna[]>([]);
@@ -16,7 +17,7 @@ export default function FacturasPage() {
     getMyInvoices()
       .then(setInvoices)
       .catch((loadError) => {
-        setError(loadError instanceof Error ? loadError.message : 'No se pudieron cargar las facturas.');
+        setError(userFacingError(loadError, 'No se pudieron cargar las facturas. Inténtalo de nuevo.'));
       })
       .finally(() => setLoading(false));
   }, []);

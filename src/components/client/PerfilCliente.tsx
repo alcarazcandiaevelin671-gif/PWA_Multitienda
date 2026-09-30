@@ -6,14 +6,15 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { getMyOrders, type PedidoConTienda } from '@/services/orders.service';
+import { userFacingError } from '@/lib/user-facing-error';
 
 const CATEGORIES = ['Ao Po\'i', 'Artesanías', 'Gastronomía', 'Alimentos', 'Agricultura', 'Servicios'];
 
-const normalizeRole = (value: unknown): 'admin' | 'comerciante' | 'vendedor' | 'cliente' => {
+const normalizeRole = (value: unknown): 'admin' | 'comerciante' | 'cliente' => {
   const normalized = String(value ?? 'cliente').trim().toLowerCase();
 
   if (['admin', 'administrador'].includes(normalized)) return 'admin';
-  if (['comerciante', 'vendedor'].includes(normalized)) return 'vendedor';
+  if (normalized === 'comerciante') return 'comerciante';
   return 'cliente';
 };
 
@@ -26,7 +27,7 @@ type Profile = {
   avatar_url?: string | null;
   latitud?: number | null;
   longitud?: number | null;
-  rol?: 'admin' | 'comerciante' | 'vendedor' | 'cliente';
+  rol?: 'admin' | 'comerciante' | 'cliente';
 };
 
 type Favorite = {
@@ -140,7 +141,7 @@ export default function PerfilCliente() {
       })
       .eq('id', profile.id);
 
-    setMessage(error ? `No se pudo guardar el perfil: ${error.message}` : 'Perfil actualizado correctamente.');
+    setMessage(error ? userFacingError(error, 'No se pudo guardar el perfil. Inténtalo de nuevo.') : 'Perfil actualizado correctamente.');
     setSaving(false);
   };
 
@@ -155,7 +156,7 @@ export default function PerfilCliente() {
     const { error: uploadError } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
 
     if (uploadError) {
-      setMessage(`No se pudo subir el avatar: ${uploadError.message}`);
+      setMessage(userFacingError(uploadError, 'No se pudo subir la foto de perfil. Inténtalo de nuevo.'));
       setUploadingAvatar(false);
       return;
     }
@@ -163,7 +164,7 @@ export default function PerfilCliente() {
     const { data } = supabase.storage.from('avatars').getPublicUrl(path);
     const { error: profileError } = await supabase.from('usuarios').update({ avatar_url: data.publicUrl }).eq('id', profile.id);
     setProfile({ ...profile, avatar_url: data.publicUrl });
-    setMessage(profileError ? `Avatar guardado, pero no se actualizó el perfil: ${profileError.message}` : 'Avatar actualizado correctamente.');
+    setMessage(profileError ? userFacingError(profileError, 'La foto se subió, pero no se pudo actualizar el perfil.') : 'Avatar actualizado correctamente.');
     setUploadingAvatar(false);
   };
 
@@ -231,13 +232,13 @@ const role = normalizeRole(profile?.rol || 'cliente');
         subtitle: 'Administrador del Sistema',
         description: 'Supervisa indicadores globales, comercios activos y la salud del ecosistema local.',
       }
-      : role === 'vendedor'
+      : role === 'comerciante'
         ? {
             header: 'bg-gradient-to-r from-emerald-900 via-emerald-700 to-emerald-600',
             pill: 'bg-emerald-100 text-emerald-800 border border-emerald-200',
             accent: 'text-emerald-200',
             title: 'PANEL DE MI TIENDA - PORTAL GUAIRÁ',
-            subtitle: 'Comerciante Verificado',
+            subtitle: 'Comerciante',
             description: 'Controla tu membresía, catálogo, negocio y presencia comercial en la región.',
           }
         : {
@@ -278,7 +279,7 @@ const role = normalizeRole(profile?.rol || 'cliente');
           </div>
         </section>
       )
-      : role === 'comerciante' || role === 'vendedor'
+      : role === 'comerciante'
         ? (
           <section className="grid gap-4 lg:grid-cols-3">
             {[
