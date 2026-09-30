@@ -144,10 +144,10 @@ export default function VendedorTiendaPage() {
         const { data: userBD } = await supabase
           .from('usuarios')
           .select('*')
-          .eq('identificacion', userId)
+          .eq('id', userId)
           .maybeSingle();
 
-        const emailUsuario = userBD?.correo_electronico || session.user.email || '';
+        const emailUsuario = userBD?.email || session.user.email || '';
 
         setUserData({
           nombre_completo: userBD?.nombre_completo || session.user.user_metadata?.nombre_completo || '',
@@ -229,13 +229,13 @@ export default function VendedorTiendaPage() {
 
         if (data.user) {
           await supabase.from('usuarios').upsert({
-            identificacion: data.user.id,
+            id: data.user.id,
             nombre_completo: authData.nombre_completo,
-            correo_electronico: authData.email,
+            email: authData.email,
             telefono_contacto: authData.telefono_contacto,
             rol: 'vendedor',
             activo: true,
-          }, { onConflict: 'identificacion' });
+          }, { onConflict: 'id' });
 
           setSessionUser(data.user);
           setUserData({

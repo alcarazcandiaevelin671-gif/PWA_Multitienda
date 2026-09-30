@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import CartDrawer from '@/components/cart/CartDrawer';
 import { Product } from '@/types/product';
+import { getEffectiveProductPrice } from '@/lib/product-pricing';
 
 interface StorefrontProduct {
   id: string;
@@ -14,6 +15,8 @@ interface StorefrontProduct {
   nombre?: string | null;
   descripcion?: string | null;
   precio_gs?: number | null;
+  precio_oferta?: number | null;
+  disponible?: boolean | null;
   imagen_url?: string | null;
 }
 
@@ -73,6 +76,8 @@ export default function StorefrontCart({ products, categories = [], shop }: Stor
       nombre: product.nombre || product.titulo || 'Producto',
       descripcion: product.descripcion || undefined,
       precio: Number(product.precio_gs || 0),
+      precio_gs: Number(product.precio_gs || 0),
+      precio_oferta: product.precio_oferta == null ? undefined : Number(product.precio_oferta),
       stock: 1,
       imagen_url: product.imagen_url || undefined,
       activo: true,
@@ -118,7 +123,16 @@ export default function StorefrontCart({ products, categories = [], shop }: Stor
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {filteredProducts.map((product) => {
             const name = product.nombre || product.titulo || 'Producto';
-            const price = Number(product.precio_gs || 0);
+            const price = getEffectiveProductPrice({
+              id: product.id,
+              tienda_id: product.tienda_id,
+              nombre: name,
+              precio: Number(product.precio_gs || 0),
+              precio_gs: Number(product.precio_gs || 0),
+              precio_oferta: product.precio_oferta == null ? undefined : Number(product.precio_oferta),
+              stock: 1,
+              activo: product.disponible !== false,
+            });
             return (
               <article
                 id={`product-${product.id}`}

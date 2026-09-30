@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { getMyOrders, type PedidoConTienda } from '@/services/orders.service';
 
 const CATEGORIES = ['Ao Po\'i', 'Artesanías', 'Gastronomía', 'Alimentos', 'Agricultura', 'Servicios'];
 
@@ -35,13 +37,6 @@ type Favorite = {
   tipo?: string | null;
 };
 
-type Order = {
-  id: string;
-  created_at?: string | null;
-  tienda_nombre?: string | null;
-  total_pyg?: number | null;
-};
-
 export default function PerfilCliente() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -58,7 +53,7 @@ export default function PerfilCliente() {
     longitud: '',
   });
   const [favorites, setFavorites] = useState<Favorite[]>([]);
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<PedidoConTienda[]>([]);
   const [interests, setInterests] = useState<string[]>([]);
 
   useEffect(() => {
@@ -75,7 +70,7 @@ export default function PerfilCliente() {
       const { data: usuario } = await supabase
         .from('usuarios')
         .select('*')
-        .eq('identificacion', user.id)
+        .eq('id', user.id)
         .maybeSingle();
 
       const rolDetectado = usuario?.rol || user.user_metadata?.rol || localStorage.getItem('rol_usuario') || 'cliente';
@@ -84,7 +79,7 @@ export default function PerfilCliente() {
       const nextProfile: Profile = {
         id: user.id,
         nombre_completo: nombreBase,
-        email: usuario?.correo_electronico || user.email || '',
+        email: usuario?.email || user.email || '',
         telefono_contacto: usuario?.telefono_contacto || '',
         direccion_texto: usuario?.direccion_texto || '',
         avatar_url: usuario?.avatar_url || null,
@@ -105,7 +100,12 @@ export default function PerfilCliente() {
 
       const [favoritesResult, ordersResult, interestsResult] = await Promise.all([
         supabase.from('favoritos').select('*').eq('usuario_id', user.id).order('created_at', { ascending: false }).limit(12),
-        supabase.from('pedidos').select('*').eq('usuario_id', user.id).order('created_at', { ascending: false }).limit(12),
+        getMyOrders()
+          .then((data) => ({ data }))
+          .catch((orderError) => {
+            console.error('Error al cargar pedidos:', orderError);
+            return { data: [] as PedidoConTienda[] };
+          }),
         supabase.from('preferencias_usuario').select('categoria').eq('usuario_id', user.id),
       ]);
 
@@ -132,13 +132,13 @@ export default function PerfilCliente() {
       .from('usuarios')
       .update({
         nombre_completo: form.nombre_completo,
-        correo_electronico: form.email,
+        email: form.email,
         telefono_contacto: form.telefono_contacto,
         direccion_texto: form.direccion_texto,
         latitud: form.latitud ? Number(form.latitud) : null,
         longitud: form.longitud ? Number(form.longitud) : null,
       })
-      .eq('identificacion', profile.id);
+      .eq('id', profile.id);
 
     setMessage(error ? `No se pudo guardar el perfil: ${error.message}` : 'Perfil actualizado correctamente.');
     setSaving(false);
@@ -161,7 +161,7 @@ export default function PerfilCliente() {
     }
 
     const { data } = supabase.storage.from('avatars').getPublicUrl(path);
-    const { error: profileError } = await supabase.from('usuarios').update({ avatar_url: data.publicUrl }).eq('identificacion', profile.id);
+    const { error: profileError } = await supabase.from('usuarios').update({ avatar_url: data.publicUrl }).eq('id', profile.id);
     setProfile({ ...profile, avatar_url: data.publicUrl });
     setMessage(profileError ? `Avatar guardado, pero no se actualizó el perfil: ${profileError.message}` : 'Avatar actualizado correctamente.');
     setUploadingAvatar(false);
@@ -367,8 +367,11 @@ const role = normalizeRole(profile?.rol || 'cliente');
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-black text-slate-900">Historial de Pedidos</h2>
-            {orders.length === 0 ? <p className="mt-4 text-sm text-slate-500">No hay pedidos registrados.</p> : <div className="mt-4 space-y-3">{orders.map((order) => <div key={order.id} className="flex items-center justify-between rounded-xl bg-slate-50 p-3 text-sm"><span className="font-semibold text-slate-700">{order.tienda_nombre || 'Tienda'}</span><span className="font-bold text-emerald-700">Gs. {Number(order.total_pyg || 0).toLocaleString('es-PY')}</span></div>)}</div>}
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-lg font-black text-slate-900">Mis Pedidos</h2>
+              <Link href="/pedidos" className="text-xs font-bold text-blue-700 hover:underline">Ver todos</Link>
+            </div>
+            {orders.length === 0 ? <p className="mt-4 text-sm text-slate-500">No hay pedidos registrados.</p> : <div className="mt-4 space-y-3">{orders.slice(0, 5).map((order) => <Link key={order.id} href={`/pedidos/${order.id}`} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 p-3 text-sm hover:bg-blue-50"><span><span className="block font-semibold text-slate-700">{order.numero_pedido}</span><span className="text-xs text-slate-500">{order.tienda?.nombre_comercio || 'Tienda'} · {order.estado}</span></span><span className="whitespace-nowrap font-bold text-emerald-700">Gs. {Number(order.total).toLocaleString('es-PY')}</span></Link>)}</div>}
           </div>
         </section>
 

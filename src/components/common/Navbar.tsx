@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { useCart } from '@/context/CartContext';
 
 type ProductSearchResult = {
   id: string;
@@ -24,6 +25,7 @@ const normalizeRole = (value: unknown): string => {
 
 export default function Navbar() {
   const router = useRouter();
+  const { totalItems } = useCart();
   const [rolUsuario, setRolUsuario] = useState<string | null>(null);
   const [nombreMostrar, setNombreMostrar] = useState<string | null>(null);
   const [usuario, setUsuario] = useState<any>(null);
@@ -45,7 +47,7 @@ export default function Navbar() {
       const { data: perfil } = await supabase
         .from('usuarios')
         .select('rol, nombre_completo')
-        .eq('identificacion', userSession.id)
+        .eq('id', userSession.id)
         .maybeSingle();
 
       if (perfil) {
@@ -199,6 +201,14 @@ export default function Navbar() {
       </nav>
 
       <div className="flex items-center gap-3">
+        {usuario && rolUsuario === 'cliente' && (
+          <>
+            <Link href="/checkout" aria-label={`Carrito${totalItems ? `, ${totalItems} productos` : ''}`} className="text-xs font-bold text-slate-700 hover:text-blue-700">
+              Carrito{totalItems > 0 ? ` (${totalItems})` : ''}
+            </Link>
+            <Link href="/pedidos" className="text-xs font-bold text-slate-700 hover:text-blue-700">Mis pedidos</Link>
+          </>
+        )}
         <div className="relative hidden md:block">
           <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 shadow-sm">
             <span className="text-slate-400">🔎</span>
@@ -251,6 +261,13 @@ export default function Navbar() {
 
         {rolUsuario === 'vendedor' && (
           <>
+            <Link
+              href="/vendedor/pedidos"
+              className="bg-amber-100 text-amber-800 hover:bg-amber-200 font-bold text-xs px-3 py-1.5 rounded-lg border border-amber-200 transition-colors flex items-center gap-1"
+            >
+              <span>🧾</span> Pedidos
+            </Link>
+
             <Link
               href="/vendedor/tienda"
               className="bg-emerald-100 text-emerald-800 hover:bg-emerald-200 font-bold text-xs px-3 py-1.5 rounded-lg border border-emerald-200 transition-colors flex items-center gap-1"

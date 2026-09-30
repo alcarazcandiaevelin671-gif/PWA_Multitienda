@@ -5,7 +5,9 @@ import { useCart } from '@/context/CartContext';
 import { Shop } from '@/types/shop';
 import { supabase } from '@/lib/supabase';
 import { showAppMessage } from '@/lib/app-message';
+import { getEffectiveProductPrice } from '@/lib/product-pricing';
 import Image from 'next/image';
+import Link from 'next/link';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -127,7 +129,7 @@ export default function CartDrawer({ isOpen, onClose, currentShop }: CartDrawerP
             </div>
           ) : (
             items.map(({ product, cantidad }) => {
-              const precioUnitario = product.precio_oferta || product.precio;
+              const precioUnitario = getEffectiveProductPrice(product);
               return (
                 <div key={product.id} className="flex items-center gap-4 bg-gray-50 p-3 rounded-xl border border-gray-100">
                   {product.imagen_url && (
@@ -193,6 +195,14 @@ export default function CartDrawer({ isOpen, onClose, currentShop }: CartDrawerP
               <span className="font-medium text-sm">Total a pagar:</span>
               <span className="text-xl font-extrabold text-emerald-700">Gs. {totalAmount.toLocaleString('es-PY')}</span>
             </div>
+
+            <Link
+              href="/checkout"
+              onClick={onClose}
+              className="block w-full rounded-xl bg-blue-700 px-4 py-3 text-center text-sm font-bold text-white transition hover:bg-blue-800"
+            >
+              Continuar al checkout
+            </Link>
 
             <div>
               <label className="mb-1 block text-xs font-bold text-gray-700">Método de pago</label>

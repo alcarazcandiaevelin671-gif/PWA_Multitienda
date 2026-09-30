@@ -5,6 +5,7 @@ export interface Product {
   nombre: string;
   descripcion?: string;
   precio: number;
+  precio_gs?: number;
   precio_oferta?: number;
   stock: number;
   imagen_url?: string;

@@ -53,14 +53,14 @@ export const authService = {
     // 2. Insertar registro en 'usuarios'
     const { error: userError } = await supabase.from('usuarios').upsert(
       {
-        identificacion: userId,
-        correo_electronico: params.email,
+        id: userId,
+        email: params.email,
         nombre_completo: params.nombreCompleto,
         telefono_contacto: params.telefono,
         rol: 'vendedor' as UserRole,
         activo: true,
       },
-      { onConflict: 'identificacion' }
+      { onConflict: 'id' }
     );
 
     if (userError) console.error('Error guardando perfil de usuario:', userError);
@@ -96,7 +96,7 @@ export const authService = {
     const { data } = await supabase
       .from('usuarios')
       .select('*')
-      .eq('identificacion', session.user.id)
+      .eq('id', session.user.id)
       .maybeSingle();
 
     return data;

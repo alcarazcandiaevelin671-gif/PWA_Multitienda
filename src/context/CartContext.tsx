@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Product } from '@/types/product';
 import { CartItem } from '@/types/cart';
 import { showAppConfirm } from '@/lib/app-message';
+import { getEffectiveProductPrice } from '@/lib/product-pricing';
 
 interface CartContextType {
   items: CartItem[];
@@ -87,7 +88,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const totalAmount = items.reduce(
-    (sum, item) => sum + (item.product.precio_oferta || item.product.precio) * item.cantidad,
+    (sum, item) => sum + getEffectiveProductPrice(item.product) * item.cantidad,
     0
   );
 
@@ -116,7 +117,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     message += `📍 Dirección del Cliente: ${customerAddress}\n\n`;
 
     items.forEach((item, index) => {
-      const precioUnitario = item.product.precio_oferta || item.product.precio;
+      const precioUnitario = getEffectiveProductPrice(item.product);
       const subtotal = precioUnitario * item.cantidad;
       message += `${index + 1}. *${item.product.nombre}*\n`;
       message += `Cantidad: ${item.cantidad}\n`;

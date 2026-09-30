@@ -46,16 +46,17 @@ export default function RegistroComerciantePage() {
       if (signUpError) throw signUpError;
       if (!signUpData.user) throw new Error('No se pudo crear la cuenta del vendedor.');
 
-      const { error: errorUsuario } = await supabase.from('usuarios').insert([
+      const { error: errorUsuario } = await supabase.from('usuarios').upsert(
         {
-          identificacion: signUpData.user.id,
-          correo_electronico: formData.email,
+          id: signUpData.user.id,
+          email: formData.email,
           nombre_completo: formData.nombreCompleto,
           telefono_contacto: formData.telefono,
           rol: 'vendedor',
           activo: true,
         },
-      ]);
+        { onConflict: 'id' }
+      );
 
       if (errorUsuario) {
         console.error('Error al registrar usuario:', errorUsuario);

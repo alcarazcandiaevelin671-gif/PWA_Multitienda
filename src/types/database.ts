@@ -9,6 +9,133 @@ export type Json =
 export type TipoInteraccion = 'vista' | 'click' | 'favorito' | 'compra' | 'contacto';
 export type EstadoPago = 'pendiente' | 'pagado' | 'cancelado' | 'vencido' | 'reembolsado';
 export type RolUsuario = 'vendedor' | 'cliente' | 'administrador';
+export type EstadoPedido = 'pendiente' | 'confirmado' | 'en_preparacion' | 'listo' | 'completado' | 'cancelado';
+export type MetodoPagoPedido = 'efectivo' | 'transferencia';
+
+export interface Pedido {
+  id: string;
+  usuario_id: string | null;
+  tienda_id: string;
+  numero_pedido: string;
+  estado: EstadoPedido | string;
+  subtotal: number;
+  descuento: number;
+  envio: number;
+  total: number;
+  metodo_pago: MetodoPagoPedido | string;
+  estado_pago: string;
+  direccion_entrega: string;
+  distrito_id: number | null;
+  latitud: number | null;
+  longitud: number | null;
+  notas: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PedidoDetalle {
+  id: string;
+  pedido_id: string;
+  producto_id: string | null;
+  cantidad: number;
+  precio: number;
+  descuento: number;
+  subtotal: number;
+  nombre_producto_snapshot: string;
+  descripcion_snapshot: string | null;
+  created_at: string;
+}
+
+export interface PedidoEstadoHistorial {
+  id: string;
+  pedido_id: string;
+  estado_anterior: string | null;
+  estado_nuevo: string;
+  observacion: string | null;
+  created_at: string;
+}
+
+export interface Venta {
+  id: string;
+  pedido_id: string;
+  tienda_id: string;
+  cliente_id: string | null;
+  numero_venta: string;
+  subtotal: number;
+  descuento: number;
+  total: number;
+  metodo_pago: string;
+  estado: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface VentaDetalle {
+  id: string;
+  venta_id: string;
+  producto_id: string | null;
+  cantidad: number;
+  precio: number;
+  descuento: number;
+  subtotal: number;
+  nombre_producto_snapshot: string;
+  descripcion_snapshot: string | null;
+  created_at: string;
+}
+
+export interface FacturaInterna {
+  id: string;
+  venta_id: string;
+  pedido_id: string;
+  tienda_id: string;
+  cliente_id: string | null;
+  tipo_documento: string;
+  numero: string;
+  estado: string;
+  fecha: string;
+  moneda: string;
+  subtotal: number;
+  descuento: number;
+  total: number;
+  iva: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FacturaDetalle {
+  id: string;
+  factura_id: string;
+  producto_id: string | null;
+  cantidad: number;
+  precio: number;
+  descuento: number;
+  subtotal: number;
+  descripcion_snapshot: string;
+  created_at: string;
+}
+
+export interface CheckoutCreatedRecords {
+  pedido_id: string;
+  numero_pedido: string;
+  venta_id: string;
+  factura_id: string;
+}
+
+export interface CheckoutConfirmation {
+  pedido: Pick<Pedido, 'id' | 'numero_pedido' | 'estado'>;
+  registros: CheckoutCreatedRecords;
+}
+
+export interface CheckoutInput {
+  tienda_id: string;
+  items: Array<{ producto_id: string; cantidad: number }>;
+  metodo_pago: MetodoPagoPedido;
+  direccion_entrega: string;
+  distrito_id?: number | null;
+  latitud?: number | null;
+  longitud?: number | null;
+  notas?: string | null;
+}
 
 export interface Auditoria {
   id: number | null;
@@ -156,12 +283,14 @@ export interface Tienda {
 }
 
 export interface Usuario {
-  identificacion: string | null;
-  correo_electronico: string | null;
-  nombre_completo: string | null;
+  id: string;
+  email: string;
+  nombre_completo: string;
   telefono_contacto: string | null;
-  rol: RolUsuario | null;
-  activo: boolean | null;
+  rol: RolUsuario;
+  activo: boolean;
+  creado_en: string;
+  actualizado_en: string;
 }
 
 export type Database = {
@@ -212,6 +341,41 @@ export type Database = {
         Insert: Partial<PlanSuscripcion>;
         Update: Partial<PlanSuscripcion>;
       };
+      pedidos: {
+        Row: Pedido;
+        Insert: Partial<Pedido>;
+        Update: Partial<Pedido>;
+      };
+      pedido_detalles: {
+        Row: PedidoDetalle;
+        Insert: Partial<PedidoDetalle>;
+        Update: Partial<PedidoDetalle>;
+      };
+      pedido_estado_historial: {
+        Row: PedidoEstadoHistorial;
+        Insert: Partial<PedidoEstadoHistorial>;
+        Update: Partial<PedidoEstadoHistorial>;
+      };
+      ventas: {
+        Row: Venta;
+        Insert: Partial<Venta>;
+        Update: Partial<Venta>;
+      };
+      venta_detalles: {
+        Row: VentaDetalle;
+        Insert: Partial<VentaDetalle>;
+        Update: Partial<VentaDetalle>;
+      };
+      facturas: {
+        Row: FacturaInterna;
+        Insert: Partial<FacturaInterna>;
+        Update: Partial<FacturaInterna>;
+      };
+      factura_detalles: {
+        Row: FacturaDetalle;
+        Insert: Partial<FacturaDetalle>;
+        Update: Partial<FacturaDetalle>;
+      };
       producto_tags: {
         Row: ProductoTag;
         Insert: Partial<ProductoTag>;
@@ -250,7 +414,36 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
-      [_ in string]: never;
+      crear_pedido_checkout: {
+        Args: {
+          p_tienda_id: string;
+          p_items: Json;
+          p_metodo_pago: string;
+          p_direccion_entrega: string;
+          p_distrito_id?: number | null;
+          p_latitud?: number | null;
+          p_longitud?: number | null;
+          p_notas?: string | null;
+        };
+        Returns: string;
+      };
+      procesar_checkout_pedido_venta_factura: {
+        Args: {
+          p_tienda_id: string;
+          p_items: Json;
+          p_metodo_pago: string;
+          p_direccion_entrega: string;
+          p_distrito_id?: number | null;
+          p_latitud?: number | null;
+          p_longitud?: number | null;
+          p_notas?: string | null;
+        };
+        Returns: CheckoutCreatedRecords;
+      };
+      obtener_pedidos_mis_tiendas: {
+        Args: Record<PropertyKey, never>;
+        Returns: Pedido[];
+      };
     };
     Enums: {
       estado_pago: EstadoPago;

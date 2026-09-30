@@ -47,16 +47,17 @@ export default function LoginPage() {
       if (signUpError) throw signUpError;
 
       if (signUpData.user) {
-        const { error: errorUsuario } = await supabase.from('usuarios').insert([
+        const { error: errorUsuario } = await supabase.from('usuarios').upsert(
           {
-            identificacion: signUpData.user.id,
-            correo_electronico: email,
+            id: signUpData.user.id,
+            email,
             nombre_completo: email.split('@')[0],
             telefono_contacto: '',
             rol: 'cliente',
             activo: true,
           },
-        ]);
+          { onConflict: 'id' }
+        );
 
         if (errorUsuario) {
           console.error('Error al registrar usuario:', errorUsuario);
