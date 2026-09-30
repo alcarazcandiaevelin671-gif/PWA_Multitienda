@@ -18,13 +18,21 @@ type TiendaData = {
   nombre_comercio?: string | null;
   slug?: string | null;
   descripcion?: string | null;
+  categoria_principal?: string | null;
+  distrito_id?: number | null;
+  distrito_nombre?: string | null;
+  direccion_texto?: string | null;
+  telefono?: string | null;
+  whatsapp?: string | null;
+  email?: string | null;
+  estado?: string | null;
 };
 
 const normalizarRol = (valor: unknown): string => {
   const rol = String(valor ?? 'cliente').trim().toLowerCase();
 
   if (['admin', 'administrador'].includes(rol)) return 'admin';
-  if (['comerciante', 'vendedor'].includes(rol)) return 'comerciante';
+  if (['comerciante', 'vendedor'].includes(rol)) return 'vendedor';
 
   return 'cliente';
 };
@@ -87,15 +95,25 @@ export default function PerfilPage() {
             activo: dbUser?.activo ?? true
           });
 
-          if (rolNormalizado === 'comerciante') {
+          if (rolNormalizado === 'vendedor') {
             const { data: dbTienda } = await supabase
               .from('tiendas')
               .select('*')
               .eq('usuario_id', currentUser.id)
               .maybeSingle();
 
+            let distritoNombre: string | null = null;
+            if (dbTienda?.distrito_id) {
+              const { data: distrito } = await supabase
+                .from('distritos')
+                .select('nombre')
+                .eq('id', dbTienda.distrito_id)
+                .maybeSingle();
+              distritoNombre = distrito?.nombre ?? null;
+            }
+
             if (isMounted) {
-              setTiendaData(dbTienda ?? null);
+              setTiendaData(dbTienda ? { ...dbTienda, distrito_nombre: distritoNombre } : null);
             }
           } else {
             if (isMounted) {
@@ -163,8 +181,8 @@ export default function PerfilPage() {
   const rolEtiqueta =
     userData.rol === 'admin'
       ? 'Administrador'
-      : userData.rol === 'comerciante'
-        ? 'Comerciante'
+      : userData.rol === 'vendedor'
+        ? 'Vendedor'
         : 'Cliente';
 
   const iniciales = userData.nombre_completo
@@ -173,7 +191,16 @@ export default function PerfilPage() {
     .map((segmento) => segmento.charAt(0).toUpperCase())
     .join('') || 'U';
 
-  const esComerciante = normalizarRol(userData.rol) === 'comerciante';
+  const esVendedor = normalizarRol(userData.rol) === 'vendedor';
+  const estadoTienda = String(tiendaData?.estado || 'sin registrar').trim().toLowerCase();
+  const tiendaAprobada = ['activa', 'activo'].includes(estadoTienda);
+  const estadoTiendaEtiqueta: Record<string, string> = {
+    pendiente: 'Pendiente de aprobación',
+    activa: 'Activa',
+    activo: 'Activo',
+    rechazada: 'Rechazada',
+    rechazado: 'Rechazado',
+  };
 
   const handleCerrarSesion = async () => {
     await supabase.auth.signOut();
@@ -229,21 +256,40 @@ export default function PerfilPage() {
         </div>
       </div>
 
-      {esComerciante && (
+      {esVendedor && (
         <div className="rounded-[28px] border border-blue-200 bg-blue-50 p-6 shadow-sm">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div className="min-w-0">
               <p className="text-[11px] font-black uppercase tracking-[0.2em] text-blue-700">Mi comercio</p>
               <h2 className="mt-2 text-2xl font-black text-slate-900">{tiendaData?.nombre_comercio || 'Comercio registrado'}</h2>
-              <p className="mt-2 text-sm text-slate-600">{tiendaData?.descripcion || 'Tu negocio está conectado y listo para gestionar ventas y pedidos.'}</p>
+              <p className="mt-2 text-sm text-slate-600">{tiendaData?.descripcion || 'Solicitud de registro de comercio.'}</p>
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <span className="rounded-full border border-blue-200 bg-white px-3 py-1 text-xs font-black uppercase text-blue-800">
+                  {estadoTiendaEtiqueta[estadoTienda] || estadoTienda.replace(/[_-]/g, ' ')}
+                </span>
+                {tiendaData?.categoria_principal && <span className="text-sm text-slate-600">Rubro: {tiendaData.categoria_principal}</span>}
+              </div>
+              {!tiendaAprobada && (
+                <p className="mt-3 text-sm leading-relaxed text-slate-600">
+                  {estadoTienda === 'pendiente'
+                    ? 'Tu solicitud está en revisión. Las funciones de vendedor estarán disponibles cuando el comercio sea aprobado.'
+                    : 'Las funciones de vendedor no están disponibles hasta que el comercio sea aprobado.'}
+                </p>
+              )}
             </div>
 
-            <Link
-              href="/vendedor/dashboard"
-              className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/20 transition hover:bg-blue-700"
-            >
-              Ir al Dashboard de Vendedor
-            </Link>
+            <div className="grid gap-2 text-sm text-slate-700 sm:grid-cols-2 md:min-w-64 md:grid-cols-1">
+              {tiendaData?.distrito_nombre && <p><span className="font-bold">Distrito:</span> {tiendaData.distrito_nombre}</p>}
+              {tiendaData?.direccion_texto && <p><span className="font-bold">Dirección:</span> {tiendaData.direccion_texto}</p>}
+              {(tiendaData?.telefono || tiendaData?.whatsapp) && <p><span className="font-bold">Contacto:</span> {tiendaData.telefono || tiendaData.whatsapp}</p>}
+              {tiendaData?.email && <p className="break-all"><span className="font-bold">Correo comercial:</span> {tiendaData.email}</p>}
+              {tiendaData?.slug && tiendaAprobada && <Link href={`/tienda/${tiendaData.slug}`} className="font-bold text-blue-700 hover:underline">Ver comercio publicado</Link>}
+              {tiendaAprobada && (
+                <Link href="/vendedor/dashboard" className="mt-2 inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/20 transition hover:bg-blue-700">
+                  Ir al Dashboard de Vendedor
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       )}

@@ -94,6 +94,17 @@ export default function VendedorDashboardPage() {
         return;
       }
 
+      const { data: userProfile, error: userProfileError } = await supabase
+        .from('usuarios')
+        .select('rol')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (userProfileError || !['vendedor', 'comerciante'].includes(String(userProfile?.rol || '').toLowerCase())) {
+        window.location.href = '/perfil';
+        return;
+      }
+
       const { data: tiendaData, error: tiendaError } = await supabase
         .from('tiendas')
         .select('*')
@@ -117,6 +128,11 @@ export default function VendedorDashboardPage() {
         latitud: Number(tiendaData.latitud) || -25.7806,
         longitud: Number(tiendaData.longitud) || -56.4486,
       });
+
+      if (!['activa', 'activo'].includes(String(tiendaData.estado || '').toLowerCase())) {
+        setProductos([]);
+        return;
+      }
 
       const { data: categoriasData } = await supabase
         .from('categorias')
@@ -373,6 +389,31 @@ export default function VendedorDashboardPage() {
         <div className="text-center">
           <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
           <p className="text-slate-500 text-sm">Cargando panel de tu tienda...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (tienda && !['activa', 'activo'].includes(String(tienda.estado || '').toLowerCase())) {
+    const estado = String(tienda.estado || 'pendiente').toLowerCase();
+    const estadoVisible = estado === 'pendiente'
+      ? 'Pendiente de aprobación'
+      : estado.replace(/[_-]/g, ' ');
+
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-12">
+        <div className="rounded-[28px] border border-amber-200 bg-amber-50 p-8 text-center shadow-sm">
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-800">Estado del comercio</p>
+          <h1 className="mt-3 text-2xl font-black text-slate-900">{tienda.nombre_comercio}</h1>
+          <p className="mt-2 font-bold text-amber-900">{estadoVisible}</p>
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-slate-700">
+            {estado === 'pendiente'
+              ? 'Tu solicitud está en revisión. El panel de productos y ventas estará disponible cuando un administrador apruebe el comercio.'
+              : 'Las funciones del panel estarán disponibles cuando el comercio sea aprobado.'}
+          </p>
+          <Link href="/perfil" className="mt-6 inline-flex rounded-xl bg-sky-700 px-5 py-3 text-sm font-bold text-white transition hover:bg-sky-800">
+            Ver mi perfil
+          </Link>
         </div>
       </div>
     );

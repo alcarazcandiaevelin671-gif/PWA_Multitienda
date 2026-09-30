@@ -147,6 +147,11 @@ export default function VendedorTiendaPage() {
           .eq('id', userId)
           .maybeSingle();
 
+        if (!['vendedor', 'comerciante'].includes(String(userBD?.rol || '').toLowerCase())) {
+          window.location.href = '/perfil';
+          return;
+        }
+
         const emailUsuario = userBD?.email || session.user.email || '';
 
         setUserData({
@@ -203,49 +208,19 @@ export default function VendedorTiendaPage() {
     setMensaje(null);
 
     try {
-      if (authMode === 'login') {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: authData.email,
-          password: authData.password,
-        });
-
-        if (error) throw error;
-        setSessionUser(data.session?.user);
-        setMensaje({ tipo: 'exito', texto: 'Sesión iniciada correctamente.' });
-      } else {
-        const { data, error } = await supabase.auth.signUp({
-          email: authData.email,
-          password: authData.password,
-          options: {
-            data: {
-              nombre_completo: authData.nombre_completo,
-              telefono_contacto: authData.telefono_contacto,
-              rol: 'vendedor',
-            },
-          },
-        });
-
-        if (error) throw error;
-
-        if (data.user) {
-          await supabase.from('usuarios').upsert({
-            id: data.user.id,
-            nombre_completo: authData.nombre_completo,
-            email: authData.email,
-            telefono_contacto: authData.telefono_contacto,
-            rol: 'vendedor',
-            activo: true,
-          }, { onConflict: 'id' });
-
-          setSessionUser(data.user);
-          setUserData({
-            nombre_completo: authData.nombre_completo,
-            email: authData.email,
-            telefono_contacto: authData.telefono_contacto,
-          });
-          setMensaje({ tipo: 'exito', texto: '¡Cuenta creada con éxito! Completa los datos de tu tienda.' });
-        }
+      if (authMode === 'register') {
+        router.push('/auth/registro');
+        return;
       }
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: authData.email,
+        password: authData.password,
+      });
+
+      if (error) throw error;
+      setSessionUser(data.session?.user);
+      setMensaje({ tipo: 'exito', texto: 'Sesión iniciada correctamente.' });
     } catch (err: any) {
       console.error('Error de autenticación:', err);
       setMensaje({ tipo: 'error', texto: err.message || 'Error al autenticar usuario.' });
@@ -448,14 +423,13 @@ export default function VendedorTiendaPage() {
 
       const { error: userError } = await supabase
         .from('usuarios')
-        .upsert({
-          id: userId,
+        .update({
           nombre_completo: userData.nombre_completo,
           email: userData.email,
           telefono_contacto: userData.telefono_contacto,
-          rol: 'comerciante',
           actualizado_en: new Date().toISOString(),
-        }, { onConflict: 'id' });
+        })
+        .eq('id', userId);
 
       if (userError) throw new Error(`Error en Usuario: ${userError.message}`);
 
@@ -544,17 +518,12 @@ export default function VendedorTiendaPage() {
             >
               🔑 Iniciar Sesión
             </button>
-            <button
-              type="button"
-              onClick={() => { setAuthMode('register'); setMensaje(null); }}
-              className={`flex-1 py-3 text-xs font-bold transition-all ${
-                authMode === 'register'
-                  ? 'bg-white text-blue-600 border-b-2 border-blue-600'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
+            <Link
+              href="/auth/registro"
+              className="flex-1 py-3 text-center text-xs font-bold text-slate-500 transition-all hover:text-slate-800"
             >
-              📝 Crear Cuenta
-            </button>
+              Registrar nuevo vendedor
+            </Link>
           </div>
 
           {mensaje && (

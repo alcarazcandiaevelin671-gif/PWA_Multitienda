@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { showAppMessage } from '@/lib/app-message';
 import { supabase } from '@/lib/supabase';
 
 const normalizeRole = (value: unknown): 'admin' | 'vendedor' | 'cliente' => {
@@ -17,7 +16,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [esRegistro, setEsRegistro] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -34,43 +32,6 @@ export default function LoginPage() {
     } catch (err: any) {
       setErrorMsg(err.message || 'Error al conectar con Google.');
       setLoading(false);
-    }
-  };
-
-  const handleRegisterCliente = async () => {
-    try {
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email: email,
-        password: password,
-      });
-
-      if (signUpError) throw signUpError;
-
-      if (signUpData.user) {
-        const { error: errorUsuario } = await supabase.from('usuarios').upsert(
-          {
-            id: signUpData.user.id,
-            email,
-            nombre_completo: email.split('@')[0],
-            telefono_contacto: '',
-            rol: 'cliente',
-            activo: true,
-          },
-          { onConflict: 'id' }
-        );
-
-        if (errorUsuario) {
-          console.error('Error al registrar usuario:', errorUsuario);
-          alert(errorUsuario.message || 'No se pudo registrar el usuario.');
-          return;
-        }
-      }
-
-      showAppMessage('¡Cuenta creada con éxito!', 'Registro completado', 'success');
-    } catch (error: any) {
-      console.error('Error al registrar cliente:', error);
-      alert(error?.message || 'Ocurrió un error al registrar la cuenta.');
-      setErrorMsg(error?.message || 'Ocurrió un error al registrar la cuenta.');
     }
   };
 
@@ -100,22 +61,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setErrorMsg(null);
-
-    try {
-      if (esRegistro) {
-        await handleRegisterCliente();
-      } else {
-        await handleLogin(e);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-[80vh] bg-slate-50 px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto grid max-w-6xl overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-[0_30px_80px_rgba(15,23,42,0.12)] lg:grid-cols-[1.05fr_1.2fr]">
@@ -124,12 +69,10 @@ export default function LoginPage() {
             Portal Guairá
           </div>
           <h1 className="text-3xl font-black leading-tight sm:text-4xl">
-            {esRegistro ? 'Abre tu comercio' : 'Encuentra lo que buscas'}
+            Encuentra lo que buscas
           </h1>
           <p className="mt-4 max-w-md text-sm leading-relaxed text-sky-100/80">
-            {esRegistro
-              ? 'Crea tu tienda y conecta con clientes del Guairá en un solo lugar.'
-              : 'Accede a tu cuenta para guardar favoritos, consultar tu perfil y apoyar al comercio local.'}
+            Accede a tu cuenta para guardar favoritos, consultar tu perfil y apoyar al comercio local.
           </p>
 
           <div className="mt-8 space-y-4 text-sm text-sky-50/90">
@@ -152,12 +95,10 @@ export default function LoginPage() {
           <div className="mx-auto max-w-md">
             <div className="mb-6 text-center">
               <h2 className="text-2xl font-black text-slate-900">
-                {esRegistro ? 'Crear cuenta nueva' : 'Iniciar sesión'}
+                Iniciar sesión
               </h2>
               <p className="mt-2 text-sm text-slate-500">
-                {esRegistro
-                  ? 'Regístrate para descubrir comercios y guardar tus favoritos.'
-                  : 'Ingresa tus credenciales para continuar.'}
+                Ingresa tus credenciales para continuar.
               </p>
             </div>
 
@@ -191,7 +132,7 @@ export default function LoginPage() {
               <div className="h-px flex-1 bg-slate-200" />
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-4">
               <div>
                 <label className="mb-1 block text-xs font-bold uppercase tracking-[0.16em] text-slate-600">
                   Correo electrónico
@@ -249,29 +190,22 @@ export default function LoginPage() {
                 disabled={loading}
                 className="w-full rounded-2xl bg-sky-600 px-4 py-3 text-sm font-black text-white shadow-lg shadow-sky-500/25 transition hover:bg-sky-700 disabled:opacity-50"
               >
-                {loading ? 'Procesando...' : esRegistro ? 'Registrarme' : 'Iniciar sesión'}
+                {loading ? 'Procesando...' : 'Iniciar sesión'}
               </button>
             </form>
 
             <div className="mt-6 text-center text-sm text-slate-500">
-              <span>{esRegistro ? '¿Ya tienes una cuenta?' : '¿Aún no tienes cuenta?'}</span>
-              <button
-                type="button"
-                onClick={() => {
-                  setEsRegistro(!esRegistro);
-                  setErrorMsg(null);
-                }}
-                className="ml-2 font-bold text-sky-600 hover:underline"
-              >
-                {esRegistro ? 'Inicia sesión' : 'Regístrate aquí'}
-              </button>
+              <span>¿Aún no tienes cuenta?</span>
+              <Link href="/auth/registro-cliente" className="ml-2 font-bold text-sky-600 hover:underline">
+                Crear cuenta de cliente
+              </Link>
             </div>
 
             <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Comercio</p>
               <p className="mt-2 text-sm text-slate-600">¿Quieres vender en el portal del Guairá?</p>
               <Link href="/auth/registro" className="mt-3 inline-block rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white transition hover:bg-slate-700">
-                Registrar mi tienda
+                Registrar nuevo vendedor
               </Link>
             </div>
           </div>
