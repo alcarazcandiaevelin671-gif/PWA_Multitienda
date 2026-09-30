@@ -220,7 +220,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="bg-white border-b border-slate-100 py-3 px-6 flex items-center justify-between sticky top-0 z-50">
+    <header className="sticky top-0 z-50 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-slate-100 bg-white px-4 py-3 sm:px-6">
       <Link href="/" className="font-bold text-slate-900 text-lg flex items-center gap-2">
         <span>Portal Guairá</span>
       </Link>
@@ -237,7 +237,7 @@ export default function Navbar() {
         </Link>
       </nav>
 
-      <div className="flex items-center gap-3">
+      <div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-3">
         {usuario && rolUsuario === 'cliente' && (
           <>
             <Link href="/checkout" aria-label={`Carrito${totalItems ? `, ${totalItems} productos` : ''}`} className="text-xs font-bold text-slate-700 hover:text-blue-700">
