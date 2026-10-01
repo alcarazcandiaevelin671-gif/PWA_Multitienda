@@ -57,6 +57,49 @@ export async function getMyStoreInvoices(): Promise<FacturaInterna[]> {
   }
 }
 
+export async function getMyStoreInvoiceById(invoiceId: string) {
+  const user = await getCurrentUser();
+  const { data: profile, error: profileError } = await supabase
+    .from('usuarios')
+    .select('rol')
+    .eq('id', user.id)
+    .maybeSingle();
+  if (profileError) throw profileError;
+  if (String(profile?.rol ?? '').trim().toLowerCase() !== 'comerciante') {
+    throw new Error('Esta factura solo está disponible para el comerciante de la tienda.');
+  }
+
+  const { data: stores, error: storesError } = await supabase
+    .from('tiendas')
+    .select('id, nombre_comercio')
+    .eq('usuario_id', user.id);
+  if (storesError) throw storesError;
+  const storeIds = (stores ?? []).map((store) => store.id).filter(Boolean);
+  if (storeIds.length === 0) return null;
+
+  const { data: invoice, error: invoiceError } = await supabase
+    .from('facturas')
+    .select('*')
+    .eq('id', invoiceId)
+    .in('tienda_id', storeIds)
+    .maybeSingle();
+  if (invoiceError) throw invoiceError;
+  if (!invoice) return null;
+
+  const { data: details, error: detailsError } = await supabase
+    .from('factura_detalles')
+    .select('*')
+    .eq('factura_id', invoiceId)
+    .order('created_at', { ascending: true });
+  if (detailsError) throw detailsError;
+
+  return {
+    invoice: invoice as unknown as FacturaInterna,
+    storeName: stores?.find((store) => store.id === invoice.tienda_id)?.nombre_comercio ?? '',
+    details: (details ?? []) as unknown as FacturaDetalle[],
+  };
+}
+
 export async function getInvoiceById(invoiceId: string) {
   try {
     const user = await getCurrentUser();

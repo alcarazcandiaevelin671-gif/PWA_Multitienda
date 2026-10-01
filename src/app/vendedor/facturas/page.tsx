@@ -31,7 +31,7 @@ export default function VendorInvoicesPage() {
           <p className="text-xs font-black uppercase text-emerald-700">Comercio</p>
           <h1 className="mt-1 text-3xl font-black text-slate-900">Facturación</h1>
         </div>
-        <Link href="/comerciante/dashboard" className="text-sm font-bold text-blue-700 hover:underline">Volver al dashboard</Link>
+        <Link href="/vendedor" className="text-sm font-bold text-blue-700 hover:underline">Volver al dashboard</Link>
       </div>
 
       <div className="mb-6 max-w-xs rounded-2xl border border-slate-200 bg-white p-4">
@@ -70,6 +70,7 @@ export default function VendorInvoicesPage() {
                 <th className="px-4 py-3 font-bold">Tipo</th>
                 <th className="px-4 py-3 font-bold">Total</th>
                 <th className="px-4 py-3 font-bold">Estado</th>
+                <th className="px-4 py-3 font-bold">Acción</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 bg-white">
@@ -86,6 +87,7 @@ export default function VendorInvoicesPage() {
                       {invoice.estado}
                     </span>
                   </td>
+                  <td className="px-4 py-4"><Link href={`/vendedor/facturas/${invoice.id}`} className="font-bold text-blue-700 hover:underline">Ver factura</Link></td>
                 </tr>
               ))}
             </tbody>

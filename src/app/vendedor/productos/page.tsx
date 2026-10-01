@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { showAppConfirm } from '@/lib/app-message';
@@ -12,7 +12,13 @@ export default function ComercianteProductosPage() {
   const [fetching, setFetching] = useState(true);
   const [sessionUser, setSessionUser] = useState<any>(null);
   const [tienda, setTienda] = useState<any>(null);
+  const [tiendas, setTiendas] = useState<any[]>([]);
+  const [selectedStoreId, setSelectedStoreId] = useState('');
   const [productos, setProductos] = useState<any[]>([]);
+  const [categories, setCategories] = useState<Array<{ id: number; nombre: string }>>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [availabilityFilter, setAvailabilityFilter] = useState('all');
 
   // Estados del formulario de producto
   const [loading, setLoading] = useState(false);
@@ -24,6 +30,7 @@ export default function ComercianteProductosPage() {
     descripcion: '',
     precio_gs: '',
     imagen_url: '',
+    categoria_id: '',
     disponible: true,
   });
 
@@ -45,45 +52,36 @@ export default function ComercianteProductosPage() {
       const user = session.user;
       setSessionUser(user);
 
-      // 2. Buscar tienda ligada al usuario
-      let { data: tiendaBD, error: tiendaErr } = await supabase
+      // 2. Obtener exclusivamente las tiendas asociadas al usuario autenticado.
+      const { data: tiendasBD, error: tiendasError } = await supabase
         .from('tiendas')
         .select('*')
         .eq('usuario_id', user.id)
-        .maybeSingle();
+        .order('nombre_comercio');
+      if (tiendasError) throw tiendasError;
+      const ownedStores = tiendasBD || [];
+      setTiendas(ownedStores);
 
-      if (!tiendaBD) {
-        await new Promise((res) => setTimeout(res, 1000));
-        const retry = await supabase
-          .from('tiendas')
-          .select('*')
-          .eq('usuario_id', user.id)
-          .maybeSingle();
-        tiendaBD = retry.data;
-      }
-
-      if (tiendaErr) console.error('Error al consultar tienda:', tiendaErr);
-
-      if (!tiendaBD) {
+      if (ownedStores.length === 0) {
         setTienda(null);
-        setFetching(false);
+        setSelectedStoreId('');
+        setProductos([]);
         return;
       }
 
+      const tiendaBD = ownedStores[0];
+      setSelectedStoreId(tiendaBD.id);
       setTienda(tiendaBD);
 
       // 3. Cargar productos usando el esquema exacto de la BD
-      const { data: prodsBD, error: prodsErr } = await supabase
-        .from('productos')
-        .select('*')
-        .eq('tienda_id', tiendaBD.id)
-        .order('creado_en', { ascending: false });
-
-      if (prodsErr) {
-        console.error('Error al cargar productos:', prodsErr);
-      } else {
-        setProductos(prodsBD || []);
-      }
+      const [productsResult, categoriesResult] = await Promise.all([
+        supabase.from('productos').select('*').eq('tienda_id', tiendaBD.id).order('creado_en', { ascending: false }),
+        supabase.from('categorias').select('id, nombre').order('nombre'),
+      ]);
+      if (productsResult.error) throw productsResult.error;
+      if (categoriesResult.error) throw categoriesResult.error;
+      setProductos(productsResult.data || []);
+      setCategories((categoriesResult.data || []) as Array<{ id: number; nombre: string }>);
 
     } catch (err) {
       console.error('Error crítico al obtener información:', err);
@@ -97,6 +95,34 @@ export default function ComercianteProductosPage() {
   useEffect(() => {
     cargarTiendaYProductos();
   }, [cargarTiendaYProductos]);
+
+  const handleStoreChange = async (storeId: string) => {
+    const nextStore = tiendas.find((item) => item.id === storeId);
+    if (!nextStore) return;
+    setSelectedStoreId(storeId);
+    setTienda(nextStore);
+    setFetching(true);
+    setMensaje(null);
+    try {
+      const { data, error } = await supabase.from('productos').select('*').eq('tienda_id', storeId).order('creado_en', { ascending: false });
+      if (error) throw error;
+      setProductos(data || []);
+      setCategoryFilter('');
+      setAvailabilityFilter('all');
+      setSearchTerm('');
+    } catch (error) {
+      setMensaje({ tipo: 'error', texto: userFacingError(error, 'No se pudieron cargar los productos de esta tienda.') });
+    } finally {
+      setFetching(false);
+    }
+  };
+
+  const filteredProducts = useMemo(() => productos.filter((product) => {
+    const matchesSearch = !searchTerm.trim() || String(product.titulo || '').toLowerCase().includes(searchTerm.trim().toLowerCase());
+    const matchesCategory = !categoryFilter || String(product.categoria_id ?? '') === categoryFilter;
+    const matchesAvailability = availabilityFilter === 'all' || String(Boolean(product.disponible)) === availabilityFilter;
+    return matchesSearch && matchesCategory && matchesAvailability;
+  }), [productos, searchTerm, categoryFilter, availabilityFilter]);
 
   // Subir imagen del producto
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -147,6 +173,7 @@ export default function ComercianteProductosPage() {
         descripcion: nuevoProducto.descripcion,
         precio_gs: Number(nuevoProducto.precio_gs) || 0,
         imagen_url: nuevoProducto.imagen_url || null,
+        categoria_id: nuevoProducto.categoria_id ? Number(nuevoProducto.categoria_id) : null,
         disponible: nuevoProducto.disponible,
       };
 
@@ -164,6 +191,7 @@ export default function ComercianteProductosPage() {
         descripcion: '',
         precio_gs: '',
         imagen_url: '',
+        categoria_id: '',
         disponible: true,
       });
 
@@ -268,6 +296,14 @@ export default function ComercianteProductosPage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            {tiendas.length > 1 && (
+              <label className="mr-1 text-[10px] font-bold uppercase text-slate-300">
+                Tienda
+                <select value={selectedStoreId} onChange={(event) => void handleStoreChange(event.target.value)} className="mt-1 block max-w-52 rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-xs font-semibold normal-case text-white">
+                  {tiendas.map((store) => <option key={store.id} value={store.id}>{store.nombre_comercio}</option>)}
+                </select>
+              </label>
+            )}
             {/* ENLACE A LA TIENDA PÚBLICA */}
             <Link
               href={`/tienda/${tienda.slug}`}
@@ -311,7 +347,7 @@ export default function ComercianteProductosPage() {
           </h2>
 
           <form onSubmit={handleGuardarProducto} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
                   Título / Nombre del Producto *
@@ -339,6 +375,13 @@ export default function ComercianteProductosPage() {
                   placeholder="Ej: 5000"
                   className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600"
                 />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Categoría</label>
+                <select value={nuevoProducto.categoria_id} onChange={(event) => setNuevoProducto({ ...nuevoProducto, categoria_id: event.target.value })} className="w-full rounded-xl border border-slate-200 px-4 py-3 text-xs focus:ring-2 focus:ring-blue-600">
+                  <option value="">Sin categoría</option>
+                  {categories.map((category) => <option key={category.id} value={category.id}>{category.nombre}</option>)}
+                </select>
               </div>
             </div>
 
@@ -405,20 +448,37 @@ export default function ComercianteProductosPage() {
           </form>
         </div>
 
+        <section className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:grid-cols-3">
+          <label className="text-xs font-semibold text-slate-600">Buscar producto
+            <input type="search" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Nombre del producto" className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+          </label>
+          <label className="text-xs font-semibold text-slate-600">Categoría
+            <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm">
+              <option value="">Todas las categorías</option>
+              {categories.map((category) => <option key={category.id} value={category.id}>{category.nombre}</option>)}
+            </select>
+          </label>
+          <label className="text-xs font-semibold text-slate-600">Disponibilidad
+            <select value={availabilityFilter} onChange={(event) => setAvailabilityFilter(event.target.value)} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm">
+              <option value="all">Toda disponibilidad</option><option value="true">Disponible</option><option value="false">No disponible</option>
+            </select>
+          </label>
+        </section>
+
         {/* Listado de Productos Registrados */}
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4">
           <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider">
-            📋 Mis Productos Publicados ({productos.length})
+            📋 Productos de {tienda.nombre_comercio} ({filteredProducts.length} de {productos.length})
           </h2>
 
-          {productos.length === 0 ? (
+          {filteredProducts.length === 0 ? (
             <div className="text-center py-8 text-slate-400">
-              <p className="text-xs font-bold">Aún no has registrado ningún producto.</p>
-              <p className="text-[11px] mt-1">Completa el formulario de arriba para empezar.</p>
+              <p className="text-xs font-bold">{productos.length === 0 ? 'Aún no has registrado ningún producto.' : 'No hay productos con estos filtros.'}</p>
+              <p className="text-[11px] mt-1">{productos.length === 0 ? 'Completa el formulario de arriba para empezar.' : 'Prueba cambiando la búsqueda o los filtros.'}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {productos.map((prod) => (
+              {filteredProducts.map((prod) => (
                 <div
                   key={prod.id}
                   className="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 bg-slate-50 hover:border-slate-200 transition-all"
@@ -435,6 +495,7 @@ export default function ComercianteProductosPage() {
 
                   <div className="flex-1 min-w-0">
                     <h3 className="text-xs font-bold text-slate-900 truncate">{prod.titulo}</h3>
+                    {categories.find((category) => String(category.id) === String(prod.categoria_id)) && <p className="mt-0.5 truncate text-[10px] text-slate-500">{categories.find((category) => String(category.id) === String(prod.categoria_id))?.nombre}</p>}
                     <p className="text-xs font-black text-blue-600 mt-0.5">
                       {Number(prod.precio_gs).toLocaleString('es-PY')} Gs.
                     </p>

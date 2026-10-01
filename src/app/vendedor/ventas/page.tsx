@@ -40,7 +40,7 @@ export default function VendorSalesPage() {
           <p className="text-xs font-black uppercase text-emerald-700">Comercio</p>
           <h1 className="mt-1 text-3xl font-black text-slate-900">Ventas</h1>
         </div>
-        <Link href="/comerciante/dashboard" className="text-sm font-bold text-blue-700 hover:underline">Volver al dashboard</Link>
+        <Link href="/vendedor" className="text-sm font-bold text-blue-700 hover:underline">Volver al dashboard</Link>
       </div>
 
       <div className="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-5">

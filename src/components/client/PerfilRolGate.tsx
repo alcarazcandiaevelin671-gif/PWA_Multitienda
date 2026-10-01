@@ -95,7 +95,7 @@ export default function PerfilRolGate() {
             <span className="inline-flex items-center rounded-full border border-emerald-300 bg-white px-2.5 py-1 text-[11px] font-black uppercase tracking-wide text-emerald-700">
               Comerciante
             </span>
-            <Link href="/comerciante/dashboard" className="text-emerald-700 font-bold hover:underline">
+            <Link href="/vendedor" className="text-emerald-700 font-bold hover:underline">
               Ir al panel del comercio
             </Link>
           </div>

@@ -297,40 +297,35 @@ export default function Navbar() {
         )}
 
         {rolUsuario === 'comerciante' && (
-          <>
-            <Link
-              href="/comerciante/pedidos"
-              className="bg-amber-100 text-amber-800 hover:bg-amber-200 font-bold text-xs px-3 py-1.5 rounded-lg border border-amber-200 transition-colors flex items-center gap-1"
-            >
-              <span>🧾</span> Pedidos
-            </Link>
-
-            <Link
-              href="/comerciante/tienda"
-              className="bg-emerald-100 text-emerald-800 hover:bg-emerald-200 font-bold text-xs px-3 py-1.5 rounded-lg border border-emerald-200 transition-colors flex items-center gap-1"
-            >
-              <span>🏪</span> Mi Tienda
-            </Link>
-
-            <Link
-              href="/comerciante/productos"
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition-colors shadow-sm flex items-center gap-1"
-            >
-              <span>📦</span> Cargar Productos
-            </Link>
-          </>
+          <details className="relative">
+            <summary className="cursor-pointer list-none rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-800 transition hover:bg-blue-100">Mi negocio <span aria-hidden="true">▾</span></summary>
+            <nav aria-label="Panel del comerciante" className="absolute right-0 top-[calc(100%+0.5rem)] z-[70] grid min-w-48 gap-1 rounded-xl border border-slate-200 bg-white p-2 shadow-xl">
+              {[
+                ['/vendedor', 'Dashboard'],
+                ['/vendedor/tiendas', 'Mis tiendas'],
+                ['/comerciante/productos', 'Productos'],
+                ['/comerciante/pedidos', 'Pedidos'],
+                ['/comerciante/ventas', 'Ventas'],
+                ['/comerciante/facturas', 'Facturas'],
+                ['/vendedor/reportes', 'Reportes'],
+              ].map(([href, label]) => <Link key={href} href={href} onClick={(event) => event.currentTarget.closest('details')?.removeAttribute('open')} className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700">{label}</Link>)}
+            </nav>
+          </details>
         )}
 
         {usuario ? (
-          <Link
-            href="/perfil"
-            aria-label="Ir a mi perfil"
-            className="flex items-center justify-center rounded-full border border-slate-200 bg-slate-50 p-1.5 shadow-sm transition hover:border-blue-200 hover:bg-blue-50"
-          >
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-sky-500 text-lg text-white shadow-sm ring-2 ring-white">
-              👤
-            </span>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/configuracion" className="text-xs font-bold text-slate-700 hover:text-blue-700">Configuración</Link>
+            <Link
+              href="/perfil"
+              aria-label="Ir a mi perfil"
+              className="flex items-center justify-center rounded-full border border-slate-200 bg-slate-50 p-1.5 shadow-sm transition hover:border-blue-200 hover:bg-blue-50"
+            >
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-sky-500 text-lg text-white shadow-sm ring-2 ring-white">
+                👤
+              </span>
+            </Link>
+          </div>
         ) : (
           <Link
             href="/auth/login"

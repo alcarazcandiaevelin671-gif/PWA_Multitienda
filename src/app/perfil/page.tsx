@@ -42,6 +42,7 @@ export default function PerfilPage() {
   const [userSession, setUserSession] = useState<any>(null);
   const [userData, setUserData] = useState<PerfilUsuario | null>(null);
   const [tiendaData, setTiendaData] = useState<TiendaData | null>(null);
+  const [tiendasData, setTiendasData] = useState<TiendaData[]>([]);
 
   useEffect(() => {
     let isMounted = true;
@@ -96,27 +97,31 @@ export default function PerfilPage() {
           });
 
           if (rolNormalizado === 'comerciante') {
-            const { data: dbTienda } = await supabase
+            const { data: dbTiendas, error: tiendasError } = await supabase
               .from('tiendas')
               .select('*')
               .eq('usuario_id', currentUser.id)
-              .maybeSingle();
+              .order('nombre_comercio');
+            if (tiendasError) throw tiendasError;
 
-            let distritoNombre: string | null = null;
-            if (dbTienda?.distrito_id) {
-              const { data: distrito } = await supabase
-                .from('distritos')
-                .select('nombre')
-                .eq('id', dbTienda.distrito_id)
-                .maybeSingle();
-              distritoNombre = distrito?.nombre ?? null;
-            }
+            const districtIds = Array.from(new Set((dbTiendas ?? []).map((store) => store.distrito_id).filter((id): id is number => typeof id === 'number')));
+            const { data: districts, error: districtsError } = districtIds.length
+              ? await supabase.from('distritos').select('id, nombre').in('id', districtIds)
+              : { data: [], error: null };
+            if (districtsError) throw districtsError;
+            const districtNames = new Map((districts ?? []).map((district) => [district.id, district.nombre]));
+            const enrichedStores = (dbTiendas ?? []).map((store) => ({
+              ...store,
+              distrito_nombre: districtNames.get(store.distrito_id) ?? null,
+            })) as TiendaData[];
 
             if (isMounted) {
-              setTiendaData(dbTienda ? { ...dbTienda, distrito_nombre: distritoNombre } : null);
+              setTiendasData(enrichedStores);
+              setTiendaData(enrichedStores[0] ?? null);
             }
           } else {
             if (isMounted) {
+              setTiendasData([]);
               setTiendaData(null);
             }
           }
@@ -285,7 +290,7 @@ export default function PerfilPage() {
               {tiendaData?.email && <p className="break-all"><span className="font-bold">Correo comercial:</span> {tiendaData.email}</p>}
               {tiendaData?.slug && tiendaAprobada && <Link href={`/tienda/${tiendaData.slug}`} className="font-bold text-blue-700 hover:underline">Ver comercio publicado</Link>}
               {tiendaAprobada && (
-                <Link href="/comerciante/dashboard" className="mt-2 inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/20 transition hover:bg-blue-700">
+                <Link href="/vendedor" className="mt-2 inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/20 transition hover:bg-blue-700">
                   Ir al panel de mi comercio
                 </Link>
               )}
@@ -294,7 +299,22 @@ export default function PerfilPage() {
         </div>
       )}
 
-      <div className="grid gap-4 md:grid-cols-3">
+      {esComerciante && tiendasData.length > 1 && (
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-wide text-blue-700">Comercios asociados</p><h2 className="mt-1 text-lg font-black text-slate-900">Tus tiendas ({tiendasData.length})</h2></div><Link href="/vendedor/tiendas" className="text-sm font-bold text-blue-700 hover:underline">Ver información completa</Link></div>
+          <ul className="mt-4 divide-y divide-slate-100">{tiendasData.map((store) => <li key={store.id} className="flex flex-wrap items-center justify-between gap-3 py-3"><div><p className="font-semibold text-slate-900">{store.nombre_comercio}</p><p className="mt-1 text-xs text-slate-500">{store.distrito_nombre || 'Distrito no especificado'} · {String(store.estado || 'Sin estado').replaceAll('_', ' ')}</p></div>{store.slug && ['activa', 'activo'].includes(String(store.estado || '').toLowerCase()) && <Link href={`/tienda/${store.slug}`} className="text-sm font-bold text-blue-700 hover:underline">Ver tienda</Link>}</li>)}</ul>
+        </section>
+      )}
+
+      <div className="grid gap-4 md:grid-cols-4">
+        <Link
+          href="/configuracion"
+          className="rounded-[22px] border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:border-blue-200 hover:bg-blue-50"
+        >
+          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Cuenta</p>
+          <p className="mt-3 text-lg font-black text-slate-900">Configurar mi cuenta</p>
+        </Link>
+
         <Link
           href="/favoritos"
           className="rounded-[22px] border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:border-blue-200 hover:bg-blue-50"
