@@ -192,6 +192,25 @@ export interface Favorito {
   creado_en: string | null;
 }
 
+export interface Notificacion {
+  id: string;
+  usuario_id: string;
+  tipo: string;
+  mensaje: string;
+  leida: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UsuarioConfiguracion {
+  usuario_id: string;
+  preferencias: Json;
+  notificaciones_config: Json;
+  privacidad: Json;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface HistorialBusqueda {
   id: number | null;
   usuario_id: string | null;
@@ -337,6 +356,11 @@ export type Database = {
         Insert: Partial<InteraccionClick>;
         Update: Partial<InteraccionClick>;
       };
+      notificaciones: {
+        Row: Notificacion;
+        Insert: Partial<Notificacion>;
+        Update: Partial<Notificacion>;
+      };
       planes_suscripcion: {
         Row: PlanSuscripcion;
         Insert: Partial<PlanSuscripcion>;
@@ -411,6 +435,11 @@ export type Database = {
         Row: Usuario;
         Insert: Partial<Usuario>;
         Update: Partial<Usuario>;
+      };
+      usuario_configuracion: {
+        Row: UsuarioConfiguracion;
+        Insert: Partial<UsuarioConfiguracion>;
+        Update: Partial<UsuarioConfiguracion>;
       };
     };
     Views: Record<string, never>;

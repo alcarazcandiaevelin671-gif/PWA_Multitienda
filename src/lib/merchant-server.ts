@@ -9,12 +9,12 @@ export async function requireMerchantPageAccess() {
 
     const { data: profile, error: profileError } = await supabase
       .from('usuarios')
-      .select('rol')
+      .select('rol, activo')
       .eq('id', user.id)
       .maybeSingle();
 
     const role = String(profile?.rol ?? '').trim().toLowerCase();
-    if (profileError || role !== 'comerciante') {
+    if (profileError || profile?.activo !== true || role !== 'comerciante') {
       return null;
     }
 

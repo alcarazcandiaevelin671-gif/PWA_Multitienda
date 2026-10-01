@@ -11,12 +11,12 @@ export async function requireAdmin() {
 
   const { data, error } = await supabase
     .from('usuarios')
-    .select('rol')
+    .select('rol, activo')
     .eq('id', user.id)
     .maybeSingle();
-  const profile = data as unknown as { rol: string } | null;
+  const profile = data as unknown as { rol: string; activo: boolean } | null;
 
-  if (error || !profile || !['admin', 'administrador'].includes(profile.rol.toLowerCase())) {
+  if (error || !profile || profile.activo !== true || !['admin', 'administrador'].includes(profile.rol.toLowerCase())) {
     return NextResponse.json({ error: 'No tienes permisos de administrador.' }, { status: 403 });
   }
 

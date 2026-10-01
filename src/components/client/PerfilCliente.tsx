@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { getMyOrders, type PedidoConTienda } from '@/services/orders.service';
+import { updateAuthEmail, updateSettingsIdentity, uploadProfileAvatar } from '@/services/settings.service';
 import { userFacingError } from '@/lib/user-facing-error';
 
 const CATEGORIES = ['Ao Po\'i', 'Artesanías', 'Gastronomía', 'Alimentos', 'Agricultura', 'Servicios'];
@@ -23,10 +24,7 @@ type Profile = {
   nombre_completo: string;
   email: string;
   telefono_contacto?: string | null;
-  direccion_texto?: string | null;
   avatar_url?: string | null;
-  latitud?: number | null;
-  longitud?: number | null;
   rol?: 'admin' | 'comerciante' | 'cliente';
 };
 
@@ -49,9 +47,6 @@ export default function PerfilCliente() {
     nombre_completo: '',
     email: '',
     telefono_contacto: '',
-    direccion_texto: '',
-    latitud: '',
-    longitud: '',
   });
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [orders, setOrders] = useState<PedidoConTienda[]>([]);
@@ -80,12 +75,9 @@ export default function PerfilCliente() {
       const nextProfile: Profile = {
         id: user.id,
         nombre_completo: nombreBase,
-        email: usuario?.email || user.email || '',
+        email: user.email || usuario?.email || '',
         telefono_contacto: usuario?.telefono_contacto || '',
-        direccion_texto: usuario?.direccion_texto || '',
-        avatar_url: usuario?.avatar_url || null,
-        latitud: usuario?.latitud ?? null,
-        longitud: usuario?.longitud ?? null,
+        avatar_url: typeof user.user_metadata?.avatar_url === 'string' ? user.user_metadata.avatar_url : null,
         rol: normalizeRole(rolDetectado),
       };
 
@@ -94,9 +86,6 @@ export default function PerfilCliente() {
         nombre_completo: nextProfile.nombre_completo,
         email: nextProfile.email,
         telefono_contacto: nextProfile.telefono_contacto || '',
-        direccion_texto: nextProfile.direccion_texto || '',
-        latitud: nextProfile.latitud?.toString() || '',
-        longitud: nextProfile.longitud?.toString() || '',
       });
 
       const [favoritesResult, ordersResult, interestsResult] = await Promise.all([
@@ -129,20 +118,19 @@ export default function PerfilCliente() {
 
     setSaving(true);
     setMessage(null);
-    const { error } = await supabase
-      .from('usuarios')
-      .update({
-        nombre_completo: form.nombre_completo,
-        email: form.email,
-        telefono_contacto: form.telefono_contacto,
-        direccion_texto: form.direccion_texto,
-        latitud: form.latitud ? Number(form.latitud) : null,
-        longitud: form.longitud ? Number(form.longitud) : null,
-      })
-      .eq('id', profile.id);
-
-    setMessage(error ? userFacingError(error, 'No se pudo guardar el perfil. Inténtalo de nuevo.') : 'Perfil actualizado correctamente.');
-    setSaving(false);
+    try {
+      await updateSettingsIdentity({ nombre_completo: form.nombre_completo, telefono_contacto: form.telefono_contacto });
+      const emailChanged = form.email.trim().toLowerCase() !== profile.email.toLowerCase();
+      if (emailChanged) await updateAuthEmail(form.email);
+      setProfile({ ...profile, nombre_completo: form.nombre_completo.trim(), telefono_contacto: form.telefono_contacto });
+      setMessage(emailChanged
+        ? 'Perfil actualizado. Confirma el cambio de correo desde el mensaje enviado por Supabase.'
+        : 'Perfil actualizado correctamente.');
+    } catch (error) {
+      setMessage(userFacingError(error, 'No se pudo guardar el perfil. Inténtalo de nuevo.'));
+    } finally {
+      setSaving(false);
+    }
   };
 
   const uploadAvatar = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -151,21 +139,16 @@ export default function PerfilCliente() {
 
     setUploadingAvatar(true);
     setMessage(null);
-    const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-    const path = `clientes/${profile.id}/avatar_${Date.now()}.${extension}`;
-    const { error: uploadError } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
-
-    if (uploadError) {
-      setMessage(userFacingError(uploadError, 'No se pudo subir la foto de perfil. Inténtalo de nuevo.'));
+    try {
+      const avatarUrl = await uploadProfileAvatar(file);
+      await updateSettingsIdentity({ avatar_url: avatarUrl });
+      setProfile({ ...profile, avatar_url: avatarUrl });
+      setMessage('Avatar actualizado correctamente.');
+    } catch (error) {
+      setMessage(userFacingError(error, 'No se pudo actualizar la foto de perfil. Inténtalo de nuevo.'));
+    } finally {
       setUploadingAvatar(false);
-      return;
     }
-
-    const { data } = supabase.storage.from('avatars').getPublicUrl(path);
-    const { error: profileError } = await supabase.from('usuarios').update({ avatar_url: data.publicUrl }).eq('id', profile.id);
-    setProfile({ ...profile, avatar_url: data.publicUrl });
-    setMessage(profileError ? userFacingError(profileError, 'La foto se subió, pero no se pudo actualizar el perfil.') : 'Avatar actualizado correctamente.');
-    setUploadingAvatar(false);
   };
 
   const toggleInterest = async (category: string) => {
@@ -336,8 +319,7 @@ const role = normalizeRole(profile?.rol || 'cliente');
               {uploadingAvatar ? 'Subiendo...' : 'Actualizar foto'}
               <input type="file" accept="image/*" onChange={uploadAvatar} disabled={uploadingAvatar} className="hidden" />
             </label>
-            <p className="mt-4 text-xs text-slate-500">Ubicación registrada</p>
-            <p className="font-mono text-xs text-slate-700">{form.latitud || 'Sin latitud'}, {form.longitud || 'sin longitud'}</p>
+            <p className="mt-4 text-xs text-slate-500">La dirección y ubicación se registran en cada pedido; no son campos de `usuarios`.</p>
           </div>
 
           <form onSubmit={saveProfile} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -347,9 +329,6 @@ const role = normalizeRole(profile?.rol || 'cliente');
                 ['nombre_completo', 'Nombre Completo', 'text'],
                 ['email', 'Correo Electrónico', 'email'],
                 ['telefono_contacto', 'Teléfono / WhatsApp', 'tel'],
-                ['direccion_texto', 'Municipio / Dirección', 'text'],
-                ['latitud', 'Latitud', 'number'],
-                ['longitud', 'Longitud', 'number'],
               ].map(([field, label, type]) => (
                 <label key={field} className="text-xs font-bold text-slate-700">
                   {label}

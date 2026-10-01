@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { updateAuthEmail } from '@/services/settings.service';
 import { userFacingError } from '@/lib/user-facing-error';
 
 // Mapa dinámico evitando SSR
@@ -428,7 +429,6 @@ export default function ComercianteTiendaPage() {
         .from('usuarios')
         .update({
           nombre_completo: userData.nombre_completo,
-          email: userData.email,
           telefono_contacto: userData.telefono_contacto,
           actualizado_en: new Date().toISOString(),
         })
@@ -464,11 +464,16 @@ export default function ComercianteTiendaPage() {
 
       if (tiendaError) throw tiendaError;
 
+      const emailChanged = String(sessionUser.email ?? '').toLowerCase() !== userData.email.trim().toLowerCase();
+      if (emailChanged) await updateAuthEmail(userData.email);
+
       setFormData((current) => ({ ...current, slug: generatedSlug }));
       setGuardadoExitoso(true);
       setMensaje({
         tipo: 'exito',
-        texto: '¡Excelente! Los datos de tu tienda se guardaron correctamente.',
+        texto: emailChanged
+          ? 'Datos de la tienda guardados. Confirma el cambio de correo desde el mensaje enviado por Supabase.'
+          : '¡Excelente! Los datos de tu tienda se guardaron correctamente.',
       });
 
     } catch (err: any) {

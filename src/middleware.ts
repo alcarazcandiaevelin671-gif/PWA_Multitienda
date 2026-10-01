@@ -25,12 +25,24 @@ export async function middleware(request: NextRequest) {
 
   const { data: profile, error } = await supabase
     .from('usuarios')
-    .select('rol')
+    .select('rol, activo')
     .eq('id', user.id)
     .maybeSingle();
 
-  if (error || !profile || !['admin', 'administrador'].includes(profile.rol.toLowerCase())) {
-    const redirect = NextResponse.redirect(new URL('/auth/login?error=admin_required', request.url));
+  const pathname = request.nextUrl.pathname;
+  const role = String(profile?.rol ?? '').toLowerCase();
+  const isAdminRoute = pathname.startsWith('/admin');
+  const isMerchantRoute = pathname.startsWith('/comerciante') || pathname.startsWith('/vendedor');
+  const accessError = error || !profile || profile.activo !== true
+    ? 'account_inactive'
+    : isAdminRoute && !['admin', 'administrador'].includes(role)
+      ? 'admin_required'
+      : isMerchantRoute && role !== 'comerciante'
+        ? 'merchant_required'
+        : null;
+
+  if (accessError) {
+    const redirect = NextResponse.redirect(new URL(`/auth/login?error=${accessError}`, request.url));
     response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
     return redirect;
   }
@@ -39,5 +51,14 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: [
+    '/admin/:path*',
+    '/comerciante/:path*',
+    '/vendedor/:path*',
+    '/checkout',
+    '/pedidos/:path*',
+    '/facturas/:path*',
+    '/perfil',
+    '/configuracion',
+  ],
 };
