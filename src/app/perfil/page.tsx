@@ -377,21 +377,25 @@ export default function PerfilPage() {
           <span><span className="block text-xs font-semibold text-slate-500">Cuenta</span><span className="mt-1 block text-sm font-extrabold text-slate-900">Configurar mi cuenta</span></span>
         </Link>
 
-        <Link
-          href="/favoritos"
-          className="group flex h-full w-full min-h-28 items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-700"
-        >
-          <span aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-xl text-rose-700 transition group-hover:bg-rose-100">♡</span>
-          <span><span className="block text-xs font-semibold text-slate-500">Acceso rápido</span><span className="mt-1 block text-sm font-extrabold text-slate-900">Mis Favoritos</span></span>
-        </Link>
+        {userData.rol !== 'admin' && (
+          <>
+            <Link
+              href="/favoritos"
+              className="group flex h-full w-full min-h-28 items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-700"
+            >
+              <span aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-xl text-rose-700 transition group-hover:bg-rose-100">♡</span>
+              <span><span className="block text-xs font-semibold text-slate-500">Acceso rápido</span><span className="mt-1 block text-sm font-extrabold text-slate-900">Mis Favoritos</span></span>
+            </Link>
 
-        <Link
-          href="/pedidos"
-          className="group flex h-full w-full min-h-28 items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
-        >
-          <span aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-xl text-emerald-800 transition group-hover:bg-emerald-100">▤</span>
-          <span><span className="block text-xs font-semibold text-slate-500">Historial</span><span className="mt-1 block text-sm font-extrabold text-slate-900">Mis Pedidos</span></span>
-        </Link>
+            <Link
+              href="/pedidos"
+              className="group flex h-full w-full min-h-28 items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+            >
+              <span aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-xl text-emerald-800 transition group-hover:bg-emerald-100">▤</span>
+              <span><span className="block text-xs font-semibold text-slate-500">Historial</span><span className="mt-1 block text-sm font-extrabold text-slate-900">Mis Pedidos</span></span>
+            </Link>
+          </>
+        )}
 
         <button
           type="button"
