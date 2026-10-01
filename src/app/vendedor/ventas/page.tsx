@@ -43,9 +43,9 @@ export default function VendorSalesPage() {
         <Link href="/vendedor" className="text-sm font-bold text-blue-700 hover:underline">Volver al dashboard</Link>
       </div>
 
-      <div className="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+      <div className="mb-8 grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {summaryCards.map((card) => (
-          <div key={card.label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div key={card.label} className="h-full w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <p className="text-xs font-bold uppercase text-slate-500">{card.label}</p>
             <p className="mt-3 text-xl font-black text-slate-900">{card.value}</p>
           </div>

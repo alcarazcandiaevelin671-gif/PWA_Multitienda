@@ -3,8 +3,9 @@ import AdminRecordsPage from '../AdminRecordsPage';
 import AdminReportsPage from '../AdminReportsPage';
 
 const availableSections = new Set([
-  'usuarios', 'comercios', 'productos', 'pedidos', 'ventas', 'facturas',
-  'categorias', 'departamentos', 'distritos', 'auditorias', 'notificaciones',
+  'usuarios', 'comercios', 'productos', 'pedidos', 'pedido_detalles', 'pedido_estado_historial',
+  'ventas', 'venta_detalles', 'facturas', 'factura_detalles',
+  'categorias', 'departamentos', 'distritos', 'auditoria', 'auditorias', 'notificaciones',
   'reportes',
 ]);
 

@@ -40,13 +40,13 @@ export function closeAppMessage() {
   listeners.forEach((listener) => listener(null));
 }
 
-export function showAppConfirm(message: string, title = 'Confirmación'): Promise<boolean> {
+export function showAppConfirm(message: string, title = 'Confirmación', confirmText = 'Confirmar'): Promise<boolean> {
   return new Promise((resolve) => {
     const payload: AppMessage = {
       title,
       text: message,
       type: 'info',
-      confirmText: 'Confirmar',
+      confirmText,
       cancelText: 'Cancelar',
       onConfirm: () => {
         closeAppMessage();

@@ -9,8 +9,12 @@ const RESOURCES = {
   departamentos: { table: 'departamentos', order: 'nombre', search: ['nombre'] },
   distritos: { table: 'distritos', order: 'nombre', search: ['nombre'] },
   pedidos: { table: 'pedidos', order: 'created_at', search: ['numero_pedido'] },
+  pedido_detalles: { table: 'pedido_detalles', order: 'created_at', search: ['nombre_producto_snapshot', 'descripcion_snapshot'] },
+  pedido_estado_historial: { table: 'pedido_estado_historial', order: 'created_at', search: ['estado_anterior', 'estado_nuevo', 'observacion'] },
   ventas: { table: 'ventas', order: 'created_at', search: ['numero_venta'] },
+  venta_detalles: { table: 'venta_detalles', order: 'created_at', search: ['nombre_producto_snapshot', 'descripcion_snapshot'] },
   facturas: { table: 'facturas', order: 'fecha', search: ['numero'] },
+  factura_detalles: { table: 'factura_detalles', order: 'created_at', search: ['descripcion_snapshot'] },
   auditorias: { table: 'auditorias', order: 'fecha_hora', search: ['accion', 'tabla_afectada'] },
   notificaciones: { table: 'notificaciones', order: 'created_at', search: [] },
 } as const;
@@ -44,7 +48,23 @@ export async function GET(request: NextRequest, { params }: { params: { resource
     .order(definition.order, { ascending: false })
     .range((page - 1) * pageSize, page * pageSize - 1);
 
-  if (search && definition.search.length > 0) {
+  if (search && resource === 'auditorias') {
+    const { data: matchingUsers, error: userSearchError } = await access.supabase
+      .from('usuarios')
+      .select('id')
+      .or(`nombre_completo.ilike.%${search}%,email.ilike.%${search}%`)
+      .limit(1000);
+    if (userSearchError) {
+      return NextResponse.json(
+        { error: isPermissionError(userSearchError) ? 'La política RLS no permite buscar usuarios.' : 'No se pudo buscar el administrador.' },
+        { status: isPermissionError(userSearchError) ? 403 : 502 }
+      );
+    }
+    const filters = definition.search.map((field) => `${field}.ilike.%${search}%`);
+    const userIds = (matchingUsers ?? []).map((user) => user.id).filter((id): id is string => typeof id === 'string');
+    if (userIds.length > 0) filters.push(`usuario_id.in.(${userIds.join(',')})`);
+    query = query.or(filters.join(','));
+  } else if (search && definition.search.length > 0) {
     query = query.or(definition.search.map((field) => `${field}.ilike.%${search}%`).join(','));
   }
 
@@ -53,8 +73,9 @@ export async function GET(request: NextRequest, { params }: { params: { resource
     query = query.eq('estado', status);
   }
   if (resource === 'usuarios') {
-    const role = searchParams.get('role');
-    if (role && ['cliente', 'comerciante', 'administrador'].includes(role)) query = query.eq('rol', role);
+    const requestedRole = searchParams.get('role');
+    const role = requestedRole === 'administrador' ? 'admin' : requestedRole;
+    if (role && ['cliente', 'comerciante', 'admin'].includes(role)) query = query.eq('rol', role);
   }
   if (resource === 'productos') {
     const available = searchParams.get('available');
@@ -94,14 +115,71 @@ export async function GET(request: NextRequest, { params }: { params: { resource
 
   const records = (data ?? []) as unknown as Array<Record<string, unknown>>;
   const ids = (field: string) => Array.from(new Set(records.map((record) => record[field]).filter((id): id is string => typeof id === 'string')));
-  const enrich = async (table: 'usuarios' | 'tiendas' | 'distritos' | 'categorias', column: string, values: string[]) => {
+  const enrich = async (
+    table: 'usuarios' | 'tiendas' | 'distritos' | 'categorias' | 'productos' | 'departamentos',
+    column: string,
+    values: string[],
+    selection = '*'
+  ) => {
     if (values.length === 0) return [] as Array<Record<string, unknown>>;
-    const { data: related, error: relatedError } = await access.supabase.from(table).select('*').in(column, values);
+    const { data: related, error: relatedError } = await access.supabase.from(table).select(selection).in(column, values);
     if (relatedError) throw relatedError;
     return (related ?? []) as unknown as Array<Record<string, unknown>>;
   };
 
   try {
+    if (resource === 'auditorias') {
+      const targetIds = (table: string) => Array.from(new Set(records
+        .filter((record) => record.tabla_afectada === table)
+        .map((record) => record.registro_id)
+        .filter((id): id is string => typeof id === 'string' && id.length > 0)));
+      const [actors, shops, users, products, categories, departments, districts] = await Promise.all([
+        enrich('usuarios', 'id', ids('usuario_id'), 'id,nombre_completo,email'),
+        enrich('tiendas', 'id', targetIds('tiendas'), 'id,nombre_comercio'),
+        enrich('usuarios', 'id', targetIds('usuarios'), 'id,email'),
+        enrich('productos', 'id', targetIds('productos'), 'id,titulo'),
+        enrich('categorias', 'id', targetIds('categorias'), 'id,nombre'),
+        enrich('departamentos', 'id', targetIds('departamentos'), 'id,nombre'),
+        enrich('distritos', 'id', targetIds('distritos'), 'id,nombre'),
+      ]);
+      const makeMap = (rows: Array<Record<string, unknown>>) => new Map(rows.map((row) => [String(row.id), row]));
+      const actorsById = makeMap(actors);
+      const entityMaps = {
+        tiendas: makeMap(shops),
+        usuarios: makeMap(users),
+        productos: makeMap(products),
+        categorias: makeMap(categories),
+        departamentos: makeMap(departments),
+        distritos: makeMap(districts),
+      };
+      const labelFields: Record<keyof typeof entityMaps, string[]> = {
+        tiendas: ['nombre_comercio'],
+        usuarios: ['email'],
+        productos: ['titulo'],
+        categorias: ['nombre'],
+        departamentos: ['nombre'],
+        distritos: ['nombre'],
+      };
+
+      for (const record of records) {
+        const actor = typeof record.usuario_id === 'string' ? actorsById.get(record.usuario_id) : undefined;
+        const actorName = typeof actor?.nombre_completo === 'string' ? actor.nombre_completo : '';
+        const actorEmail = typeof actor?.email === 'string' ? actor.email : '';
+        record.administrador = actor
+          ? `${actorName || actorEmail}${actorName && actorEmail ? ` (${actorEmail})` : ''}`
+          : 'Sistema / Autenticación';
+
+        const table = typeof record.tabla_afectada === 'string' ? record.tabla_afectada : '';
+        const entityMap = entityMaps[table as keyof typeof entityMaps];
+        const entity = entityMap && record.registro_id ? entityMap.get(String(record.registro_id)) : undefined;
+        const label = entity && labelFields[table as keyof typeof entityMaps]
+          .map((field) => entity[field])
+          .find((value): value is string => typeof value === 'string' && value.length > 0);
+        const reference = typeof record.registro_id === 'string' ? record.registro_id : '';
+        record.registro_legible = label || (reference ? `Registro no disponible (${reference.slice(0, 8)}…)` : '—');
+      }
+    }
+
     if (resource === 'comercios') {
       const [owners, districts] = await Promise.all([
         enrich('usuarios', 'id', ids('usuario_id')),

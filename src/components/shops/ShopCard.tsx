@@ -42,7 +42,7 @@ export default function ShopCard({
         </span>
       )}
 
-      <div className="relative h-44 overflow-hidden rounded-[20px] bg-slate-200">
+      <div className="relative h-44 overflow-hidden rounded-2xl border border-slate-200 bg-slate-200 shadow-md">
         {imageUrl ? (
           <Image src={imageUrl} alt={nombre} fill unoptimized className="object-cover transition-transform duration-500 group-hover:scale-105" />
         ) : (

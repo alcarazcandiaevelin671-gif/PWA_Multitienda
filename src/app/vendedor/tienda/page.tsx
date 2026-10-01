@@ -641,7 +641,7 @@ export default function ComercianteTiendaPage() {
                       className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-blue-600"
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div>
                       <label className="block text-xs font-bold text-slate-700 mb-1">MM/AA *</label>
                       <input

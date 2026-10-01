@@ -52,11 +52,11 @@ export default function OrdersPage() {
         <Link href="/tiendas" className="text-sm font-bold text-blue-700 hover:underline">Seguir comprando</Link>
       </div>
 
-      <div className="mb-6 grid gap-4 md:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Total</p><p className="mt-3 text-2xl font-black text-slate-900">{stats.total}</p></div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Pendientes</p><p className="mt-3 text-2xl font-black text-slate-900">{stats.pendientes}</p></div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Preparación</p><p className="mt-3 text-2xl font-black text-slate-900">{stats.enPreparacion}</p></div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Completados</p><p className="mt-3 text-2xl font-black text-slate-900">{stats.completados}</p></div>
+      <div className="mb-6 grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="h-full w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Total</p><p className="mt-3 text-2xl font-black text-slate-900">{stats.total}</p></div>
+        <div className="h-full w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Pendientes</p><p className="mt-3 text-2xl font-black text-slate-900">{stats.pendientes}</p></div>
+        <div className="h-full w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Preparación</p><p className="mt-3 text-2xl font-black text-slate-900">{stats.enPreparacion}</p></div>
+        <div className="h-full w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Completados</p><p className="mt-3 text-2xl font-black text-slate-900">{stats.completados}</p></div>
       </div>
 
       <div className="mb-6 grid gap-4 rounded-2xl border border-slate-200 bg-white p-4 md:grid-cols-[1.2fr_0.8fr_0.8fr]">

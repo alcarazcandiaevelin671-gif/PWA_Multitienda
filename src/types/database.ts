@@ -8,7 +8,7 @@ export type Json =
 
 export type TipoInteraccion = 'vista' | 'click' | 'favorito' | 'compra' | 'contacto';
 export type EstadoPago = 'pendiente' | 'pagado' | 'cancelado' | 'vencido' | 'reembolsado';
-export type RolUsuario = 'comerciante' | 'cliente' | 'administrador';
+export type RolUsuario = 'admin' | 'comerciante' | 'cliente';
 export type EstadoPedido = 'pendiente' | 'confirmado' | 'en_preparacion' | 'listo' | 'completado' | 'cancelado';
 export type MetodoPagoPedido = 'efectivo' | 'transferencia';
 

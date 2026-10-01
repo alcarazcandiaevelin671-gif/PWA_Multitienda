@@ -236,27 +236,26 @@ const role = normalizeRole(profile?.rol || 'cliente');
   const roleModules =
     role === 'admin'
       ? (
-        <section className="grid gap-4 md:grid-cols-3">
+        <section className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {[
             ['Total de Comercios en Guairá', '38', 'Tiendas activas'],
             ['Productos Totales', '1.240', 'Inventario regional'],
             ['Clientes Registrados', '2.850', 'Usuarios activos'],
           ].map(([label, value, meta]) => (
-            <div key={label} className="rounded-2xl border border-violet-200 bg-violet-50 p-5 shadow-sm">
-              <p className="text-[11px] font-black uppercase tracking-wider text-violet-600">{label}</p>
-              <p className="mt-3 text-3xl font-black text-violet-900">{value}</p>
-              <p className="mt-2 text-xs text-violet-700">{meta}</p>
+            <div key={label} className="flex h-full w-full items-start justify-between gap-3 rounded-2xl border border-violet-200 bg-violet-50 p-5 shadow-sm">
+              <div><p className="text-[11px] font-bold uppercase tracking-wide text-violet-700">{label}</p><p className="mt-3 text-3xl font-black text-violet-950">{value}</p><p className="mt-2 text-xs text-violet-800">{meta}</p></div>
+              <span aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/80 text-lg text-violet-800 shadow-sm">{label.startsWith('Total') ? '⌂' : label.startsWith('Productos') ? '▦' : '♙'}</span>
             </div>
           ))}
-          <div className="md:col-span-3 grid gap-4 lg:grid-cols-3">
+          <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:col-span-3 xl:grid-cols-3">
             {[
               ['Panel de Aprobación / Suspensión', 'Aprobar / bloquear locales pendientes'],
               ['Auditoría de Tiendas', 'Seguimiento de estados y actividad'],
               ['Estado del Servidor / Base de Datos', 'Sincronización y disponibilidad'],
             ].map(([label, text]) => (
-              <div key={label} className="rounded-2xl border border-violet-200 bg-white p-5 shadow-sm">
-                <p className="text-sm font-black text-slate-900">{label}</p>
-                <p className="mt-2 text-xs text-slate-600">{text}</p>
+              <div key={label} className="flex h-full w-full items-start justify-between gap-3 rounded-2xl border border-violet-200 bg-white p-5 shadow-sm">
+                <div><p className="text-sm font-bold text-slate-900">{label}</p><p className="mt-2 text-xs text-slate-600">{text}</p></div>
+                <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-800">↗</span>
               </div>
             ))}
           </div>
@@ -264,29 +263,29 @@ const role = normalizeRole(profile?.rol || 'cliente');
       )
       : role === 'comerciante'
         ? (
-          <section className="grid gap-4 lg:grid-cols-3">
+          <section className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {[
               ['Estado de la Membresía', '50.000 PYG / mes • Activo'],
               ['Gestión del Negocio', 'Logo, portada, WhatsApp y coordenadas PostGIS'],
               ['Catálogo de Productos', 'Agregar, editar, pausar o eliminar artículos'],
             ].map(([label, text]) => (
-              <div key={label} className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
-                <p className="text-[11px] font-black uppercase tracking-wider text-emerald-700">{label}</p>
-                <p className="mt-3 text-sm font-semibold text-slate-800">{text}</p>
+              <div key={label} className="flex h-full w-full items-start justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
+                <div><p className="text-[11px] font-bold uppercase tracking-wide text-emerald-800">{label}</p><p className="mt-3 text-sm font-semibold text-slate-800">{text}</p></div>
+                <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/80 text-emerald-800 shadow-sm">{label.startsWith('Estado') ? '◷' : label.startsWith('Catálogo') ? '▦' : '⌂'}</span>
               </div>
             ))}
           </section>
         )
         : (
-          <section className="grid gap-4 lg:grid-cols-3">
+          <section className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {[
               ['Datos Personales', 'Nombre, correo y WhatsApp de contacto'],
               ['Mis Tiendas y Productos Favoritos', 'Acceso rápido a locales y artículos guardados'],
               ['Historial de Pedidos', 'Pedidos derivados a WhatsApp y seguimiento'],
             ].map(([label, text]) => (
-              <div key={label} className="rounded-2xl border border-blue-200 bg-blue-50 p-5 shadow-sm">
-                <p className="text-[11px] font-black uppercase tracking-wider text-blue-700">{label}</p>
-                <p className="mt-3 text-sm font-semibold text-slate-800">{text}</p>
+              <div key={label} className="flex h-full w-full items-start justify-between gap-3 rounded-2xl border border-blue-200 bg-blue-50 p-5 shadow-sm">
+                <div><p className="text-[11px] font-bold uppercase tracking-wide text-blue-800">{label}</p><p className="mt-3 text-sm font-semibold text-slate-800">{text}</p></div>
+                <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/80 text-blue-800 shadow-sm">{label.startsWith('Mis Tiendas') ? '♡' : label.startsWith('Historial') ? '▤' : '♙'}</span>
               </div>
             ))}
           </section>
@@ -294,9 +293,13 @@ const role = normalizeRole(profile?.rol || 'cliente');
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-6xl space-y-6">
-        <header className={`rounded-2xl p-6 text-white shadow-sm ${roleTheme.header}`}>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto w-full max-w-7xl space-y-6">
+        <header className={`relative isolate w-full overflow-hidden rounded-2xl border border-white/15 p-6 text-white shadow-md ${roleTheme.header}`}>
+          <svg aria-hidden="true" viewBox="0 0 180 130" fill="none" className="pointer-events-none absolute -right-2 top-1/2 hidden h-32 w-44 -translate-y-1/2 text-white/15 sm:block">
+            <path d="M18 112V52l38-24 38 24v60M42 112V77h28v35M99 112V42h25V25h25v87M111 59h8m-8 17h8m-8 17h8m22-51h8m-8 17h8m-8 17h8" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M10 112h155" stroke="currentColor" strokeWidth="5" strokeLinecap="round" />
+          </svg>
+          <div className="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className={`text-xs font-bold uppercase tracking-wider ${roleTheme.accent}`}>Cuenta personal</p>
               <h1 className="mt-2 text-2xl font-black">{roleTheme.title}</h1>
@@ -310,9 +313,9 @@ const role = normalizeRole(profile?.rol || 'cliente');
 
         {roleModules}
 
-        <section className="grid gap-6 lg:grid-cols-[280px_1fr]">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
-            <div className="relative mx-auto h-28 w-28 overflow-hidden rounded-full bg-slate-100 ring-4 ring-blue-50">
+        <section className="grid w-full grid-cols-1 gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
+          <div className="h-full w-full rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
+            <div className="relative mx-auto h-28 w-28 overflow-hidden rounded-full border border-slate-200 bg-slate-100 shadow-md ring-4 ring-blue-50">
               {profile?.avatar_url ? <Image src={profile.avatar_url} alt="Avatar del cliente" fill unoptimized className="object-cover" /> : <span className="flex h-full items-center justify-center text-5xl">👤</span>}
             </div>
             <label className="mt-5 inline-block cursor-pointer rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700">
@@ -322,7 +325,7 @@ const role = normalizeRole(profile?.rol || 'cliente');
             <p className="mt-4 text-xs text-slate-500">La dirección y ubicación se registran en cada pedido; no son campos de `usuarios`.</p>
           </div>
 
-          <form onSubmit={saveProfile} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <form onSubmit={saveProfile} className="h-full w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-lg font-black text-slate-900">Datos personales</h2>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               {[
@@ -340,23 +343,23 @@ const role = normalizeRole(profile?.rol || 'cliente');
           </form>
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-2">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-black text-slate-900">Mis Favoritos</h2>
-            {favorites.length === 0 ? <p className="mt-4 text-sm text-slate-500">Todavía no tienes favoritos guardados.</p> : <div className="mt-4 grid grid-cols-2 gap-3">{favorites.map((favorite) => <div key={favorite.id} className="rounded-xl bg-slate-50 p-3 text-sm font-semibold text-slate-700">{favorite.nombre || favorite.titulo || 'Favorito'}</div>)}</div>}
+        <section className="grid w-full grid-cols-1 gap-5 lg:grid-cols-2">
+          <div className="h-full w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="flex items-center gap-3"><span aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-xl text-rose-700">♡</span><h2 className="text-lg font-extrabold text-slate-900">Mis Favoritos</h2></div>
+            {favorites.length === 0 ? <p className="mt-4 text-sm text-slate-500">Todavía no tienes favoritos guardados.</p> : <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">{favorites.map((favorite) => <div key={favorite.id} className="h-full w-full rounded-xl border border-slate-100 bg-slate-50 p-3 text-sm font-semibold text-slate-700 shadow-sm">{favorite.nombre || favorite.titulo || 'Favorito'}</div>)}</div>}
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="h-full w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="text-lg font-black text-slate-900">Mis Pedidos</h2>
+              <div className="flex items-center gap-3"><span aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-lg text-emerald-800">▤</span><h2 className="text-lg font-extrabold text-slate-900">Mis Pedidos</h2></div>
               <Link href="/pedidos" className="text-xs font-bold text-blue-700 hover:underline">Ver todos</Link>
             </div>
             {orders.length === 0 ? <p className="mt-4 text-sm text-slate-500">No hay pedidos registrados.</p> : <div className="mt-4 space-y-3">{orders.slice(0, 5).map((order) => <Link key={order.id} href={`/pedidos/${order.id}`} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 p-3 text-sm hover:bg-blue-50"><span><span className="block font-semibold text-slate-700">{order.numero_pedido}</span><span className="text-xs text-slate-500">{order.tienda?.nombre_comercio || 'Tienda'} · {order.estado}</span></span><span className="whitespace-nowrap font-bold text-emerald-700">Gs. {Number(order.total).toLocaleString('es-PY')}</span></Link>)}</div>}
           </div>
         </section>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-black text-slate-900">Mis Intereses / Categorías Preferidas</h2>
+        <section className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center gap-3"><span aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-lg text-blue-800">✦</span><h2 className="text-lg font-extrabold text-slate-900">Mis Intereses / Categorías Preferidas</h2></div>
           <p className="mt-1 text-sm text-slate-500">Selecciona categorías para mejorar tus recomendaciones.</p>
           <div className="mt-4 flex flex-wrap gap-2">{CATEGORIES.map((category) => <button key={category} type="button" onClick={() => toggleInterest(category)} className={`rounded-xl px-4 py-2 text-xs font-bold transition ${interests.includes(category) ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-700'}`}>{category}</button>)}</div>
         </section>

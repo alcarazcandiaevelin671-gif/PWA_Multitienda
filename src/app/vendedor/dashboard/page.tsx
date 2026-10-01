@@ -449,7 +449,7 @@ export default function ComercianteDashboardPage() {
 
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
           <div className="flex items-center gap-4">
-            <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 flex items-center justify-center flex-shrink-0">
+            <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shadow-md flex items-center justify-center flex-shrink-0">
               {tienda?.logo_url ? (
                 <Image src={tienda.logo_url} alt={tienda.nombre_comercio} fill className="object-cover" />
               ) : (
@@ -564,7 +564,7 @@ export default function ComercianteDashboardPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">Precio (Gs.) *</label>
                     <input

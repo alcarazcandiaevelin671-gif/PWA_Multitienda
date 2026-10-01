@@ -1,22 +1,15 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { AppMessage, closeAppMessage, showAppMessage, subscribeAppMessage } from '@/lib/app-message';
+import { AppMessage, closeAppMessage, subscribeAppMessage } from '@/lib/app-message';
 
 export default function AppMessageLayer() {
   const [message, setMessage] = useState<AppMessage | null>(null);
 
   useEffect(() => {
-    const originalAlert = window.alert.bind(window);
     const unsubscribe = subscribeAppMessage((next) => setMessage(next));
 
-    window.alert = (text?: string) => {
-      showAppMessage(String(text ?? ''));
-      return undefined;
-    };
-
     return () => {
-      window.alert = originalAlert;
       unsubscribe();
       closeAppMessage();
     };

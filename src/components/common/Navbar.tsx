@@ -220,24 +220,33 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-slate-100 bg-white px-4 py-3 sm:px-6">
-      <Link href="/" className="font-bold text-slate-900 text-lg flex items-center gap-2">
-        <span>Portal Guairá</span>
+    <header className="sticky top-0 z-50 flex w-full flex-wrap items-center justify-between gap-x-5 gap-y-3 border-b border-slate-200/80 border-t-2 border-t-sky-600 bg-white/95 px-4 py-3 shadow-sm backdrop-blur-xl sm:px-6 lg:px-8">
+      <Link href="/" className="group flex shrink-0 items-center gap-3 rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-600">
+        <span aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-700 to-blue-700 text-white shadow-sm transition group-hover:-translate-y-0.5 group-hover:shadow-md">
+          <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6" aria-hidden="true">
+            <path d="M3 10.5 12 4l9 6.5V21h-6v-6H9v6H3V10.5Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+            <path d="M7 11h2m6 0h2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
+        </span>
+        <span className="leading-tight">
+          <span className="block text-base font-extrabold text-slate-900 transition group-hover:text-blue-800 sm:text-lg">Portal Guairá</span>
+          <span className="mt-0.5 hidden text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500 sm:block">Comercio local</span>
+        </span>
       </Link>
 
-      <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
-        <Link href="/" className="hover:text-blue-600 transition-colors">
+      <nav className="hidden items-center gap-1 rounded-xl border border-slate-100 bg-slate-50/80 p-1 text-sm font-semibold text-slate-600 md:flex">
+        <Link href="/" className="rounded-lg px-3 py-2 transition-colors hover:bg-white hover:text-blue-700 hover:shadow-sm">
           Inicio
         </Link>
-        <Link href="/tiendas" className="hover:text-blue-600 transition-colors">
+        <Link href="/tiendas" className="rounded-lg px-3 py-2 transition-colors hover:bg-white hover:text-blue-700 hover:shadow-sm">
           Tiendas
         </Link>
-        <Link href="/categorias" className="hover:text-blue-600 transition-colors">
+        <Link href="/categorias" className="rounded-lg px-3 py-2 transition-colors hover:bg-white hover:text-blue-700 hover:shadow-sm">
           Categorías
         </Link>
       </nav>
 
-      <div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-3">
+      <div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-2 sm:gap-3">
         {usuario && rolUsuario === 'cliente' && (
           <>
             <Link href="/checkout" aria-label={`Carrito${totalItems ? `, ${totalItems} productos` : ''}`} className="text-xs font-bold text-slate-700 hover:text-blue-700">
@@ -247,8 +256,8 @@ export default function Navbar() {
           </>
         )}
         <div className="relative hidden md:block">
-          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 shadow-sm">
-            <span className="text-slate-400">🔎</span>
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-2 transition focus-within:border-blue-300 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-100">
+            <span aria-hidden="true" className="text-slate-400">⌕</span>
             <input
               type="text"
               value={searchTerm}
@@ -290,7 +299,7 @@ export default function Navbar() {
         {rolUsuario === 'admin' && (
           <Link
             href="/admin"
-            className="bg-purple-100 text-purple-700 hover:bg-purple-200 font-bold text-xs px-3 py-1.5 rounded-lg border border-purple-200 transition-colors flex items-center gap-1"
+            className="flex items-center gap-1.5 rounded-xl border border-violet-200 bg-violet-50 px-3 py-2 text-xs font-bold text-violet-800 transition hover:border-violet-300 hover:bg-violet-100"
           >
             <span>👑</span> Panel Administrador
           </Link>
@@ -298,7 +307,7 @@ export default function Navbar() {
 
         {rolUsuario === 'comerciante' && (
           <details className="relative">
-            <summary className="cursor-pointer list-none rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-800 transition hover:bg-blue-100">Mi negocio <span aria-hidden="true">▾</span></summary>
+            <summary className="cursor-pointer list-none rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800 transition hover:border-emerald-300 hover:bg-emerald-100">Mi negocio <span aria-hidden="true">▾</span></summary>
             <nav aria-label="Panel del comerciante" className="absolute right-0 top-[calc(100%+0.5rem)] z-[70] grid min-w-48 gap-1 rounded-xl border border-slate-200 bg-white p-2 shadow-xl">
               {[
                 ['/vendedor', 'Dashboard'],
@@ -315,13 +324,13 @@ export default function Navbar() {
 
         {usuario ? (
           <div className="flex items-center gap-2">
-            <Link href="/configuracion" className="text-xs font-bold text-slate-700 hover:text-blue-700">Configuración</Link>
+            <Link href="/configuracion" className="rounded-lg px-2.5 py-2 text-xs font-bold text-slate-700 transition hover:bg-blue-50 hover:text-blue-800">Configuración</Link>
             <Link
               href="/perfil"
               aria-label="Ir a mi perfil"
-              className="flex items-center justify-center rounded-full border border-slate-200 bg-slate-50 p-1.5 shadow-sm transition hover:border-blue-200 hover:bg-blue-50"
+              className="flex items-center justify-center rounded-full border border-slate-200 bg-white p-1 shadow-sm transition hover:border-blue-300 hover:shadow-md"
             >
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-sky-500 text-lg text-white shadow-sm ring-2 ring-white">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-700 to-emerald-600 text-lg text-white shadow-sm ring-2 ring-white">
                 👤
               </span>
             </Link>

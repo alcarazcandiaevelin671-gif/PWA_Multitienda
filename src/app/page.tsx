@@ -50,20 +50,20 @@ export default async function Home() {
 
       {/* 2. ICON BANNERS */}
       <section className="border-b border-slate-100 bg-slate-50/50 py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-          <div className="p-3">
+        <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-4 px-4 text-center sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8">
+          <div className="h-full w-full p-3">
             <p className="font-bold text-xs text-slate-900">Locales Verificados</p>
             <p className="text-[11px] text-slate-500">Información confiable y directa</p>
           </div>
-          <div className="p-3">
+          <div className="h-full w-full p-3">
             <p className="font-bold text-xs text-slate-900">Directorio Actualizado</p>
             <p className="text-[11px] text-slate-500">Contactos y ubicación precisa</p>
           </div>
-          <div className="p-3">
+          <div className="h-full w-full p-3">
             <p className="font-bold text-xs text-slate-900">Apoyo al Comercio</p>
             <p className="text-[11px] text-slate-500">Fomento de la economía regional</p>
           </div>
-          <div className="p-3">
+          <div className="h-full w-full p-3">
             <p className="font-bold text-xs text-slate-900">Acceso 24/7</p>
             <p className="text-[11px] text-slate-500">Consulta desde cualquier dispositivo</p>
           </div>

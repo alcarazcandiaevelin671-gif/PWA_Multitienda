@@ -26,6 +26,19 @@ const cards = [
   { key: 'invoices', label: 'Facturas emitidas', color: 'text-violet-300' },
 ];
 
+const cardIcons: Record<string, string> = {
+  users: '♙',
+  customers: '♧',
+  vendors: '▣',
+  shops: '⌂',
+  pendingShops: '◷',
+  activeShops: '✓',
+  products: '▦',
+  orders: '▤',
+  sales: '↗',
+  invoices: '▧',
+};
+
 export default function AdminDashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState('');
@@ -55,21 +68,27 @@ export default function AdminDashboard() {
 
   return (
     <div>
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-sky-300">Vista general</p>
-          <h2 className="mt-1 text-2xl font-extrabold tracking-tight text-white">Panel administrativo</h2>
-          <p className="mt-1 text-sm text-slate-400">Indicadores consultados directamente desde Supabase.</p>
+      <header className="relative isolate mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-sky-50 to-indigo-50 p-5 shadow-sm sm:p-6">
+        <div className="relative z-10 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-sky-700">Vista general</p>
+            <h2 className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900">Panel administrativo</h2>
+            <p className="mt-1 text-sm text-slate-600">Indicadores consultados directamente desde Supabase.</p>
+          </div>
+          <button type="button" onClick={() => void load()} disabled={loading} className="rounded-lg border border-slate-300 bg-white/80 px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-sky-300 hover:bg-white disabled:opacity-50">{loading ? 'Actualizando…' : 'Actualizar'}</button>
         </div>
-        <button type="button" onClick={() => void load()} disabled={loading} className="rounded-lg border border-white/15 px-3 py-2 text-sm font-semibold text-slate-200 hover:bg-white/5 disabled:opacity-50">{loading ? 'Actualizando…' : 'Actualizar'}</button>
-      </div>
+        <svg aria-hidden="true" viewBox="0 0 180 130" fill="none" className="pointer-events-none absolute -right-2 top-1/2 hidden h-32 w-44 -translate-y-1/2 text-sky-800/10 sm:block">
+          <path d="M18 112V52l38-24 38 24v60M42 112V77h28v35M99 112V42h25V25h25v87M111 59h8m-8 17h8m-8 17h8m22-51h8m-8 17h8m-8 17h8" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M10 112h155" stroke="currentColor" strokeWidth="5" strokeLinecap="round" />
+        </svg>
+      </header>
 
       {error && <div role="alert" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-rose-400/30 bg-rose-400/10 px-4 py-3 text-sm text-rose-200"><span>{error}</span><button onClick={() => void load()} className="font-bold underline">Reintentar</button></div>}
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+      <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {cards.map((card) => {
-          const content = <><p className="text-xs font-semibold leading-5 text-slate-400">{card.label}</p><p className={`mt-2 text-3xl font-extrabold tabular-nums ${card.color}`}>{loading ? '—' : data?.counts[card.key] ?? '—'}</p></>;
-          return card.href ? <Link key={card.key} href={card.href} className="rounded-xl border border-white/10 bg-[#111f31] p-4 shadow-[0_12px_30px_rgba(0,0,0,0.16)] transition hover:border-sky-300/40">{content}</Link> : <article key={card.key} className="rounded-xl border border-white/10 bg-[#111f31] p-4 shadow-[0_12px_30px_rgba(0,0,0,0.16)]">{content}</article>;
+          const content = <><div className="flex min-h-9 items-start justify-between gap-3"><p className="text-xs font-semibold leading-5 text-slate-400">{card.label}</p><span aria-hidden="true" className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/5 text-base ${card.color}`}>{cardIcons[card.key]}</span></div><p className={`mt-3 text-3xl font-extrabold tabular-nums ${card.color}`}>{loading ? '—' : data?.counts[card.key] ?? '—'}</p></>;
+          return card.href ? <Link key={card.key} href={card.href} className="flex h-full w-full min-h-28 flex-col justify-between rounded-xl border border-white/10 bg-[#111f31] p-4 shadow-[0_12px_30px_rgba(0,0,0,0.16)] transition hover:-translate-y-0.5 hover:border-sky-300/40 hover:shadow-md">{content}</Link> : <article key={card.key} className="flex h-full w-full min-h-28 flex-col justify-between rounded-xl border border-white/10 bg-[#111f31] p-4 shadow-[0_12px_30px_rgba(0,0,0,0.16)]">{content}</article>;
         })}
       </div>
 

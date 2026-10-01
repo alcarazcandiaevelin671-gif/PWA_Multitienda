@@ -11,6 +11,11 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+main {
+  width: 100%;
+  min-width: 0;
+}
+
 .admin-theme {
   --admin-ink: #0f172a;
   --admin-muted: #64748b;

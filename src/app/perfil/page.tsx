@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
@@ -213,69 +214,71 @@ export default function PerfilPage() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
-      <div className="overflow-hidden rounded-[32px] border border-blue-100 bg-white shadow-[0_28px_80px_rgba(37,99,235,0.08)]">
-        <div className="border-b border-blue-100 bg-gradient-to-r from-blue-700 via-blue-600 to-sky-500 p-6 text-white md:p-8">
-          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center gap-4">
-              <div className="relative flex h-20 w-20 items-center justify-center rounded-full border-4 border-white/20 bg-white/10 text-2xl font-black shadow-inner">
-                {iniciales}
-                <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-emerald-400 shadow-sm">
-                  <span className="h-2 w-2 rounded-full bg-white" />
-                </span>
+    <div className="w-full space-y-7 px-4 py-8 sm:px-6 lg:px-8">
+      <section className="w-full overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_18px_55px_rgba(15,23,42,0.08)]">
+        <header className={`relative isolate overflow-hidden p-6 text-white sm:p-8 ${userData.rol === 'admin' ? 'border-b border-violet-200 bg-gradient-to-br from-violet-950 via-indigo-900 to-slate-900' : userData.rol === 'comerciante' ? 'border-b border-emerald-200 bg-gradient-to-br from-emerald-950 via-teal-900 to-slate-900' : 'border-b border-sky-200 bg-gradient-to-br from-sky-950 via-blue-800 to-slate-900'}`}>
+          <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-4 sm:gap-5">
+              <div className={`relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 bg-white/10 text-2xl font-black shadow-lg ring-4 ring-white/10 sm:h-24 sm:w-24 ${userData.rol === 'admin' ? 'border-violet-200/60' : userData.rol === 'comerciante' ? 'border-emerald-200/60' : 'border-sky-200/60'}`}>
+                {typeof userSession.user_metadata?.avatar_url === 'string' ? <Image src={userSession.user_metadata.avatar_url} alt="Foto de perfil" fill unoptimized className="object-cover" /> : <span className="relative z-0">{iniciales}</span>}
+                <span className="absolute bottom-1 right-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-slate-900 bg-emerald-400 shadow-sm" aria-label="Sesión activa" />
               </div>
 
-              <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.24em] text-blue-100">Sesión activa</p>
-                <h1 className="mt-2 text-3xl font-black text-white md:text-4xl">{userData.nombre_completo}</h1>
-                <p className="mt-1 text-sm text-blue-50">{userData.email}</p>
+              <div className="min-w-0">
+                <p className={`text-[11px] font-bold uppercase tracking-[0.16em] ${userData.rol === 'admin' ? 'text-violet-200' : userData.rol === 'comerciante' ? 'text-emerald-200' : 'text-sky-200'}`}>Cuenta personal</p>
+                <h1 className="mt-1 break-words text-2xl font-extrabold leading-tight sm:text-3xl">{userData.nombre_completo}</h1>
+                <p className="mt-2 break-all text-sm text-white/80">{userData.email}</p>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.2em] text-white">
+            <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+              <span className={`inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-bold ${userData.rol === 'admin' ? 'border-violet-200/30 bg-violet-300/15 text-violet-100' : userData.rol === 'comerciante' ? 'border-emerald-200/30 bg-emerald-300/15 text-emerald-100' : 'border-sky-200/30 bg-sky-300/15 text-sky-100'}`}>
                 {rolEtiqueta}
               </span>
-              <span className={`inline-flex items-center rounded-full px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.2em] ${userData.activo ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-700'}`}>
+              <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold ${userData.activo ? 'bg-emerald-300/15 text-emerald-100 ring-1 ring-inset ring-emerald-200/30' : 'bg-rose-300/15 text-rose-100 ring-1 ring-inset ring-rose-200/30'}`}>
+                <span className={`h-2 w-2 rounded-full ${userData.activo ? 'bg-emerald-300' : 'bg-rose-300'}`} />
                 {userData.activo ? 'Activa' : 'Inactiva'}
               </span>
             </div>
           </div>
+          <svg aria-hidden="true" viewBox="0 0 180 130" fill="none" className="pointer-events-none absolute -right-2 top-1/2 hidden h-32 w-44 -translate-y-1/2 text-white/10 sm:block">
+            <path d="M18 112V52l38-24 38 24v60M42 112V77h28v35M99 112V42h25V25h25v87M111 59h8m-8 17h8m-8 17h8m22-51h8m-8 17h8m-8 17h8" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M10 112h155" stroke="currentColor" strokeWidth="5" strokeLinecap="round" />
+          </svg>
+        </header>
+
+        <div className="grid w-full grid-cols-1 gap-4 p-4 sm:p-6 md:grid-cols-3">
+          <article className="flex h-full w-full min-w-0 items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 transition-colors hover:bg-white">
+            <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-lg text-blue-800">👤</span>
+            <div className="min-w-0"><p className="text-xs font-semibold text-slate-500">Nombre completo</p><p className="mt-1 break-words text-sm font-bold text-slate-900">{userData.nombre_completo}</p></div>
+          </article>
+          <article className="flex h-full w-full min-w-0 items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 transition-colors hover:bg-white">
+            <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-lg text-sky-800">✉</span>
+            <div className="min-w-0"><p className="text-xs font-semibold text-slate-500">Correo electrónico</p><p className="mt-1 break-all text-sm font-bold text-slate-900">{userData.email}</p></div>
+          </article>
+          <article className="flex h-full w-full min-w-0 items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 transition-colors hover:bg-white">
+            <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-lg text-emerald-800">☎</span>
+            <div className="min-w-0"><p className="text-xs font-semibold text-slate-500">Teléfono</p><p className="mt-1 break-words text-sm font-bold text-slate-900">{userData.telefono_contacto}</p></div>
+          </article>
         </div>
-
-        <div className="grid gap-4 p-6 md:grid-cols-3 md:p-8">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 shadow-sm">
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Nombre completo</p>
-            <p className="mt-3 text-lg font-bold text-slate-900">{userData.nombre_completo}</p>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 shadow-sm">
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Correo electrónico</p>
-            <p className="mt-3 text-lg font-bold text-slate-900 break-all">{userData.email}</p>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 shadow-sm">
-            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Teléfono</p>
-            <p className="mt-3 text-lg font-bold text-slate-900">{userData.telefono_contacto}</p>
-          </div>
-        </div>
-      </div>
+      </section>
 
       {esComerciante && (
-        <div className="rounded-[28px] border border-blue-200 bg-blue-50 p-6 shadow-sm">
+        <section className="w-full rounded-3xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-white p-5 shadow-sm sm:p-7">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div className="min-w-0">
-              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-blue-700">Mi comercio</p>
-              <h2 className="mt-2 text-2xl font-black text-slate-900">{tiendaData?.nombre_comercio || 'Comercio registrado'}</h2>
+              <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-emerald-800"><span aria-hidden="true" className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-100 text-base text-emerald-900">⌂</span>Mi comercio</p>
+              <h2 className="mt-2 break-words text-xl font-extrabold text-slate-900 sm:text-2xl">{tiendaData?.nombre_comercio || 'Comercio registrado'}</h2>
               <p className="mt-2 text-sm text-slate-600">{tiendaData?.descripcion || 'Solicitud de registro de comercio.'}</p>
               <div className="mt-4 flex flex-wrap items-center gap-2">
-                <span className="rounded-full border border-blue-200 bg-white px-3 py-1 text-xs font-black uppercase text-blue-800">
+                <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold ${estadoTienda === 'pendiente' ? 'border-amber-200 bg-amber-50 text-amber-800' : tiendaAprobada ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : estadoTienda === 'rechazada' || estadoTienda === 'rechazado' ? 'border-rose-200 bg-rose-50 text-rose-800' : 'border-slate-200 bg-slate-100 text-slate-700'}`}>
+                  <span className="h-2 w-2 rounded-full bg-current" />
                   {estadoTiendaEtiqueta[estadoTienda] || estadoTienda.replace(/[_-]/g, ' ')}
                 </span>
-                {tiendaData?.categoria_principal && <span className="text-sm text-slate-600">Rubro: {tiendaData.categoria_principal}</span>}
+                {tiendaData?.categoria_principal && <span className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600">Rubro · {tiendaData.categoria_principal}</span>}
               </div>
               {!tiendaAprobada && (
-                <p className="mt-3 text-sm leading-relaxed text-slate-600">
+                <p className={`mt-4 max-w-2xl rounded-xl border p-3 text-sm leading-relaxed ${estadoTienda === 'pendiente' ? 'border-amber-200 bg-amber-50/70 text-amber-900' : 'border-slate-200 bg-slate-50 text-slate-600'}`}>
                   {estadoTienda === 'pendiente'
                     ? 'Tu solicitud está en revisión. Las funciones de comerciante estarán disponibles cuando el comercio sea aprobado.'
                     : 'Las funciones de comerciante no están disponibles hasta que el comercio sea aprobado.'}
@@ -283,63 +286,63 @@ export default function PerfilPage() {
               )}
             </div>
 
-            <div className="grid gap-2 text-sm text-slate-700 sm:grid-cols-2 md:min-w-64 md:grid-cols-1">
-              {tiendaData?.distrito_nombre && <p><span className="font-bold">Distrito:</span> {tiendaData.distrito_nombre}</p>}
-              {tiendaData?.direccion_texto && <p><span className="font-bold">Dirección:</span> {tiendaData.direccion_texto}</p>}
-              {(tiendaData?.telefono || tiendaData?.whatsapp) && <p><span className="font-bold">Contacto:</span> {tiendaData.telefono || tiendaData.whatsapp}</p>}
-              {tiendaData?.email && <p className="break-all"><span className="font-bold">Correo comercial:</span> {tiendaData.email}</p>}
-              {tiendaData?.slug && tiendaAprobada && <Link href={`/tienda/${tiendaData.slug}`} className="font-bold text-blue-700 hover:underline">Ver comercio publicado</Link>}
+            <div className="grid gap-2 rounded-2xl border border-emerald-100 bg-white/80 p-4 text-sm text-slate-700 sm:min-w-64">
+              {tiendaData?.distrito_nombre && <p><span className="font-semibold text-slate-500">Distrito</span><span className="mt-0.5 block font-bold text-slate-900">{tiendaData.distrito_nombre}</span></p>}
+              {tiendaData?.direccion_texto && <p><span className="font-semibold text-slate-500">Dirección</span><span className="mt-0.5 block font-bold text-slate-900">{tiendaData.direccion_texto}</span></p>}
+              {(tiendaData?.telefono || tiendaData?.whatsapp) && <p><span className="font-semibold text-slate-500">Contacto</span><span className="mt-0.5 block font-bold text-slate-900">{tiendaData.telefono || tiendaData.whatsapp}</span></p>}
+              {tiendaData?.email && <p><span className="font-semibold text-slate-500">Correo comercial</span><span className="mt-0.5 block break-all font-bold text-slate-900">{tiendaData.email}</span></p>}
+              {tiendaData?.slug && tiendaAprobada && <Link href={`/tienda/${tiendaData.slug}`} className="mt-1 font-bold text-emerald-800 hover:text-emerald-950 hover:underline">Ver comercio publicado ↗</Link>}
               {tiendaAprobada && (
-                <Link href="/vendedor" className="mt-2 inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/20 transition hover:bg-blue-700">
+                <Link href="/vendedor" className="mt-2 inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-700 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700">
                   Ir al panel de mi comercio
                 </Link>
               )}
             </div>
           </div>
-        </div>
-      )}
-
-      {esComerciante && tiendasData.length > 1 && (
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-black uppercase tracking-wide text-blue-700">Comercios asociados</p><h2 className="mt-1 text-lg font-black text-slate-900">Tus tiendas ({tiendasData.length})</h2></div><Link href="/vendedor/tiendas" className="text-sm font-bold text-blue-700 hover:underline">Ver información completa</Link></div>
-          <ul className="mt-4 divide-y divide-slate-100">{tiendasData.map((store) => <li key={store.id} className="flex flex-wrap items-center justify-between gap-3 py-3"><div><p className="font-semibold text-slate-900">{store.nombre_comercio}</p><p className="mt-1 text-xs text-slate-500">{store.distrito_nombre || 'Distrito no especificado'} · {String(store.estado || 'Sin estado').replaceAll('_', ' ')}</p></div>{store.slug && ['activa', 'activo'].includes(String(store.estado || '').toLowerCase()) && <Link href={`/tienda/${store.slug}`} className="text-sm font-bold text-blue-700 hover:underline">Ver tienda</Link>}</li>)}</ul>
         </section>
       )}
 
-      <div className="grid gap-4 md:grid-cols-4">
+      {esComerciante && tiendasData.length > 1 && (
+        <section className="w-full rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[0.12em] text-emerald-800">Comercios asociados</p><h2 className="mt-1 text-lg font-extrabold text-slate-900">Tus tiendas <span className="text-slate-400">({tiendasData.length})</span></h2></div><Link href="/vendedor/tiendas" className="text-sm font-bold text-emerald-800 hover:underline">Ver información completa →</Link></div>
+          <ul className="mt-4 divide-y divide-slate-100">{tiendasData.map((store) => <li key={store.id} className="flex flex-wrap items-center justify-between gap-3 py-4"><div className="min-w-0"><p className="break-words font-bold text-slate-900">{store.nombre_comercio}</p><p className="mt-1 text-sm text-slate-500">{store.distrito_nombre || 'Distrito no especificado'} · {String(store.estado || 'Sin estado').replaceAll('_', ' ')}</p></div>{store.slug && ['activa', 'activo'].includes(String(store.estado || '').toLowerCase()) && <Link href={`/tienda/${store.slug}`} className="rounded-lg px-3 py-2 text-sm font-bold text-emerald-800 transition hover:bg-emerald-50">Ver tienda ↗</Link>}</li>)}</ul>
+        </section>
+      )}
+
+      <section aria-label="Accesos rápidos" className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Link
           href="/configuracion"
-          className="rounded-[22px] border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:border-blue-200 hover:bg-blue-50"
+          className="group flex h-full w-full min-h-28 items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
         >
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Cuenta</p>
-          <p className="mt-3 text-lg font-black text-slate-900">Configurar mi cuenta</p>
+          <span aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-xl text-blue-800 transition group-hover:bg-blue-100">⚙</span>
+          <span><span className="block text-xs font-semibold text-slate-500">Cuenta</span><span className="mt-1 block text-sm font-extrabold text-slate-900">Configurar mi cuenta</span></span>
         </Link>
 
         <Link
           href="/favoritos"
-          className="rounded-[22px] border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:border-blue-200 hover:bg-blue-50"
+          className="group flex h-full w-full min-h-28 items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-700"
         >
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Acceso rápido</p>
-          <p className="mt-3 text-lg font-black text-slate-900">Mis Favoritos</p>
+          <span aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-xl text-rose-700 transition group-hover:bg-rose-100">♡</span>
+          <span><span className="block text-xs font-semibold text-slate-500">Acceso rápido</span><span className="mt-1 block text-sm font-extrabold text-slate-900">Mis Favoritos</span></span>
         </Link>
 
         <Link
           href="/pedidos"
-          className="rounded-[22px] border border-slate-200 bg-white p-5 text-left shadow-sm transition hover:border-blue-200 hover:bg-blue-50"
+          className="group flex h-full w-full min-h-28 items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
         >
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">Historial</p>
-          <p className="mt-3 text-lg font-black text-slate-900">Mis Pedidos</p>
+          <span aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-xl text-emerald-800 transition group-hover:bg-emerald-100">▤</span>
+          <span><span className="block text-xs font-semibold text-slate-500">Historial</span><span className="mt-1 block text-sm font-extrabold text-slate-900">Mis Pedidos</span></span>
         </Link>
 
         <button
           type="button"
           onClick={handleCerrarSesion}
-          className="rounded-[22px] border border-red-200 bg-red-50 p-5 text-left shadow-sm transition hover:bg-red-100"
+          className="group flex h-full w-full min-h-28 items-center gap-4 rounded-2xl border border-rose-200 bg-rose-50/70 p-5 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-rose-300 hover:bg-rose-50 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-700"
         >
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-red-600">Cuenta</p>
-          <p className="mt-3 text-lg font-black text-red-700">Cerrar Sesión</p>
+          <span aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-xl text-rose-700 transition group-hover:bg-rose-100">⇥</span>
+          <span><span className="block text-xs font-semibold text-rose-700">Cuenta</span><span className="mt-1 block text-sm font-extrabold text-rose-800">Cerrar sesión</span></span>
         </button>
-      </div>
+      </section>
     </div>
   );
 }

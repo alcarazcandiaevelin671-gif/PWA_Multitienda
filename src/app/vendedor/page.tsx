@@ -7,6 +7,25 @@ import { userFacingError } from '@/lib/user-facing-error';
 
 const currency = (value: number) => `Gs. ${Math.round(value).toLocaleString('es-PY')}`;
 
+const metricIcons: Record<string, string> = {
+  'Tiendas activas': '⌂',
+  'Productos publicados': '▦',
+  'Pedidos recibidos': '▤',
+  'Pedidos pendientes': '◷',
+  'Ventas acumuladas': '↗',
+  'Ventas del mes': '◴',
+  'Facturas emitidas': '▧',
+};
+
+const shortcutIcons: Record<string, string> = {
+  'Mis tiendas': '⌂',
+  Productos: '▦',
+  Pedidos: '▤',
+  Ventas: '↗',
+  Facturas: '▧',
+  Reportes: '▥',
+};
+
 const shortcuts = [
   { href: '/vendedor/tiendas', label: 'Mis tiendas', detail: 'Ver negocios asociados', color: 'text-blue-700', accent: 'bg-blue-50' },
   { href: '/comerciante/productos', label: 'Productos', detail: 'Administrar catálogo', color: 'text-emerald-700', accent: 'bg-emerald-50' },
@@ -53,21 +72,27 @@ export default function VendorHomePage() {
 
   return (
     <main className="mx-auto min-h-[70vh] max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <header className="mb-7 flex flex-wrap items-end justify-between gap-4 border-b border-slate-200 pb-5">
-        <div>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Área del comerciante</p>
-          <h1 className="mt-1 text-3xl font-black text-slate-900">{data ? `Hola, ${data.merchantName}` : 'Resumen del negocio'}</h1>
-          <p className="mt-2 text-sm text-slate-600">Monitorea tus tiendas, pedidos y ventas en un solo lugar.</p>
+      <header className="relative isolate mb-7 overflow-hidden rounded-2xl border border-emerald-900/10 bg-gradient-to-br from-emerald-950 via-teal-900 to-slate-900 p-5 text-white shadow-md sm:p-7">
+        <div className="relative z-10 flex flex-wrap items-end justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-200">Área del comerciante</p>
+            <h1 className="mt-1 break-words text-2xl font-extrabold sm:text-3xl">{data ? `Hola, ${data.merchantName}` : 'Resumen del negocio'}</h1>
+            <p className="mt-2 max-w-2xl text-sm text-emerald-50/80">Monitorea tus tiendas, pedidos y ventas en un solo lugar.</p>
+          </div>
+          {data && data.stores.length > 1 && (
+            <label className="w-full max-w-xs text-sm font-semibold text-white sm:shrink-0">
+              Tienda
+              <select value={selectedStoreId} onChange={(event) => setSelectedStoreId(event.target.value)} className="mt-1 w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2.5 text-sm text-white outline-none focus:border-emerald-300 focus:ring-2 focus:ring-emerald-200/30">
+                <option value="" className="text-slate-900">Todas mis tiendas</option>
+                {data.stores.map((store) => <option key={store.id} value={store.id} className="text-slate-900">{store.nombre_comercio}</option>)}
+              </select>
+            </label>
+          )}
         </div>
-        {data && data.stores.length > 1 && (
-          <label className="w-full max-w-xs text-sm font-semibold text-slate-700">
-            Tienda
-            <select value={selectedStoreId} onChange={(event) => setSelectedStoreId(event.target.value)} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100">
-              <option value="">Todas mis tiendas</option>
-              {data.stores.map((store) => <option key={store.id} value={store.id}>{store.nombre_comercio}</option>)}
-            </select>
-          </label>
-        )}
+        <svg aria-hidden="true" viewBox="0 0 180 130" fill="none" className="pointer-events-none absolute -right-2 top-1/2 hidden h-32 w-44 -translate-y-1/2 text-emerald-100/15 sm:block">
+          <path d="M18 112V52l38-24 38 24v60M42 112V77h28v35M99 112V42h25V25h25v87M111 59h8m-8 17h8m-8 17h8m22-51h8m-8 17h8m-8 17h8" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M10 112h155" stroke="currentColor" strokeWidth="5" strokeLinecap="round" />
+        </svg>
       </header>
 
       {error && <div role="alert" className="mb-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{error}</div>}
@@ -81,11 +106,11 @@ export default function VendorHomePage() {
         </section>
       )}
 
-      <section aria-label="Indicadores del negocio" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <section aria-label="Indicadores del negocio" className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {loading ? Array.from({ length: 7 }, (_, index) => <div key={index} className="h-24 animate-pulse rounded-2xl border border-slate-200 bg-white" />) : metrics.map((metric) => (
-          <article key={metric.label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <p className="text-xs font-bold uppercase tracking-wide text-slate-500">{metric.label}</p>
-            <p className={`mt-2 truncate text-2xl font-black tabular-nums ${metric.color}`} title={metric.value}>{metric.value}</p>
+          <article key={metric.label} className="flex h-full w-full min-h-28 items-start justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="min-w-0"><p className="text-xs font-bold uppercase tracking-wide text-slate-500">{metric.label}</p><p className={`mt-2 truncate text-2xl font-black tabular-nums ${metric.color}`} title={metric.value}>{metric.value}</p></div>
+            <span aria-hidden="true" className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-lg ${metric.color}`}>{metricIcons[metric.label]}</span>
           </article>
         ))}
       </section>
@@ -114,8 +139,8 @@ export default function VendorHomePage() {
           <div className="flex items-center justify-between gap-3"><h2 className="font-bold text-slate-900">Accesos rápidos</h2><Link href="/vendedor/tiendas" className="text-xs font-bold text-blue-700 hover:underline">Todas mis tiendas</Link></div>
           <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
             {shortcuts.map((shortcut) => (
-              <Link key={shortcut.href} href={shortcut.href} className="flex items-center gap-3 rounded-xl border border-slate-100 p-3 transition hover:border-blue-200 hover:bg-slate-50">
-                <span aria-hidden="true" className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${shortcut.accent} ${shortcut.color}`}>↗</span>
+              <Link key={shortcut.href} href={shortcut.href} className="flex w-full items-center gap-3 rounded-xl border border-slate-100 p-3 transition hover:border-blue-200 hover:bg-slate-50">
+                <span aria-hidden="true" className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${shortcut.accent} ${shortcut.color}`}>{shortcutIcons[shortcut.label]}</span>
                 <span className="min-w-0"><span className={`block truncate text-sm font-bold ${shortcut.color}`}>{shortcut.label}</span><span className="mt-0.5 block truncate text-xs text-slate-500">{shortcut.detail}</span></span>
               </Link>
             ))}
