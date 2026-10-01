@@ -14,6 +14,7 @@ export default function VendorOrderDetailPage() {
   const [pedido, setPedido] = useState<any | null>(null);
   const [detalles, setDetalles] = useState<PedidoDetalle[]>([]);
   const [historial, setHistorial] = useState<PedidoEstadoHistorial[]>([]);
+  const [documentos, setDocumentos] = useState<{ venta: any | null; factura: any | null }>({ venta: null, factura: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -36,6 +37,7 @@ export default function VendorOrderDetailPage() {
       setPedido(result.pedido);
       setDetalles(result.detalles);
       setHistorial(result.historial);
+      setDocumentos({ venta: result.venta, factura: result.factura });
     } catch (loadError) {
       setError(userFacingError(loadError, 'No se pudo cargar el pedido. Inténtalo de nuevo.'));
     } finally {
@@ -157,6 +159,24 @@ export default function VendorOrderDetailPage() {
           </div>
         </aside>
       </div>
+
+      <section className="mt-8 border-t border-slate-200 pt-6">
+        <h2 className="text-lg font-bold text-slate-900">Documentos relacionados</h2>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          {documentos.venta && <article className="rounded-xl border border-slate-200 bg-white p-4">
+            <p className="text-[10px] font-black uppercase tracking-wide text-slate-500">Venta</p>
+            <p className="mt-1 font-bold text-slate-900">{documentos.venta.numero_venta}</p>
+            <p className="mt-1 text-xs capitalize text-slate-600">{documentos.venta.estado} · Gs. {Number(documentos.venta.total).toLocaleString('es-PY')}</p>
+          </article>}
+          {documentos.factura && <Link href={`/comerciante/facturas/${documentos.factura.id}`} className="rounded-xl border border-slate-200 bg-white p-4 transition hover:border-emerald-300 hover:bg-emerald-50/40">
+            <p className="text-[10px] font-black uppercase tracking-wide text-slate-500">Factura</p>
+            <p className="mt-1 font-bold text-slate-900">{documentos.factura.numero}</p>
+            <p className="mt-1 text-xs capitalize text-slate-600">{documentos.factura.estado} · Gs. {Number(documentos.factura.total).toLocaleString('es-PY')}</p>
+            <span className="mt-3 inline-block text-xs font-bold text-emerald-700">Abrir factura →</span>
+          </Link>}
+          {!documentos.venta && !documentos.factura && <p className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-500">Aún no hay venta ni factura vinculadas a este pedido.</p>}
+        </div>
+      </section>
     </main>
   );
 }

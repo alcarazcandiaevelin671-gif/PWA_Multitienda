@@ -1,10 +1,24 @@
-﻿import { supabase } from '@/lib/supabase';
+﻿import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
 
 export async function getFeaturedShops() {
-  const { data: shops, error } = await supabase
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const shopsClient = serviceRoleKey
+    ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    })
+    : supabase;
+  const { data: shops, error } = await shopsClient
     .from('tiendas')
     .select(`
-      *,
+      id,
+      slug,
+      nombre_comercio,
+      descripcion,
+      categoria_principal,
+      logo_url,
+      portada_url,
+      whatsapp,
       distritos (
         id,
         nombre
@@ -18,7 +32,11 @@ export async function getFeaturedShops() {
     return [];
   }
 
-  return shops || [];
+  return (shops || []).map((shop) => ({
+    ...shop,
+    distritos: Array.isArray(shop.distritos) ? shop.distritos[0] ?? null : shop.distritos,
+    verificada: true,
+  }));
 }
 
 export const shopsService = {

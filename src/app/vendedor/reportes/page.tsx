@@ -216,7 +216,7 @@ export default function VendorReportsPage() {
     <main className="mx-auto min-h-[70vh] max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <header className="mb-6 flex flex-wrap items-end justify-between gap-4 border-b border-slate-200 pb-5">
         <div><p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Análisis del negocio</p><h1 className="mt-1 text-3xl font-black text-slate-900">Reportes</h1><p className="mt-2 text-sm text-slate-600">Filtra tus operaciones y descarga informes basados en Supabase.</p></div>
-        <Link href="/vendedor" className="text-sm font-bold text-blue-700 hover:underline">Volver al resumen</Link>
+        <Link href="/comerciante" className="text-sm font-bold text-blue-700 hover:underline">Volver al resumen</Link>
       </header>
 
       <section className="mb-6 grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-2 xl:grid-cols-4">

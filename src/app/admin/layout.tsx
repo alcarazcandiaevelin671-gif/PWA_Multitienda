@@ -7,20 +7,11 @@ const sections = [
   { href: '/admin', label: 'Resumen', icon: '◫' },
   { href: '/admin/usuarios', label: 'Usuarios', icon: '◎' },
   { href: '/admin/comercios', label: 'Comercios', icon: '⌂' },
-  { href: '/admin/productos', label: 'Productos', icon: '▦' },
-  { href: '/admin/pedidos', label: 'Pedidos', icon: '▤' },
-  { href: '/admin/pedido_detalles', label: 'Detalle de pedidos', icon: '▧' },
-  { href: '/admin/pedido_estado_historial', label: 'Historial de pedidos', icon: '◷' },
-  { href: '/admin/ventas', label: 'Ventas', icon: '↗' },
-  { href: '/admin/venta_detalles', label: 'Detalle de ventas', icon: '▧' },
-  { href: '/admin/facturas', label: 'Facturas', icon: '▧' },
-  { href: '/admin/factura_detalles', label: 'Detalle de facturas', icon: '▧' },
   { href: '/admin/categorias', label: 'Categorías', icon: '◇' },
   { href: '/admin/departamentos', label: 'Departamentos', icon: '⌖' },
   { href: '/admin/distritos', label: 'Distritos', icon: '⌖' },
   { href: '/admin/auditorias', label: 'Auditoría', icon: '◷' },
   { href: '/admin/notificaciones', label: 'Notificaciones', icon: '♧' },
-  { href: '/admin/reportes', label: 'Reportes', icon: '⌁' },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

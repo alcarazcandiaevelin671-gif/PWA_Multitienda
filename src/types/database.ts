@@ -198,8 +198,9 @@ export interface Notificacion {
   tipo: string;
   mensaje: string;
   leida: boolean;
+  titulo: string | null;
+  link: string | null;
   created_at: string;
-  updated_at: string;
 }
 
 export interface UsuarioConfiguracion {

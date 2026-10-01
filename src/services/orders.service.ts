@@ -182,9 +182,11 @@ export async function getStoreOrderById(orderId: string) {
 
   if (!pedido) return null;
 
-  const [detailsResult, historyResult] = await Promise.all([
+  const [detailsResult, historyResult, saleResult, invoiceResult] = await Promise.all([
     supabase.from('pedido_detalles').select('*').eq('pedido_id', orderId),
     supabase.from('pedido_estado_historial').select('*').eq('pedido_id', orderId).order('created_at'),
+    supabase.from('ventas').select('id, numero_venta, estado, total, metodo_pago, created_at').eq('pedido_id', orderId).eq('tienda_id', pedido.tienda_id).maybeSingle(),
+    supabase.from('facturas').select('id, numero, estado, tipo_documento, moneda, fecha, total, iva').eq('pedido_id', orderId).eq('tienda_id', pedido.tienda_id).maybeSingle(),
   ]);
 
   if (detailsResult.error) {
@@ -213,6 +215,8 @@ export async function getStoreOrderById(orderId: string) {
     pedido: pedido as unknown as PedidoConTienda,
     detalles: (detailsResult.data || []) as PedidoDetalle[],
     historial: (historyResult.data || []) as PedidoEstadoHistorial[],
+    venta: saleResult.data ?? null,
+    factura: invoiceResult.data ?? null,
   };
 }
 

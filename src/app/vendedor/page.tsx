@@ -27,12 +27,12 @@ const shortcutIcons: Record<string, string> = {
 };
 
 const shortcuts = [
-  { href: '/vendedor/tiendas', label: 'Mis tiendas', detail: 'Ver negocios asociados', color: 'text-blue-700', accent: 'bg-blue-50' },
+  { href: '/comerciante/tiendas', label: 'Mis tiendas', detail: 'Ver negocios asociados', color: 'text-blue-700', accent: 'bg-blue-50' },
   { href: '/comerciante/productos', label: 'Productos', detail: 'Administrar catálogo', color: 'text-emerald-700', accent: 'bg-emerald-50' },
   { href: '/comerciante/pedidos', label: 'Pedidos', detail: 'Revisar compras recibidas', color: 'text-amber-700', accent: 'bg-amber-50' },
   { href: '/comerciante/ventas', label: 'Ventas', detail: 'Consultar operaciones', color: 'text-cyan-700', accent: 'bg-cyan-50' },
   { href: '/comerciante/facturas', label: 'Facturas', detail: 'Consultar documentos', color: 'text-violet-700', accent: 'bg-violet-50' },
-  { href: '/vendedor/reportes', label: 'Reportes', detail: 'Filtrar y exportar datos', color: 'text-rose-700', accent: 'bg-rose-50' },
+  { href: '/comerciante/reportes', label: 'Reportes', detail: 'Filtrar y exportar datos', color: 'text-rose-700', accent: 'bg-rose-50' },
 ];
 
 export default function VendorHomePage() {
@@ -119,7 +119,7 @@ export default function VendorHomePage() {
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div><h2 className="font-bold text-slate-900">Ventas de los últimos 7 días</h2><p className="mt-1 text-xs text-slate-500">Importes agregados desde las ventas de tus tiendas.</p></div>
-            <Link href="/vendedor/reportes" className="text-xs font-bold text-blue-700 hover:underline">Ver reportes</Link>
+            <Link href="/comerciante/reportes" className="text-xs font-bold text-blue-700 hover:underline">Ver reportes</Link>
           </div>
           {loading ? <div className="mt-6 h-40 animate-pulse rounded-xl bg-slate-100" /> : data?.salesByDay.length ? (
             <div className="mt-6 grid grid-cols-7 gap-2 sm:gap-4" aria-label="Gráfico de ventas diarias">
@@ -136,7 +136,7 @@ export default function VendorHomePage() {
         </section>
 
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between gap-3"><h2 className="font-bold text-slate-900">Accesos rápidos</h2><Link href="/vendedor/tiendas" className="text-xs font-bold text-blue-700 hover:underline">Todas mis tiendas</Link></div>
+          <div className="flex items-center justify-between gap-3"><h2 className="font-bold text-slate-900">Accesos rápidos</h2><Link href="/comerciante/tiendas" className="text-xs font-bold text-blue-700 hover:underline">Todas mis tiendas</Link></div>
           <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
             {shortcuts.map((shortcut) => (
               <Link key={shortcut.href} href={shortcut.href} className="flex w-full items-center gap-3 rounded-xl border border-slate-100 p-3 transition hover:border-blue-200 hover:bg-slate-50">

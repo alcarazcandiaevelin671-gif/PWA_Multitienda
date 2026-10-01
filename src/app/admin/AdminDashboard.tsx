@@ -5,25 +5,29 @@ import { useEffect, useState } from 'react';
 
 type DashboardData = {
   counts: Record<string, number>;
-  trends: Array<{ month: string; orders: number; sales: number }>;
   districts: Array<{ name: string; count: number }>;
-  categories: Array<{ name: string; count: number }>;
   shopStatuses: Array<{ name: string; count: number }>;
   activity: Array<{ id: number | null; accion: string | null; tabla_afectada: string | null; fecha_hora: string | null }>;
   activityUnavailable: boolean;
 };
 
-const cards = [
-  { key: 'users', label: 'Usuarios', color: 'text-sky-300' },
-  { key: 'customers', label: 'Clientes', color: 'text-cyan-300' },
-  { key: 'vendors', label: 'Vendedores', color: 'text-violet-300' },
-  { key: 'shops', label: 'Comercios', color: 'text-emerald-300' },
-  { key: 'pendingShops', label: 'Pendientes', color: 'text-amber-300', href: '/admin/comercios?estado=pendiente' },
-  { key: 'activeShops', label: 'Comercios activos', color: 'text-green-300' },
-  { key: 'products', label: 'Productos disponibles', color: 'text-blue-300' },
-  { key: 'orders', label: 'Pedidos', color: 'text-sky-300' },
-  { key: 'sales', label: 'Ventas registradas', color: 'text-emerald-300' },
-  { key: 'invoices', label: 'Facturas emitidas', color: 'text-violet-300' },
+const cardGroups = [
+  {
+    title: 'Cuentas',
+    cards: [
+      { key: 'users', label: 'Usuarios', color: 'text-sky-300' },
+      { key: 'customers', label: 'Clientes', color: 'text-cyan-300' },
+      { key: 'vendors', label: 'Comerciantes', color: 'text-violet-300' },
+    ],
+  },
+  {
+    title: 'Comercios',
+    cards: [
+      { key: 'shops', label: 'Registrados', color: 'text-emerald-300' },
+      { key: 'pendingShops', label: 'Pendientes', color: 'text-amber-300', href: '/admin/comercios?estado=pendiente' },
+      { key: 'activeShops', label: 'Activos', color: 'text-green-300' },
+    ],
+  },
 ];
 
 const cardIcons: Record<string, string> = {
@@ -33,10 +37,12 @@ const cardIcons: Record<string, string> = {
   shops: '⌂',
   pendingShops: '◷',
   activeShops: '✓',
-  products: '▦',
-  orders: '▤',
-  sales: '↗',
-  invoices: '▧',
+};
+
+const shopStatusStyles: Record<string, string> = {
+  Pendientes: 'bg-amber-400',
+  Activos: 'bg-emerald-400',
+  Rechazados: 'bg-rose-400',
 };
 
 export default function AdminDashboard() {
@@ -61,70 +67,63 @@ export default function AdminDashboard() {
 
   useEffect(() => { void load(); }, []);
 
-  const maxTrend = Math.max(1, ...(data?.trends.flatMap((item) => [item.orders, item.sales]) ?? []));
   const maxDistrict = Math.max(1, ...(data?.districts.map((item) => item.count) ?? []));
-  const maxCategory = Math.max(1, ...(data?.categories.map((item) => item.count) ?? []));
-  const maxShopStatus = Math.max(1, ...(data?.shopStatuses.map((item) => item.count) ?? []));
 
   return (
     <div>
-      <header className="relative isolate mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-sky-50 to-indigo-50 p-5 shadow-sm sm:p-6">
-        <div className="relative z-10 flex flex-wrap items-end justify-between gap-3">
+      <header className="mb-6 flex flex-wrap items-end justify-between gap-3 border-b border-slate-200 pb-5">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-sky-700">Vista general</p>
             <h2 className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900">Panel administrativo</h2>
-            <p className="mt-1 text-sm text-slate-600">Indicadores consultados directamente desde Supabase.</p>
+            <p className="mt-1 text-sm text-slate-600">Usuarios, comercios y actividad reciente.</p>
           </div>
-          <button type="button" onClick={() => void load()} disabled={loading} className="rounded-lg border border-slate-300 bg-white/80 px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-sky-300 hover:bg-white disabled:opacity-50">{loading ? 'Actualizando…' : 'Actualizar'}</button>
-        </div>
-        <svg aria-hidden="true" viewBox="0 0 180 130" fill="none" className="pointer-events-none absolute -right-2 top-1/2 hidden h-32 w-44 -translate-y-1/2 text-sky-800/10 sm:block">
-          <path d="M18 112V52l38-24 38 24v60M42 112V77h28v35M99 112V42h25V25h25v87M111 59h8m-8 17h8m-8 17h8m22-51h8m-8 17h8m-8 17h8" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M10 112h155" stroke="currentColor" strokeWidth="5" strokeLinecap="round" />
-        </svg>
+          <button type="button" onClick={() => void load()} disabled={loading} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-sky-300 hover:bg-slate-50 disabled:opacity-50">{loading ? 'Actualizando…' : 'Actualizar'}</button>
       </header>
 
       {error && <div role="alert" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-rose-400/30 bg-rose-400/10 px-4 py-3 text-sm text-rose-200"><span>{error}</span><button onClick={() => void load()} className="font-bold underline">Reintentar</button></div>}
 
-      <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        {cards.map((card) => {
-          const content = <><div className="flex min-h-9 items-start justify-between gap-3"><p className="text-xs font-semibold leading-5 text-slate-400">{card.label}</p><span aria-hidden="true" className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/5 text-base ${card.color}`}>{cardIcons[card.key]}</span></div><p className={`mt-3 text-3xl font-extrabold tabular-nums ${card.color}`}>{loading ? '—' : data?.counts[card.key] ?? '—'}</p></>;
-          return card.href ? <Link key={card.key} href={card.href} className="flex h-full w-full min-h-28 flex-col justify-between rounded-xl border border-white/10 bg-[#111f31] p-4 shadow-[0_12px_30px_rgba(0,0,0,0.16)] transition hover:-translate-y-0.5 hover:border-sky-300/40 hover:shadow-md">{content}</Link> : <article key={card.key} className="flex h-full w-full min-h-28 flex-col justify-between rounded-xl border border-white/10 bg-[#111f31] p-4 shadow-[0_12px_30px_rgba(0,0,0,0.16)]">{content}</article>;
-        })}
-      </div>
-
-      <div className="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1.3fr)_minmax(280px,0.7fr)]">
-        <section className="rounded-xl border border-white/10 bg-[#111f31] p-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div><h3 className="font-bold text-white">Actividad mensual</h3><p className="mt-1 text-xs text-slate-400">Cantidad de pedidos y ventas en los últimos seis meses</p></div>
-            <div className="flex gap-4 text-xs text-slate-300"><span><i className="mr-1.5 inline-block h-2 w-2 rounded-full bg-sky-400" />Pedidos</span><span><i className="mr-1.5 inline-block h-2 w-2 rounded-full bg-emerald-400" />Ventas</span></div>
+      <div className="space-y-6">
+        {cardGroups.map((group) => <section key={group.title} aria-labelledby={`admin-${group.title.toLowerCase()}-title`}>
+          <div className="mb-3 flex items-center gap-3"><h3 id={`admin-${group.title.toLowerCase()}-title`} className="text-sm font-extrabold text-slate-800">{group.title}</h3><span className="h-px flex-1 bg-slate-200" /></div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {group.cards.map((card) => {
+              const content = <><div className="flex items-center justify-between gap-3"><p className="text-xs font-semibold leading-5 text-slate-400">{card.label}</p><span aria-hidden="true" className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/5 text-base ${card.color}`}>{cardIcons[card.key]}</span></div><p className={`mt-3 text-3xl font-extrabold tabular-nums ${card.color}`}>{loading ? '—' : data?.counts[card.key] ?? '—'}</p></>;
+              return card.href ? <Link key={card.key} href={card.href} className="flex min-h-28 flex-col justify-between rounded-xl border border-white/10 bg-[#111f31] p-4 transition hover:border-sky-300/40">{content}</Link> : <article key={card.key} className="flex min-h-28 flex-col justify-between rounded-xl border border-white/10 bg-[#111f31] p-4">{content}</article>;
+            })}
           </div>
-          {loading ? <div className="mt-8 h-36 animate-pulse rounded-lg bg-white/5" /> : data?.trends.length ? <div className="mt-7 grid grid-cols-6 gap-2 sm:gap-4" aria-label="Gráfico de pedidos y ventas por mes">
-            {data.trends.map((item) => <div key={item.month} className="flex min-w-0 flex-col items-center gap-2"><div className="flex h-32 w-full items-end justify-center gap-1 border-b border-white/10 pb-1"><div title={`${item.orders} pedidos`} className="w-3 rounded-t bg-sky-400/90 sm:w-5" style={{ height: `${Math.max(item.orders ? 8 : 2, (item.orders / maxTrend) * 100)}%` }} /><div title={`${item.sales} ventas`} className="w-3 rounded-t bg-emerald-400/90 sm:w-5" style={{ height: `${Math.max(item.sales ? 8 : 2, (item.sales / maxTrend) * 100)}%` }} /></div><span className="truncate text-[10px] capitalize text-slate-400">{item.month}</span><span className="text-[10px] tabular-nums text-slate-500">{item.orders} / {item.sales}</span></div>)}
-          </div> : <p className="mt-8 text-sm text-slate-400">No hay actividad registrada en este periodo.</p>}
-        </section>
-
-        <section className="rounded-xl border border-white/10 bg-[#111f31] p-5">
-          <div className="flex items-center justify-between"><div><h3 className="font-bold text-white">Actividad reciente</h3><p className="mt-1 text-xs text-slate-400">Registro de auditoría</p></div><Link href="/admin/auditorias" className="text-xs font-semibold text-sky-300 hover:text-sky-200">Ver todo</Link></div>
-          {data?.activityUnavailable ? <p className="mt-5 rounded-lg bg-amber-300/10 p-3 text-xs leading-5 text-amber-200">La política RLS no permitió consultar la auditoría.</p> : data?.activity.length ? <ul className="mt-4 divide-y divide-white/5">{data.activity.map((item, index) => <li key={item.id ?? index} className="py-3"><p className="text-sm font-semibold text-slate-200">{item.accion || 'Acción registrada'}</p><p className="mt-1 text-xs text-slate-500">{item.tabla_afectada || 'Registro'} · {item.fecha_hora ? new Date(item.fecha_hora).toLocaleString('es-PY') : 'Fecha no disponible'}</p></li>)}</ul> : <p className="mt-5 text-sm text-slate-400">No hay acciones auditadas.</p>}
-        </section>
+        </section>)}
       </div>
 
-      <div className="mt-5 grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
-        <section className="rounded-xl border border-white/10 bg-[#111f31] p-5">
-          <h3 className="font-bold text-white">Comercios por distrito</h3>
-          <p className="mt-1 text-xs text-slate-400">Conteos exactos por distrito registrado.</p>
-          {loading ? <div className="mt-5 h-28 animate-pulse rounded-lg bg-white/5" /> : data?.districts.length ? <ul className="mt-4 space-y-3">{data.districts.map((item) => <li key={item.name} className="grid grid-cols-[minmax(0,1fr)_2fr_auto] items-center gap-3 text-xs"><span className="truncate text-slate-300">{item.name}</span><span className="h-2 overflow-hidden rounded-full bg-white/5"><span className="block h-full rounded-full bg-violet-400" style={{ width: `${(item.count / maxDistrict) * 100}%` }} /></span><span className="w-6 text-right tabular-nums text-slate-400">{item.count}</span></li>)}</ul> : <p className="mt-5 text-sm text-slate-400">No hay comercios registrados por distrito.</p>}
+      <div className="mt-6 grid items-start gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(300px,0.8fr)]">
+        <section className="rounded-xl border border-white/10 bg-[#111f31] p-4">
+          <div className="flex items-center justify-between gap-3"><div><h3 className="font-bold text-white">Actividad reciente</h3><p className="mt-1 text-xs text-slate-400">Registro de auditoría</p></div><Link href="/admin/auditorias" className="shrink-0 text-xs font-semibold text-sky-300 hover:text-sky-200">Ver todo</Link></div>
+          {data?.activityUnavailable ? <p className="mt-3 rounded-lg bg-amber-300/10 p-3 text-xs leading-5 text-amber-200">La política RLS no permitió consultar la auditoría.</p> : data?.activity.length ? <ul className="mt-2 divide-y divide-white/[0.06]">{data.activity.map((item, index) => <li key={item.id ?? index} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-2"><div className="min-w-0"><p className="truncate text-xs font-semibold text-slate-200">{item.accion || 'Acción registrada'} <span className="font-normal text-slate-400">· {item.tabla_afectada || 'Registro'}</span></p></div><time className="shrink-0 text-[10px] tabular-nums text-slate-500">{item.fecha_hora ? new Date(item.fecha_hora).toLocaleString('es-PY') : 'Fecha no disponible'}</time></li>)}</ul> : <p className="mt-3 text-sm text-slate-400">No hay acciones auditadas.</p>}
         </section>
-        <section className="rounded-xl border border-white/10 bg-[#111f31] p-5">
-          <h3 className="font-bold text-white">Productos por categoría</h3>
-          <p className="mt-1 text-xs text-slate-400">Conteos exactos por categoría registrada.</p>
-          {loading ? <div className="mt-5 h-28 animate-pulse rounded-lg bg-white/5" /> : data?.categories.length ? <ul className="mt-4 space-y-3">{data.categories.map((item) => <li key={item.name} className="grid grid-cols-[minmax(0,1fr)_2fr_auto] items-center gap-3 text-xs"><span className="truncate text-slate-300">{item.name}</span><span className="h-2 overflow-hidden rounded-full bg-white/5"><span className="block h-full rounded-full bg-emerald-400" style={{ width: `${(item.count / maxCategory) * 100}%` }} /></span><span className="w-6 text-right tabular-nums text-slate-400">{item.count}</span></li>)}</ul> : <p className="mt-5 text-sm text-slate-400">No hay productos clasificados por categoría.</p>}
-        </section>
-        <section className="rounded-xl border border-white/10 bg-[#111f31] p-5">
-          <h3 className="font-bold text-white">Estado de los comercios</h3>
-          <p className="mt-1 text-xs text-slate-400">Distribución por estados reconocidos en la plataforma.</p>
-          {loading ? <div className="mt-5 h-28 animate-pulse rounded-lg bg-white/5" /> : data?.shopStatuses.length ? <ul className="mt-4 space-y-3">{data.shopStatuses.map((item) => <li key={item.name} className="grid grid-cols-[minmax(0,1fr)_2fr_auto] items-center gap-3 text-xs"><span className="truncate text-slate-300">{item.name}</span><span className="h-2 overflow-hidden rounded-full bg-white/5"><span className="block h-full rounded-full bg-sky-400" style={{ width: `${(item.count / maxShopStatus) * 100}%` }} /></span><span className="w-6 text-right tabular-nums text-slate-400">{item.count}</span></li>)}</ul> : <p className="mt-5 text-sm text-slate-400">No hay estados de comercio registrados.</p>}
-        </section>
+
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+          <section className="rounded-xl border border-white/10 bg-[#111f31] p-4">
+            <h3 className="font-bold text-white">Comercios por distrito</h3>
+            <p className="mt-1 text-xs text-slate-400">Cantidad de comercios registrados.</p>
+            {loading ? <div className="mt-3 h-28 animate-pulse rounded-lg bg-white/5" /> : data?.districts.length ? <ul role="img" aria-label="Gráfico de comercios por distrito" className="mt-3 flex h-32 items-end gap-1 overflow-x-auto border-b border-white/10 pb-2 sm:gap-1.5">
+              {data.districts.map((item) => <li key={item.name} title={`${item.name}: ${item.count}`} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1 text-center">
+                <span className="text-[9px] font-bold tabular-nums text-slate-300">{item.count}</span>
+                <div className="flex h-20 w-full items-end justify-center"><span className="w-3/5 max-w-7 rounded-t bg-violet-400 transition-[height] duration-500 ease-out hover:bg-violet-300" style={{ height: `${Math.max(8, (item.count / maxDistrict) * 100)}%` }} /></div>
+                <span className="w-full truncate text-[8px] text-slate-400">{item.name}</span>
+              </li>)}
+            </ul> : <p className="mt-3 text-sm text-slate-400">No hay comercios registrados por distrito.</p>}
+          </section>
+
+          <section className="rounded-xl border border-white/10 bg-[#111f31] p-4">
+            <h3 className="font-bold text-white">Estado de los comercios</h3>
+            <p className="mt-1 text-xs text-slate-400">Conteo actual por estado.</p>
+            {loading ? <div className="mt-3 h-24 animate-pulse rounded-lg bg-white/5" /> : data?.shopStatuses.length ? <ul className="mt-2 divide-y divide-white/[0.06]">
+              {data.shopStatuses.map((item) => <li key={item.name} className="flex items-center justify-between gap-4 py-2">
+                <span className="flex items-center gap-2 text-xs font-semibold text-slate-300"><span aria-hidden="true" className={`h-2 w-2 rounded-full ${shopStatusStyles[item.name] ?? 'bg-slate-400'}`} />{item.name}</span>
+                <span className="text-lg font-extrabold tabular-nums text-white">{item.count}</span>
+              </li>)}
+            </ul> : <p className="mt-3 text-sm text-slate-400">No hay estados de comercio registrados.</p>}
+          </section>
+        </div>
       </div>
     </div>
   );

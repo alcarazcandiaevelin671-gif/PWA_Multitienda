@@ -112,6 +112,7 @@ export default function ComercianteTiendaPage() {
     logo_url: '',
     portada_url: '',
   });
+  const [storeExists, setStoreExists] = useState(false);
 
   // 1. Verificar Sesión e Inicializar Datos
   useEffect(() => {
@@ -169,6 +170,7 @@ export default function ComercianteTiendaPage() {
           .select('*')
           .eq('usuario_id', userId)
           .maybeSingle();
+        setStoreExists(Boolean(tiendaBD));
 
         if (tiendaBD) {
           setFormData({
@@ -437,6 +439,7 @@ export default function ComercianteTiendaPage() {
       if (userError) throw userError;
 
       const generatedSlug = slugify(formData.nombre_comercio) || `tienda-${userId.slice(0, 8)}`;
+      const isNewStore = !storeExists;
 
       const tiendaPayload = {
         usuario_id: userId,
@@ -456,6 +459,7 @@ export default function ComercianteTiendaPage() {
         latitud: formData.latitud,
         longitud: formData.longitud,
         actualizado_en: new Date().toISOString(),
+        ...(isNewStore ? { estado: 'pendiente' } : {}),
       };
 
       const { error: tiendaError } = await supabase
@@ -463,6 +467,7 @@ export default function ComercianteTiendaPage() {
         .upsert(tiendaPayload, { onConflict: 'usuario_id' });
 
       if (tiendaError) throw tiendaError;
+      setStoreExists(true);
 
       const emailChanged = String(sessionUser.email ?? '').toLowerCase() !== userData.email.trim().toLowerCase();
       if (emailChanged) await updateAuthEmail(userData.email);
@@ -473,7 +478,9 @@ export default function ComercianteTiendaPage() {
         tipo: 'exito',
         texto: emailChanged
           ? 'Datos de la tienda guardados. Confirma el cambio de correo desde el mensaje enviado por Supabase.'
-          : '¡Excelente! Los datos de tu tienda se guardaron correctamente.',
+          : isNewStore
+            ? 'Comercio enviado para aprobación. Podrás administrarlo cuando el administrador lo apruebe.'
+            : '¡Excelente! Los datos de tu tienda se guardaron correctamente.',
       });
 
     } catch (err: any) {

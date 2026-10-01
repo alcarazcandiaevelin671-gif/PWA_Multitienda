@@ -1,7 +1,21 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { isDeniedResponse, isPermissionError, requireAdmin } from '@/lib/admin-server';
 
-export async function POST(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+  let observacion = '';
+  try {
+    const body = await request.json() as { observacion?: unknown };
+    if (body.observacion != null && typeof body.observacion !== 'string') {
+      return NextResponse.json({ error: 'La observación no es válida.' }, { status: 400 });
+    }
+    observacion = typeof body.observacion === 'string' ? body.observacion.trim() : '';
+    if (observacion.length > 500) {
+      return NextResponse.json({ error: 'La observación no puede superar los 500 caracteres.' }, { status: 400 });
+    }
+  } catch {
+    observacion = '';
+  }
+
   const access = await requireAdmin();
   if (isDeniedResponse(access)) return access;
 
@@ -42,7 +56,7 @@ export async function POST(_request: NextRequest, { params }: { params: { id: st
     tabla_afectada: 'tiendas',
     registro_id: params.id,
     datos_anteriores: { estado: 'pendiente' },
-    datos_nuevos: { estado: 'rechazada' },
+    datos_nuevos: { estado: 'rechazada', observacion: observacion || null },
   });
 
   return NextResponse.json({

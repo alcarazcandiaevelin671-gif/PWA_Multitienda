@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { deleteProfileAvatar, updateSettingsIdentity, uploadProfileAvatar } from '@/services/settings.service';
 
 type PerfilUsuario = {
   nombre_completo: string;
@@ -44,6 +45,10 @@ export default function PerfilPage() {
   const [userData, setUserData] = useState<PerfilUsuario | null>(null);
   const [tiendaData, setTiendaData] = useState<TiendaData | null>(null);
   const [tiendasData, setTiendasData] = useState<TiendaData[]>([]);
+  const [avatarSaving, setAvatarSaving] = useState(false);
+  const [avatarMessage, setAvatarMessage] = useState('');
+  const [avatarError, setAvatarError] = useState('');
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -208,6 +213,50 @@ export default function PerfilPage() {
     rechazado: 'Rechazado',
   };
 
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const input = event.currentTarget;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    setAvatarMessage('');
+    setAvatarError('');
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setAvatarError('Elige una imagen JPG, PNG o WebP.');
+      input.value = '';
+      return;
+    }
+    if (file.size === 0 || file.size > 5 * 1024 * 1024) {
+      setAvatarError('La imagen debe pesar 5 MB o menos.');
+      input.value = '';
+      return;
+    }
+
+    setAvatarSaving(true);
+    let uploadedUrl: string | null = null;
+    try {
+      uploadedUrl = await uploadProfileAvatar(file);
+      try {
+        await updateSettingsIdentity({ avatar_url: uploadedUrl });
+      } catch (cause) {
+        await deleteProfileAvatar(uploadedUrl).catch(() => undefined);
+        throw cause;
+      }
+
+      const { data } = await supabase.auth.refreshSession();
+      const updatedUser = data.user ?? {
+        ...userSession,
+        user_metadata: { ...userSession.user_metadata, avatar_url: uploadedUrl },
+      };
+      setUserSession(updatedUser);
+      setAvatarMessage('Foto de perfil actualizada.');
+    } catch (cause) {
+      setAvatarError(cause instanceof Error ? cause.message : 'No se pudo actualizar la foto de perfil.');
+    } finally {
+      setAvatarSaving(false);
+      input.value = '';
+    }
+  };
+
   const handleCerrarSesion = async () => {
     await supabase.auth.signOut();
     window.location.reload();
@@ -220,7 +269,7 @@ export default function PerfilPage() {
           <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-4 sm:gap-5">
               <div className={`relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 bg-white/10 text-2xl font-black shadow-lg ring-4 ring-white/10 sm:h-24 sm:w-24 ${userData.rol === 'admin' ? 'border-violet-200/60' : userData.rol === 'comerciante' ? 'border-emerald-200/60' : 'border-sky-200/60'}`}>
-                {typeof userSession.user_metadata?.avatar_url === 'string' ? <Image src={userSession.user_metadata.avatar_url} alt="Foto de perfil" fill unoptimized className="object-cover" /> : <span className="relative z-0">{iniciales}</span>}
+                {typeof userSession.user_metadata?.avatar_url === 'string' && userSession.user_metadata.avatar_url.trim() ? <Image src={userSession.user_metadata.avatar_url} alt="Foto de perfil" fill unoptimized className="object-cover" /> : <span className="relative z-0">{iniciales}</span>}
                 <span className="absolute bottom-1 right-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-slate-900 bg-emerald-400 shadow-sm" aria-label="Sesión activa" />
               </div>
 
@@ -228,6 +277,13 @@ export default function PerfilPage() {
                 <p className={`text-[11px] font-bold uppercase tracking-[0.16em] ${userData.rol === 'admin' ? 'text-violet-200' : userData.rol === 'comerciante' ? 'text-emerald-200' : 'text-sky-200'}`}>Cuenta personal</p>
                 <h1 className="mt-1 break-words text-2xl font-extrabold leading-tight sm:text-3xl">{userData.nombre_completo}</h1>
                 <p className="mt-2 break-all text-sm text-white/80">{userData.email}</p>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <input ref={avatarInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleAvatarChange} className="sr-only" aria-label="Seleccionar foto de perfil" />
+                  <button type="button" onClick={() => avatarInputRef.current?.click()} disabled={avatarSaving} className="inline-flex min-h-9 items-center justify-center rounded-lg border border-white/25 bg-white/10 px-3 py-2 text-xs font-bold text-white transition hover:bg-white/20 disabled:cursor-wait disabled:opacity-60">
+                    {avatarSaving ? 'Subiendo foto...' : 'Cambiar foto'}
+                  </button>
+                  <span className="text-[11px] text-white/70">JPG, PNG o WebP · Máx. 5 MB</span>
+                </div>
               </div>
             </div>
 
@@ -246,6 +302,9 @@ export default function PerfilPage() {
             <path d="M10 112h155" stroke="currentColor" strokeWidth="5" strokeLinecap="round" />
           </svg>
         </header>
+
+        {avatarError && <p role="alert" className="mx-4 mt-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800 sm:mx-6">{avatarError}</p>}
+        {avatarMessage && <p role="status" className="mx-4 mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800 sm:mx-6">{avatarMessage}</p>}
 
         <div className="grid w-full grid-cols-1 gap-4 p-4 sm:p-6 md:grid-cols-3">
           <article className="flex h-full w-full min-w-0 items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 transition-colors hover:bg-white">
@@ -293,7 +352,7 @@ export default function PerfilPage() {
               {tiendaData?.email && <p><span className="font-semibold text-slate-500">Correo comercial</span><span className="mt-0.5 block break-all font-bold text-slate-900">{tiendaData.email}</span></p>}
               {tiendaData?.slug && tiendaAprobada && <Link href={`/tienda/${tiendaData.slug}`} className="mt-1 font-bold text-emerald-800 hover:text-emerald-950 hover:underline">Ver comercio publicado ↗</Link>}
               {tiendaAprobada && (
-                <Link href="/vendedor" className="mt-2 inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-700 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700">
+                <Link href="/comerciante" className="mt-2 inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-700 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-emerald-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700">
                   Ir al panel de mi comercio
                 </Link>
               )}
@@ -304,7 +363,7 @@ export default function PerfilPage() {
 
       {esComerciante && tiendasData.length > 1 && (
         <section className="w-full rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-          <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[0.12em] text-emerald-800">Comercios asociados</p><h2 className="mt-1 text-lg font-extrabold text-slate-900">Tus tiendas <span className="text-slate-400">({tiendasData.length})</span></h2></div><Link href="/vendedor/tiendas" className="text-sm font-bold text-emerald-800 hover:underline">Ver información completa →</Link></div>
+          <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[0.12em] text-emerald-800">Comercios asociados</p><h2 className="mt-1 text-lg font-extrabold text-slate-900">Tus tiendas <span className="text-slate-400">({tiendasData.length})</span></h2></div><Link href="/comerciante/tiendas" className="text-sm font-bold text-emerald-800 hover:underline">Ver información completa →</Link></div>
           <ul className="mt-4 divide-y divide-slate-100">{tiendasData.map((store) => <li key={store.id} className="flex flex-wrap items-center justify-between gap-3 py-4"><div className="min-w-0"><p className="break-words font-bold text-slate-900">{store.nombre_comercio}</p><p className="mt-1 text-sm text-slate-500">{store.distrito_nombre || 'Distrito no especificado'} · {String(store.estado || 'Sin estado').replaceAll('_', ' ')}</p></div>{store.slug && ['activa', 'activo'].includes(String(store.estado || '').toLowerCase()) && <Link href={`/tienda/${store.slug}`} className="rounded-lg px-3 py-2 text-sm font-bold text-emerald-800 transition hover:bg-emerald-50">Ver tienda ↗</Link>}</li>)}</ul>
         </section>
       )}

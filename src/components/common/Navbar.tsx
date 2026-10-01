@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useCart } from '@/context/CartContext';
+import NotificationBell from '@/components/common/NotificationBell';
 
 type ProductSearchResult = {
   id: string;
@@ -296,6 +298,8 @@ export default function Navbar() {
           )}
         </div>
 
+        {usuario?.id && rolUsuario && <NotificationBell userId={usuario.id} role={rolUsuario} />}
+
         {rolUsuario === 'admin' && (
           <Link
             href="/admin"
@@ -310,13 +314,13 @@ export default function Navbar() {
             <summary className="cursor-pointer list-none rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800 transition hover:border-emerald-300 hover:bg-emerald-100">Mi negocio <span aria-hidden="true">▾</span></summary>
             <nav aria-label="Panel del comerciante" className="absolute right-0 top-[calc(100%+0.5rem)] z-[70] grid min-w-48 gap-1 rounded-xl border border-slate-200 bg-white p-2 shadow-xl">
               {[
-                ['/vendedor', 'Dashboard'],
-                ['/vendedor/tiendas', 'Mis tiendas'],
+                ['/comerciante', 'Panel de comerciante'],
+                ['/comerciante/tiendas', 'Mis tiendas'],
                 ['/comerciante/productos', 'Productos'],
                 ['/comerciante/pedidos', 'Pedidos'],
                 ['/comerciante/ventas', 'Ventas'],
                 ['/comerciante/facturas', 'Facturas'],
-                ['/vendedor/reportes', 'Reportes'],
+                ['/comerciante/reportes', 'Reportes'],
               ].map(([href, label]) => <Link key={href} href={href} onClick={(event) => event.currentTarget.closest('details')?.removeAttribute('open')} className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700">{label}</Link>)}
             </nav>
           </details>
@@ -324,14 +328,26 @@ export default function Navbar() {
 
         {usuario ? (
           <div className="flex items-center gap-2">
-            <Link href="/configuracion" className="rounded-lg px-2.5 py-2 text-xs font-bold text-slate-700 transition hover:bg-blue-50 hover:text-blue-800">Configuración</Link>
+            <Link
+              href="/configuracion"
+              aria-label="Configuración"
+              title="Configuración"
+              className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 transition hover:bg-blue-50 hover:text-blue-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+            >
+              <span aria-hidden="true" className="text-xl leading-none">⚙</span>
+              <span className="sr-only">Configuración</span>
+            </Link>
             <Link
               href="/perfil"
               aria-label="Ir a mi perfil"
               className="flex items-center justify-center rounded-full border border-slate-200 bg-white p-1 shadow-sm transition hover:border-blue-300 hover:shadow-md"
             >
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-700 to-emerald-600 text-lg text-white shadow-sm ring-2 ring-white">
-                👤
+              <span className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-blue-700 to-emerald-600 text-lg text-white shadow-sm ring-2 ring-white">
+                {typeof usuario.user_metadata?.avatar_url === 'string' && usuario.user_metadata.avatar_url.trim() ? (
+                  <Image src={usuario.user_metadata.avatar_url} alt="" fill sizes="40px" unoptimized className="object-cover" />
+                ) : (
+                  <span aria-hidden="true">👤</span>
+                )}
               </span>
             </Link>
           </div>

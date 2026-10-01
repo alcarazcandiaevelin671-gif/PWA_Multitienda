@@ -40,7 +40,7 @@ export default function VendorSalesPage() {
           <p className="text-xs font-black uppercase text-emerald-700">Comercio</p>
           <h1 className="mt-1 text-3xl font-black text-slate-900">Ventas</h1>
         </div>
-        <Link href="/vendedor" className="text-sm font-bold text-blue-700 hover:underline">Volver al dashboard</Link>
+        <Link href="/comerciante" className="text-sm font-bold text-blue-700 hover:underline">Volver al panel de comerciante</Link>
       </div>
 
       <div className="mb-8 grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">

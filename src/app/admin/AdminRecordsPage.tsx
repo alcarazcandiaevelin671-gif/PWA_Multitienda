@@ -1,23 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { showAppConfirm } from '@/lib/app-message';
 
 type RecordRow = Record<string, unknown>;
-type RelatedDetails = { details: RecordRow[]; history: RecordRow[] };
-type SelectOption = { id: string | number; label: string };
 
 const sections: Record<string, { resource: string; title: string; description: string }> = {
   usuarios: { resource: 'usuarios', title: 'Usuarios', description: 'Perfiles registrados y rol asignado.' },
   comercios: { resource: 'comercios', title: 'Comercios', description: 'Solicitudes y comercios registrados en la plataforma.' },
-  productos: { resource: 'productos', title: 'Productos', description: 'Catálogo global en modo consulta.' },
-  pedidos: { resource: 'pedidos', title: 'Pedidos', description: 'Pedidos y sus estados históricos.' },
-  pedido_detalles: { resource: 'pedido_detalles', title: 'Detalle de pedidos', description: 'Productos y montos guardados en cada pedido.' },
-  pedido_estado_historial: { resource: 'pedido_estado_historial', title: 'Historial de pedidos', description: 'Cambios de estado y observaciones de los pedidos.' },
-  ventas: { resource: 'ventas', title: 'Ventas', description: 'Operaciones comerciales registradas.' },
-  venta_detalles: { resource: 'venta_detalles', title: 'Detalle de ventas', description: 'Productos y montos guardados en cada venta.' },
-  facturas: { resource: 'facturas', title: 'Facturas', description: 'Documentos internos emitidos.' },
-  factura_detalles: { resource: 'factura_detalles', title: 'Detalle de facturas', description: 'Conceptos y montos guardados en cada factura.' },
   categorias: { resource: 'categorias', title: 'Categorías', description: 'Categorías disponibles en el catálogo.' },
   departamentos: { resource: 'departamentos', title: 'Departamentos', description: 'Departamentos registrados.' },
   distritos: { resource: 'distritos', title: 'Distritos', description: 'Distritos y departamento relacionado.' },
@@ -27,15 +18,7 @@ const sections: Record<string, { resource: string; title: string; description: s
 
 const columns: Record<string, Array<[string, string]>> = {
   usuarios: [['nombre_completo', 'Nombre'], ['email', 'Correo'], ['telefono_contacto', 'Teléfono'], ['rol', 'Rol'], ['activo', 'Estado'], ['creado_en', 'Registro']],
-  comercios: [['nombre_comercio', 'Comercio'], ['propietario', 'Vendedor'], ['distrito', 'Distrito'], ['estado', 'Estado'], ['whatsapp', 'Contacto'], ['creado_en', 'Registro']],
-  productos: [['titulo', 'Producto'], ['comercio', 'Comercio'], ['vendedor', 'Vendedor'], ['categoria', 'Categoría'], ['precio_gs', 'Precio'], ['disponible', 'Disponibilidad']],
-  pedidos: [['numero_pedido', 'Pedido'], ['cliente', 'Cliente'], ['comercio', 'Comercio'], ['estado', 'Estado'], ['total', 'Total'], ['created_at', 'Fecha']],
-  pedido_detalles: [['pedido_id', 'Pedido'], ['nombre_producto_snapshot', 'Producto'], ['cantidad', 'Cantidad'], ['precio', 'Precio'], ['descuento', 'Descuento'], ['subtotal', 'Subtotal'], ['created_at', 'Fecha']],
-  pedido_estado_historial: [['pedido_id', 'Pedido'], ['estado_anterior', 'Estado anterior'], ['estado_nuevo', 'Estado nuevo'], ['observacion', 'Observación'], ['created_at', 'Fecha']],
-  ventas: [['numero_venta', 'Venta'], ['cliente', 'Cliente'], ['comercio', 'Comercio'], ['estado', 'Estado'], ['total', 'Total'], ['created_at', 'Fecha']],
-  venta_detalles: [['venta_id', 'Venta'], ['nombre_producto_snapshot', 'Producto'], ['cantidad', 'Cantidad'], ['precio', 'Precio'], ['descuento', 'Descuento'], ['subtotal', 'Subtotal'], ['created_at', 'Fecha']],
-  facturas: [['numero', 'Factura'], ['cliente', 'Cliente'], ['comercio', 'Comercio'], ['estado', 'Estado'], ['total', 'Total'], ['fecha', 'Fecha']],
-  factura_detalles: [['factura_id', 'Factura'], ['descripcion_snapshot', 'Descripción'], ['cantidad', 'Cantidad'], ['precio', 'Precio'], ['descuento', 'Descuento'], ['subtotal', 'Subtotal'], ['created_at', 'Fecha']],
+  comercios: [['nombre_comercio', 'Comercio'], ['propietario', 'Comerciante'], ['distrito', 'Distrito'], ['estado', 'Estado'], ['whatsapp', 'Contacto'], ['creado_en', 'Registro']],
   categorias: [['nombre', 'Categoría'], ['descripcion', 'Descripción'], ['activo', 'Estado'], ['creado_en', 'Registro']],
   departamentos: [['nombre', 'Departamento'], ['codigo', 'Código'], ['activo', 'Estado'], ['creado_en', 'Registro']],
   distritos: [['nombre', 'Distrito'], ['departamento_id', 'Departamento'], ['activo', 'Estado'], ['creado_en', 'Registro']],
@@ -43,8 +26,7 @@ const columns: Record<string, Array<[string, string]>> = {
   notificaciones: [['usuario_id', 'Usuario'], ['leida', 'Leída'], ['created_at', 'Fecha']],
 };
 
-const orderStates = ['pendiente', 'confirmado', 'en_preparacion', 'listo', 'completado', 'cancelado'];
-const managedStatusSections = new Set(['usuarios', 'productos', 'categorias', 'departamentos', 'distritos']);
+const managedStatusSections = new Set(['usuarios', 'categorias', 'departamentos', 'distritos']);
 
 function formatValue(value: unknown, field: string) {
   if (value === null || value === undefined || value === '') return '—';
@@ -52,7 +34,10 @@ function formatValue(value: unknown, field: string) {
   if (['total', 'precio_gs', 'precio', 'subtotal', 'descuento', 'iva'].includes(field)) return new Intl.NumberFormat('es-PY', { maximumFractionDigits: 0 }).format(Number(value)) + ' Gs.';
   if (['creado_en', 'created_at', 'fecha', 'fecha_hora'].includes(field)) {
     const date = new Date(String(value));
-    return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleDateString('es-PY');
+    if (Number.isNaN(date.getTime())) return String(value);
+    return field === 'fecha_hora'
+      ? date.toLocaleString('es-PY', { dateStyle: 'short', timeStyle: 'short' })
+      : date.toLocaleDateString('es-PY');
   }
   return String(value).replaceAll('_', ' ');
 }
@@ -121,6 +106,66 @@ function AuditChanges({ record }: { record: RecordRow }) {
   );
 }
 
+function CommerceInspection({ record }: { record: RecordRow }) {
+  const imageEntries = Object.entries(record).filter(([key, value]) =>
+    /(logo|portada|banner|imagen|foto)/i.test(key) && typeof value === 'string' && value.trim().length > 0
+  ) as Array<[string, string]>;
+  const latitude = Number(record.latitud);
+  const longitude = Number(record.longitud);
+  const hasLocationValues = [record.latitud, record.longitud].every((value) => value !== null && value !== undefined && value !== '');
+  const hasLocation = hasLocationValues && Number.isFinite(latitude) && Number.isFinite(longitude);
+
+  const Info = ({ label, value }: { label: string; value: unknown }) => (
+    <div className="min-w-0 border-b border-white/[0.06] pb-3">
+      <dt className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{label}</dt>
+      <dd className="mt-1 break-words text-sm text-slate-200">{formatValue(value, label === 'Fecha de registro' ? 'creado_en' : label)}</dd>
+    </div>
+  );
+
+  return (
+    <div className="mt-5 space-y-6">
+      <section>
+        <h4 className="mb-3 text-sm font-bold text-white">Datos generales</h4>
+        <dl className="grid gap-x-5 gap-y-3 sm:grid-cols-2">
+          <Info label="Nombre comercial" value={record.nombre_comercio} />
+          <Info label="Categoría" value={record.categoria_principal} />
+          <Info label="Estado actual" value={record.estado} />
+          <Info label="Fecha de registro" value={record.creado_en} />
+          <div className="border-b border-white/[0.06] pb-3 sm:col-span-2"><dt className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Descripción</dt><dd className="mt-1 whitespace-pre-wrap break-words text-sm text-slate-200">{formatValue(record.descripcion, 'descripcion')}</dd></div>
+        </dl>
+      </section>
+
+      <section>
+        <h4 className="mb-3 text-sm font-bold text-white">Datos del comerciante</h4>
+        <dl className="grid gap-x-5 gap-y-3 sm:grid-cols-2">
+          <Info label="Propietario" value={record.propietario} />
+          <Info label="Correo de contacto" value={record.propietario_email} />
+          <Info label="Teléfono" value={record.propietario_telefono} />
+          <Info label="WhatsApp del comercio" value={record.whatsapp} />
+        </dl>
+      </section>
+
+      <section>
+        <h4 className="mb-3 text-sm font-bold text-white">Ubicación</h4>
+        <dl className="grid gap-x-5 gap-y-3 sm:grid-cols-2">
+          <Info label="Departamento" value={record.departamento} />
+          <Info label="Distrito" value={record.distrito} />
+          <div className="border-b border-white/[0.06] pb-3 sm:col-span-2"><dt className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Dirección</dt><dd className="mt-1 break-words text-sm text-slate-200">{formatValue(record.direccion_texto, 'direccion_texto')}</dd></div>
+          <Info label="Latitud" value={record.latitud} />
+          <Info label="Longitud" value={record.longitud} />
+        </dl>
+        {hasLocation && <a href={`https://www.google.com/maps?q=${latitude},${longitude}`} target="_blank" rel="noreferrer" className="mt-3 inline-flex text-xs font-semibold text-sky-300 hover:text-sky-200 hover:underline">Abrir ubicación en el mapa</a>}
+      </section>
+
+      <section>
+        <h4 className="mb-3 text-sm font-bold text-white">Documentación e imágenes</h4>
+        {imageEntries.length ? <div className="grid gap-3 sm:grid-cols-2">{imageEntries.map(([key, url]) => <figure key={key} className="overflow-hidden rounded-lg border border-white/10 bg-black/20"><div className="relative h-40"><Image src={url} alt={key.replaceAll('_', ' ')} fill unoptimized className="object-contain" sizes="(max-width: 640px) 100vw, 50vw" /></div><figcaption className="border-t border-white/10 px-3 py-2 text-xs font-semibold capitalize text-slate-300">{key.replaceAll('_', ' ')}</figcaption></figure>)}</div> : <p className="rounded-lg border border-white/10 bg-white/[0.03] p-3 text-sm text-slate-400">No hay imágenes adjuntas a este comercio.</p>}
+      </section>
+
+    </div>
+  );
+}
+
 export default function AdminRecordsPage({ section }: { section: string }) {
   const viewSection = section === 'auditoria' ? 'auditorias' : section;
   const config = sections[viewSection];
@@ -130,19 +175,15 @@ export default function AdminRecordsPage({ section }: { section: string }) {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [role, setRole] = useState('');
-  const [available, setAvailable] = useState('');
-  const [category, setCategory] = useState('');
-  const [shop, setShop] = useState('');
-  const [categories, setCategories] = useState<SelectOption[]>([]);
-  const [shops, setShops] = useState<SelectOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
   const [selectedRecord, setSelectedRecord] = useState<RecordRow | null>(null);
-  const [relatedDetails, setRelatedDetails] = useState<RelatedDetails | null>(null);
-  const [detailsLoading, setDetailsLoading] = useState(false);
-  const [detailsError, setDetailsError] = useState('');
+  const [rejectionMode, setRejectionMode] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [decisionLoading, setDecisionLoading] = useState(false);
+  const [decisionError, setDecisionError] = useState('');
   const pageSize = 25;
 
   useEffect(() => {
@@ -155,9 +196,6 @@ export default function AdminRecordsPage({ section }: { section: string }) {
       if (search.trim()) params.set('q', search.trim());
       if (status) params.set('status', status);
       if (role) params.set('role', role);
-      if (available) params.set('available', available);
-      if (category) params.set('category', category);
-      if (shop) params.set('shop', shop);
 
       try {
         const response = await fetch(`/api/admin/${config.resource}?${params}`, { cache: 'no-store', signal: controller.signal });
@@ -165,10 +203,6 @@ export default function AdminRecordsPage({ section }: { section: string }) {
         if (!response.ok) throw new Error(result.error || 'No se pudieron cargar los datos.');
         setRecords(result.records ?? []);
         setTotal(result.total ?? 0);
-        if (section === 'productos') {
-          setCategories((result.options?.categories ?? []).map((item: { id: number; nombre: string }) => ({ id: item.id, label: item.nombre })));
-          setShops((result.options?.shops ?? []).map((item: { id: string; nombre_comercio: string }) => ({ id: item.id, label: item.nombre_comercio })));
-        }
       } catch (cause) {
         if (cause instanceof Error && cause.name === 'AbortError') return;
         setRecords([]);
@@ -180,7 +214,7 @@ export default function AdminRecordsPage({ section }: { section: string }) {
     }, 250);
 
     return () => { window.clearTimeout(timer); controller.abort(); };
-  }, [config, page, search, status, role, available, category, shop, section, refreshKey]);
+  }, [config, page, search, status, role, section, refreshKey]);
 
   useEffect(() => {
     if (!selectedRecord) return;
@@ -196,52 +230,68 @@ export default function AdminRecordsPage({ section }: { section: string }) {
   const setFilter = (setter: (value: string) => void) => (value: string) => { setter(value); setPage(1); };
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const fields = columns[viewSection] ?? [];
-
-  const approveShop = async (record: RecordRow) => {
+  const approveShop = async (record: RecordRow, askConfirmation = true) => {
     const shopName = String(record.nombre_comercio || 'este comercio');
-    if (!await showAppConfirm(`¿Confirmas la aprobación de ${shopName}?`, '¿Aprobar comercio?', 'Aprobar')) return;
+    if (askConfirmation && !await showAppConfirm(`¿Confirmas la aprobación de ${shopName}?`, '¿Aprobar comercio?', 'Aprobar')) return;
     setNotice('');
     setError('');
+    setDecisionError('');
+    setDecisionLoading(true);
     try {
       const response = await fetch(`/api/admin/comercios/${encodeURIComponent(String(record.id))}/approve`, { method: 'POST' });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'No se pudo aprobar el comercio.');
       setNotice(result.auditWarning || 'Comercio aprobado. La acción quedó registrada en auditoría.');
       setRefreshKey((value) => value + 1);
+      setSelectedRecord(null);
+      setRejectionMode(false);
+      setRejectionReason('');
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'No se pudo aprobar el comercio.');
+      const message = cause instanceof Error ? cause.message : 'No se pudo aprobar el comercio.';
+      if (selectedRecord?.id === record.id) setDecisionError(message);
+      else setError(message);
+    } finally {
+      setDecisionLoading(false);
     }
   };
 
-  const rejectShop = async (record: RecordRow) => {
+  const rejectShop = async (record: RecordRow, reason = '', askConfirmation = true) => {
     const shopName = String(record.nombre_comercio || 'este comercio');
-    if (!await showAppConfirm(`¿Confirmas el rechazo de ${shopName}?`, '¿Rechazar comercio?', 'Rechazar')) return;
+    if (askConfirmation && !await showAppConfirm(`¿Confirmas el rechazo de ${shopName}?`, '¿Rechazar comercio?', 'Rechazar')) return;
     setNotice('');
     setError('');
+    setDecisionError('');
+    setDecisionLoading(true);
     try {
-      const response = await fetch(`/api/admin/comercios/${encodeURIComponent(String(record.id))}/reject`, { method: 'POST' });
+      const response = await fetch(`/api/admin/comercios/${encodeURIComponent(String(record.id))}/reject`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ observacion: reason.trim() || null }),
+      });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'No se pudo rechazar el comercio.');
       setNotice(result.auditWarning || 'Comercio rechazado. La acción quedó registrada en auditoría.');
       setRefreshKey((value) => value + 1);
+      setSelectedRecord(null);
+      setRejectionMode(false);
+      setRejectionReason('');
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'No se pudo rechazar el comercio.');
+      const message = cause instanceof Error ? cause.message : 'No se pudo rechazar el comercio.';
+      if (selectedRecord?.id === record.id) setDecisionError(message);
+      else setError(message);
+    } finally {
+      setDecisionLoading(false);
     }
   };
 
   const toggleRecordStatus = async (record: RecordRow) => {
-    const statusField = section === 'productos' ? 'disponible' : 'activo';
-    const currentStatus = record[statusField];
+    const currentStatus = record.activo;
     if (typeof currentStatus !== 'boolean') return;
 
     const nextStatus = !currentStatus;
     const recordName = String(record.nombre_completo || record.titulo || record.nombre || 'este registro');
-    const action = section === 'productos'
-      ? nextStatus ? 'volver a publicar' : 'pausar'
-      : nextStatus ? 'activar' : 'desactivar';
-    const confirmText = section === 'productos'
-      ? nextStatus ? 'Publicar' : 'Pausar'
-      : nextStatus ? 'Activar' : 'Desactivar';
+    const action = nextStatus ? 'activar' : 'desactivar';
+    const confirmText = nextStatus ? 'Activar' : 'Desactivar';
     if (!await showAppConfirm(`Se cambiará el estado de ${recordName}.`, `¿${action.charAt(0).toUpperCase()}${action.slice(1)}?`, confirmText)) return;
 
     setNotice('');
@@ -261,26 +311,15 @@ export default function AdminRecordsPage({ section }: { section: string }) {
     }
   };
 
-  const openRecordDetails = async (record: RecordRow) => {
+  const openRecordDetails = (record: RecordRow) => {
     setSelectedRecord(record);
-    setRelatedDetails(null);
-    setDetailsError('');
-    if (!['pedidos', 'ventas', 'facturas'].includes(section)) return;
-
-    setDetailsLoading(true);
-    try {
-      const response = await fetch(`/api/admin/${config.resource}/${encodeURIComponent(String(record.id))}`, { cache: 'no-store' });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'No se pudieron cargar los detalles.');
-      setRelatedDetails(result as RelatedDetails);
-    } catch (cause) {
-      setDetailsError(cause instanceof Error ? cause.message : 'No se pudieron cargar los detalles.');
-    } finally {
-      setDetailsLoading(false);
-    }
+    setRejectionMode(false);
+    setRejectionReason('');
+    setDecisionError('');
   };
 
   const hasActionColumn = section === 'comercios' || managedStatusSections.has(section);
+  const hasDetailsColumn = !['pedidos', 'ventas', 'facturas'].includes(section);
 
   return (
     <div>
@@ -291,14 +330,8 @@ export default function AdminRecordsPage({ section }: { section: string }) {
 
       <div className="mb-4 flex flex-wrap gap-2 rounded-xl border border-white/10 bg-[#111f31] p-3">
         <label className="min-w-56 flex-1"><span className="sr-only">Buscar</span><input type="search" value={search} onChange={(event) => setFilter(setSearch)(event.target.value)} placeholder={viewSection === 'auditorias' ? 'Buscar correo, tabla o acción…' : 'Buscar registros…'} className="w-full rounded-lg border border-white/10 bg-[#091321] px-3 py-2 text-sm text-white outline-none placeholder:text-slate-500 focus:border-sky-400" /></label>
-        {section === 'usuarios' && <select aria-label="Filtrar por rol" value={role} onChange={(event) => setFilter(setRole)(event.target.value)} className="rounded-lg border border-white/10 bg-[#091321] px-3 py-2 text-sm text-slate-200"><option value="">Todos los roles</option><option value="cliente">Cliente</option><option value="comerciante">Vendedor</option><option value="admin">Administrador</option></select>}
-        {section === 'comercios' && <select aria-label="Filtrar por estado" value={status} onChange={(event) => setFilter(setStatus)(event.target.value)} className="rounded-lg border border-white/10 bg-[#091321] px-3 py-2 text-sm text-slate-200"><option value="">Todos los estados</option><option value="pendiente">Pendiente</option><option value="activa">Activa</option><option value="activo">Activo</option><option value="rechazada">Rechazada</option><option value="rechazado">Rechazado</option></select>}
-        {section === 'pedidos' && <select aria-label="Filtrar por estado" value={status} onChange={(event) => setFilter(setStatus)(event.target.value)} className="rounded-lg border border-white/10 bg-[#091321] px-3 py-2 text-sm text-slate-200"><option value="">Todos los estados</option>{orderStates.map((state) => <option key={state} value={state}>{formatValue(state, 'estado')}</option>)}</select>}
-        {section === 'productos' && <>
-          <select aria-label="Filtrar por disponibilidad" value={available} onChange={(event) => setFilter(setAvailable)(event.target.value)} className="rounded-lg border border-white/10 bg-[#091321] px-3 py-2 text-sm text-slate-200"><option value="">Toda disponibilidad</option><option value="true">Disponible</option><option value="false">No disponible</option></select>
-          <select aria-label="Filtrar por categoría" value={category} onChange={(event) => setFilter(setCategory)(event.target.value)} className="max-w-48 rounded-lg border border-white/10 bg-[#091321] px-3 py-2 text-sm text-slate-200"><option value="">Todas las categorías</option>{categories.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select>
-          <select aria-label="Filtrar por comercio" value={shop} onChange={(event) => setFilter(setShop)(event.target.value)} className="max-w-52 rounded-lg border border-white/10 bg-[#091321] px-3 py-2 text-sm text-slate-200"><option value="">Todos los comercios</option>{shops.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select>
-        </>}
+        {section === 'usuarios' && <select aria-label="Filtrar por rol" value={role} onChange={(event) => setFilter(setRole)(event.target.value)} className="rounded-lg border border-white/10 bg-[#091321] px-3 py-2 text-sm text-slate-200"><option value="">Todos los roles</option><option value="cliente">Cliente</option><option value="comerciante">Comerciante</option><option value="admin">Administrador</option></select>}
+        {section === 'comercios' && <select aria-label="Filtrar por estado" value={status} onChange={(event) => setFilter(setStatus)(event.target.value)} className="rounded-lg border border-white/10 bg-[#091321] px-3 py-2 text-sm text-slate-200"><option value="">Todos los estados</option><option value="activa">Activa</option><option value="rechazada">Rechazado</option></select>}
       </div>
 
       {notice && <div role="status" className="mb-4 rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-200">{notice}</div>}
@@ -306,17 +339,17 @@ export default function AdminRecordsPage({ section }: { section: string }) {
       <div className="overflow-hidden rounded-xl border border-white/10 bg-[#111f31]">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] border-collapse text-left text-sm">
-            <thead className="bg-white/[0.035] text-[11px] uppercase tracking-wide text-slate-400"><tr>{fields.map(([key, label]) => <th key={key} scope="col" className="whitespace-nowrap px-4 py-3 font-bold">{label}</th>)}<th scope="col" className="px-4 py-3 font-bold">Detalle</th>{hasActionColumn && <th scope="col" className="px-4 py-3 font-bold">Acción</th>}</tr></thead>
+            <thead className="bg-white/[0.035] text-[11px] uppercase tracking-wide text-slate-400"><tr>{fields.map(([key, label]) => <th key={key} scope="col" className="whitespace-nowrap px-4 py-3 font-bold">{label}</th>)}{hasDetailsColumn && <th scope="col" className="px-4 py-3 font-bold">Detalle</th>}{hasActionColumn && <th scope="col" className="px-4 py-3 font-bold">Acción</th>}</tr></thead>
             <tbody className="divide-y divide-white/[0.06]">
-              {loading && <tr><td colSpan={fields.length + 1 + (hasActionColumn ? 1 : 0)} className="px-4 py-12 text-center text-slate-400">Cargando registros…</td></tr>}
+              {loading && <tr><td colSpan={fields.length + (hasDetailsColumn ? 1 : 0) + (hasActionColumn ? 1 : 0)} className="px-4 py-12 text-center text-slate-400">Cargando registros…</td></tr>}
               {!loading && !error && records.map((record, index) => (
                 <tr key={String(record.id ?? index)} className="text-slate-200 hover:bg-white/[0.025]">
                   {fields.map(([key]) => <td key={key} className="max-w-64 px-4 py-3 align-top">{renderRecordValue(viewSection, record, key)}</td>)}
-                  <td className="px-4 py-3"><button type="button" onClick={() => void openRecordDetails(record)} className="whitespace-nowrap rounded-md border border-white/10 px-3 py-1.5 text-xs font-semibold text-sky-200 hover:bg-white/5">Ver detalle</button></td>
-                  {section === 'comercios' ? <td className="px-4 py-3">{record.estado === 'pendiente' ? <div className="flex flex-wrap gap-2"><button type="button" onClick={() => void approveShop(record)} className="whitespace-nowrap rounded-md border border-emerald-300/25 bg-emerald-300/10 px-3 py-1.5 text-xs font-bold text-emerald-200 hover:bg-emerald-300/20">Aprobar</button><button type="button" onClick={() => void rejectShop(record)} className="whitespace-nowrap rounded-md border border-rose-300/25 bg-rose-300/10 px-3 py-1.5 text-xs font-bold text-rose-200 hover:bg-rose-300/20">Rechazar</button></div> : <span className="text-xs text-slate-500">—</span>}</td> : managedStatusSections.has(section) ? <td className="px-4 py-3"><button type="button" onClick={() => void toggleRecordStatus(record)} disabled={typeof record[section === 'productos' ? 'disponible' : 'activo'] !== 'boolean'} className="whitespace-nowrap rounded-md border border-white/10 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40">{section === 'productos' ? record.disponible ? 'Pausar' : 'Activar' : record.activo ? 'Desactivar' : 'Activar'}</button></td> : null}
+                  {hasDetailsColumn && <td className="px-4 py-3"><button type="button" onClick={() => openRecordDetails(record)} className="whitespace-nowrap rounded-md border border-white/10 px-3 py-1.5 text-xs font-semibold text-sky-200 hover:bg-white/5">Ver detalle</button></td>}
+                  {section === 'comercios' ? <td className="px-4 py-3">{record.estado === 'pendiente' ? <div className="flex flex-wrap gap-2"><button type="button" onClick={() => void approveShop(record)} className="whitespace-nowrap rounded-md border border-emerald-300/25 bg-emerald-300/10 px-3 py-1.5 text-xs font-bold text-emerald-200 hover:bg-emerald-300/20">Aprobar</button><button type="button" onClick={() => void rejectShop(record)} className="whitespace-nowrap rounded-md border border-rose-300/25 bg-rose-300/10 px-3 py-1.5 text-xs font-bold text-rose-200 hover:bg-rose-300/20">Rechazar</button></div> : <span className="text-xs text-slate-500">—</span>}</td> : managedStatusSections.has(section) ? <td className="px-4 py-3"><button type="button" onClick={() => void toggleRecordStatus(record)} disabled={typeof record.activo !== 'boolean'} className="whitespace-nowrap rounded-md border border-white/10 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40">{record.activo ? 'Desactivar' : 'Activar'}</button></td> : null}
                 </tr>
               ))}
-              {!loading && !error && records.length === 0 && <tr><td colSpan={fields.length + 1 + (hasActionColumn ? 1 : 0)} className="px-4 py-14 text-center"><p className="font-semibold text-slate-300">No hay registros para mostrar</p><p className="mt-1 text-xs text-slate-500">Prueba cambiar la búsqueda o los filtros.</p></td></tr>}
+              {!loading && !error && records.length === 0 && <tr><td colSpan={fields.length + (hasDetailsColumn ? 1 : 0) + (hasActionColumn ? 1 : 0)} className="px-4 py-14 text-center"><p className="font-semibold text-slate-300">No hay registros para mostrar</p><p className="mt-1 text-xs text-slate-500">Prueba cambiar la búsqueda o los filtros.</p></td></tr>}
             </tbody>
           </table>
         </div>
@@ -327,7 +360,7 @@ export default function AdminRecordsPage({ section }: { section: string }) {
       </div>
       {selectedRecord && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelectedRecord(null); }}>
-          <section role="dialog" aria-modal="true" aria-labelledby="admin-record-title" className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-white/10 bg-[#111f31] p-5 shadow-2xl">
+          <section role="dialog" aria-modal="true" aria-labelledby="admin-record-title" className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-xl border border-white/10 bg-[#111f31] p-5 shadow-2xl sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-sky-300">{config.title}</p>
@@ -335,7 +368,7 @@ export default function AdminRecordsPage({ section }: { section: string }) {
               </div>
               <button type="button" autoFocus onClick={() => setSelectedRecord(null)} aria-label="Cerrar detalle" className="rounded-md border border-white/10 px-3 py-1 text-lg text-slate-300 hover:bg-white/5">×</button>
             </div>
-            <dl className="mt-5 grid gap-x-5 gap-y-4 sm:grid-cols-2">
+            {viewSection === 'comercios' ? <CommerceInspection record={selectedRecord} /> : <dl className="mt-5 grid gap-x-5 gap-y-4 sm:grid-cols-2">
               {Object.entries(selectedRecord)
                 .filter(([key]) => viewSection !== 'auditorias' || !['usuario_id', 'registro_id'].includes(key))
                 .map(([key, value]) => (
@@ -344,20 +377,26 @@ export default function AdminRecordsPage({ section }: { section: string }) {
                     <dd className="mt-1 break-words text-sm text-slate-200">{viewSection === 'auditorias' && key === 'accion' ? renderRecordValue(viewSection, selectedRecord, key) : value && typeof value === 'object' ? JSON.stringify(value) : formatValue(value, key)}</dd>
                   </div>
                 ))}
-            </dl>
+            </dl>}
             {viewSection === 'auditorias' && <AuditChanges record={selectedRecord} />}
-            {detailsLoading && <p className="mt-5 text-sm text-slate-400">Cargando detalles y movimientos…</p>}
-            {detailsError && <p role="alert" className="mt-5 rounded-lg border border-rose-400/30 bg-rose-400/10 px-3 py-2 text-sm text-rose-200">{detailsError}</p>}
-            {relatedDetails && <div className="mt-6 space-y-6">
-              <section>
-                <h4 className="font-bold text-white">Artículos y montos históricos</h4>
-                {relatedDetails.details.length ? <ul className="mt-3 divide-y divide-white/[0.06]">{relatedDetails.details.map((item, index) => <li key={String(item.id ?? index)} className="flex flex-wrap items-center justify-between gap-3 py-3"><div className="min-w-0"><p className="font-semibold text-slate-200">{String(item.nombre_producto_snapshot ?? item.descripcion_snapshot ?? 'Artículo')}</p>{typeof item.descripcion_snapshot === 'string' && typeof item.nombre_producto_snapshot === 'string' && <p className="mt-1 text-xs text-slate-400">{item.descripcion_snapshot}</p>}<p className="mt-1 text-xs text-slate-400">{String(item.cantidad ?? 0)} × {formatValue(item.precio, 'precio')}{Number(item.descuento) > 0 ? ` · descuento ${formatValue(item.descuento, 'descuento')}` : ''}</p></div><strong className="shrink-0 text-sm text-emerald-200">{formatValue(item.subtotal, 'subtotal')}</strong></li>)}</ul> : <p className="mt-2 text-sm text-slate-400">No hay artículos asociados a este registro.</p>}
-              </section>
-              {relatedDetails.history.length > 0 && <section>
-                <h4 className="font-bold text-white">Historial de estados</h4>
-                <ol className="mt-3 space-y-3">{relatedDetails.history.map((item, index) => <li key={String(item.id ?? index)} className="border-l-2 border-sky-400/40 pl-3"><p className="text-sm font-semibold text-slate-200">{String(item.estado_anterior ?? 'Inicio')} → {String(item.estado_nuevo ?? '—').replaceAll('_', ' ')}</p><p className="mt-1 text-xs text-slate-400">{item.created_at ? new Date(String(item.created_at)).toLocaleString('es-PY') : 'Fecha no disponible'}{item.observacion ? ` · ${String(item.observacion)}` : ''}</p></li>)}</ol>
-              </section>}
-            </div>}
+            {viewSection === 'comercios' && selectedRecord.estado === 'pendiente' && <section className="mt-6 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+              <h4 className="text-sm font-bold text-white">Decisión de solicitud</h4>
+              {decisionError && <p role="alert" className="mt-3 rounded-lg border border-rose-300/30 bg-rose-300/10 px-3 py-2 text-sm text-rose-200">{decisionError}</p>}
+              {rejectionMode ? <form onSubmit={(event) => { event.preventDefault(); void rejectShop(selectedRecord, rejectionReason, false); }} className="mt-3 space-y-3">
+                <label htmlFor="shop-rejection-reason" className="block text-xs font-semibold text-slate-300">Motivo u observación <span className="font-normal text-slate-500">(opcional)</span></label>
+                <textarea id="shop-rejection-reason" rows={3} maxLength={500} value={rejectionReason} onChange={(event) => setRejectionReason(event.target.value)} placeholder="Escribe una observación para dejarla registrada en la auditoría…" className="w-full resize-y rounded-lg border border-white/10 bg-[#091321] px-3 py-2.5 text-sm text-white outline-none placeholder:text-slate-500 focus:border-rose-300/60" />
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <span className="text-xs text-slate-500">{rejectionReason.length}/500 caracteres</span>
+                  <div className="flex gap-2">
+                    <button type="button" disabled={decisionLoading} onClick={() => { setRejectionMode(false); setDecisionError(''); }} className="rounded-lg border border-white/10 px-3 py-2 text-xs font-semibold text-slate-300 hover:bg-white/5 disabled:opacity-50">Cancelar</button>
+                    <button type="submit" disabled={decisionLoading} className="rounded-lg bg-rose-600 px-3 py-2 text-xs font-bold text-white hover:bg-rose-500 disabled:cursor-wait disabled:opacity-50">{decisionLoading ? 'Rechazando…' : 'Confirmar rechazo'}</button>
+                  </div>
+                </div>
+              </form> : <div className="mt-3 flex flex-wrap justify-end gap-2">
+                <button type="button" disabled={decisionLoading} onClick={() => { setRejectionMode(true); setDecisionError(''); }} className="rounded-lg border border-rose-300/30 bg-rose-300/10 px-4 py-2.5 text-sm font-bold text-rose-200 hover:bg-rose-300/20 disabled:opacity-50">Rechazar Comercio</button>
+                <button type="button" disabled={decisionLoading} onClick={() => void approveShop(selectedRecord, false)} className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-500 disabled:cursor-wait disabled:opacity-50">{decisionLoading ? 'Procesando…' : 'Aprobar Comercio'}</button>
+              </div>}
+            </section>}
           </section>
         </div>
       )}

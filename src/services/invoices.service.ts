@@ -93,10 +93,17 @@ export async function getMyStoreInvoiceById(invoiceId: string) {
     .order('created_at', { ascending: true });
   if (detailsError) throw detailsError;
 
+  const [saleResult, orderResult] = await Promise.all([
+    supabase.from('ventas').select('id, numero_venta, estado, total, metodo_pago, created_at').eq('id', invoice.venta_id).eq('tienda_id', invoice.tienda_id).maybeSingle(),
+    supabase.from('pedidos').select('id, numero_pedido, estado, estado_pago, total, created_at').eq('id', invoice.pedido_id).eq('tienda_id', invoice.tienda_id).maybeSingle(),
+  ]);
+
   return {
     invoice: invoice as unknown as FacturaInterna,
     storeName: stores?.find((store) => store.id === invoice.tienda_id)?.nombre_comercio ?? '',
     details: (details ?? []) as unknown as FacturaDetalle[],
+    sale: saleResult.data ?? null,
+    order: orderResult.data ?? null,
   };
 }
 

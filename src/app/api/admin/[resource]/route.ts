@@ -4,17 +4,9 @@ import { isDeniedResponse, isPermissionError, requireAdmin } from '@/lib/admin-s
 const RESOURCES = {
   usuarios: { table: 'usuarios', order: 'creado_en', search: ['nombre_completo', 'email'] },
   comercios: { table: 'tiendas', order: 'creado_en', search: ['nombre_comercio', 'email', 'whatsapp'] },
-  productos: { table: 'productos', order: 'creado_en', search: ['titulo'] },
   categorias: { table: 'categorias', order: 'nombre', search: ['nombre'] },
   departamentos: { table: 'departamentos', order: 'nombre', search: ['nombre'] },
   distritos: { table: 'distritos', order: 'nombre', search: ['nombre'] },
-  pedidos: { table: 'pedidos', order: 'created_at', search: ['numero_pedido'] },
-  pedido_detalles: { table: 'pedido_detalles', order: 'created_at', search: ['nombre_producto_snapshot', 'descripcion_snapshot'] },
-  pedido_estado_historial: { table: 'pedido_estado_historial', order: 'created_at', search: ['estado_anterior', 'estado_nuevo', 'observacion'] },
-  ventas: { table: 'ventas', order: 'created_at', search: ['numero_venta'] },
-  venta_detalles: { table: 'venta_detalles', order: 'created_at', search: ['nombre_producto_snapshot', 'descripcion_snapshot'] },
-  facturas: { table: 'facturas', order: 'fecha', search: ['numero'] },
-  factura_detalles: { table: 'factura_detalles', order: 'created_at', search: ['descripcion_snapshot'] },
   auditorias: { table: 'auditorias', order: 'fecha_hora', search: ['accion', 'tabla_afectada'] },
   notificaciones: { table: 'notificaciones', order: 'created_at', search: [] },
 } as const;
@@ -22,7 +14,6 @@ const RESOURCES = {
 type Resource = keyof typeof RESOURCES;
 const STATUS_FIELDS = {
   usuarios: 'activo',
-  productos: 'disponible',
   categorias: 'activo',
   departamentos: 'activo',
   distritos: 'activo',
@@ -69,7 +60,7 @@ export async function GET(request: NextRequest, { params }: { params: { resource
   }
 
   const status = searchParams.get('status');
-  if (status && ['comercios', 'pedidos', 'ventas', 'facturas'].includes(resource)) {
+  if (status && resource === 'comercios') {
     query = query.eq('estado', status);
   }
   if (resource === 'usuarios') {
@@ -77,40 +68,12 @@ export async function GET(request: NextRequest, { params }: { params: { resource
     const role = requestedRole === 'administrador' ? 'admin' : requestedRole;
     if (role && ['cliente', 'comerciante', 'admin'].includes(role)) query = query.eq('rol', role);
   }
-  if (resource === 'productos') {
-    const available = searchParams.get('available');
-    const categoryId = searchParams.get('category');
-    const shopId = searchParams.get('shop');
-    if (available === 'true' || available === 'false') query = query.eq('disponible', available === 'true');
-    if (categoryId) query = query.eq('categoria_id', Number(categoryId));
-    if (shopId) query = query.eq('tienda_id', shopId);
-  }
-
   const { data, count, error } = await query;
   if (error) {
     return NextResponse.json(
       { error: isPermissionError(error) ? 'La política RLS no permite consultar esta sección.' : 'No se pudieron cargar los registros.' },
       { status: isPermissionError(error) ? 403 : 502 }
     );
-  }
-
-  let options: Record<string, unknown> = {};
-  if (resource === 'productos') {
-    const [categories, shops] = await Promise.all([
-      access.supabase.from('categorias').select('id, nombre').order('nombre').limit(200),
-      access.supabase.from('tiendas').select('id, nombre_comercio').order('nombre_comercio').limit(200),
-    ]);
-    const optionError = categories.error || shops.error;
-    if (optionError) {
-      return NextResponse.json(
-        { error: isPermissionError(optionError) ? 'La política RLS no permite consultar los filtros de productos.' : 'No se pudieron cargar los filtros.' },
-        { status: isPermissionError(optionError) ? 403 : 502 }
-      );
-    }
-    options = {
-      categories: categories.data ?? [],
-      shops: shops.data ?? [],
-    };
   }
 
   const records = (data ?? []) as unknown as Array<Record<string, unknown>>;
@@ -185,41 +148,25 @@ export async function GET(request: NextRequest, { params }: { params: { resource
         enrich('usuarios', 'id', ids('usuario_id')),
         enrich('distritos', 'id', records.map((record) => record.distrito_id).filter((id): id is number => typeof id === 'number').map(String)),
       ]);
-      const ownerMap = new Map(owners.map((owner) => [owner.id, owner.nombre_completo]));
-      const districtMap = new Map(districts.map((district) => [district.id, district.nombre]));
+      const departmentIds = Array.from(new Set(districts
+        .map((district) => district.departamento_id)
+        .filter((id): id is string | number => typeof id === 'string' || typeof id === 'number')
+        .map(String)));
+      const departments = await enrich('departamentos', 'id', departmentIds);
+      const ownerMap = new Map(owners.map((owner) => [String(owner.id), owner]));
+      const districtMap = new Map(districts.map((district) => [String(district.id), district]));
+      const departmentMap = new Map(departments.map((department) => [String(department.id), department.nombre]));
       for (const record of records) {
-        record.propietario = ownerMap.get(record.usuario_id) ?? null;
-        record.distrito = districtMap.get(record.distrito_id) ?? null;
+        const owner = ownerMap.get(String(record.usuario_id));
+        const district = districtMap.get(String(record.distrito_id));
+        record.propietario = owner?.nombre_completo ?? null;
+        record.propietario_email = owner?.email ?? record.email ?? null;
+        record.propietario_telefono = owner?.telefono_contacto ?? record.telefono ?? record.whatsapp ?? null;
+        record.distrito = district?.nombre ?? null;
+        record.departamento = district ? departmentMap.get(String(district.departamento_id)) ?? null : null;
       }
     }
 
-    if (resource === 'productos') {
-      const [shops, categories] = await Promise.all([
-        enrich('tiendas', 'id', ids('tienda_id')),
-        enrich('categorias', 'id', records.map((record) => record.categoria_id).filter((id): id is number => typeof id === 'number').map(String)),
-      ]);
-      const shopMap = new Map(shops.map((shop) => [shop.id, shop]));
-      const categoryMap = new Map(categories.map((category) => [category.id, category.nombre]));
-      const owners = await enrich('usuarios', 'id', Array.from(new Set(shops.map((shop) => shop.usuario_id).filter((id): id is string => typeof id === 'string'))));
-      const ownerMap = new Map(owners.map((owner) => [owner.id, owner.nombre_completo]));
-      for (const record of records) {
-        const shop = shopMap.get(record.tienda_id);
-        record.comercio = shop?.nombre_comercio ?? null;
-        record.vendedor = ownerMap.get(shop?.usuario_id) ?? null;
-        record.categoria = categoryMap.get(record.categoria_id) ?? null;
-      }
-    }
-
-    if (['pedidos', 'ventas', 'facturas'].includes(resource)) {
-      const shops = await enrich('tiendas', 'id', ids('tienda_id'));
-      const shopMap = new Map(shops.map((shop) => [shop.id, shop.nombre_comercio]));
-      const users = await enrich('usuarios', 'id', Array.from(new Set(records.map((record) => record.usuario_id ?? record.cliente_id).filter((id): id is string => typeof id === 'string'))));
-      const userMap = new Map(users.map((user) => [user.id, user.nombre_completo]));
-      for (const record of records) {
-        record.comercio = shopMap.get(record.tienda_id) ?? null;
-        record.cliente = userMap.get(record.usuario_id ?? record.cliente_id) ?? null;
-      }
-    }
   } catch (relatedError) {
     if (isPermissionError(relatedError as { code?: string; message?: string })) {
       return NextResponse.json({ error: 'La política RLS no permite consultar las relaciones de esta sección.' }, { status: 403 });
@@ -227,7 +174,7 @@ export async function GET(request: NextRequest, { params }: { params: { resource
     return NextResponse.json({ error: 'No se pudieron cargar las relaciones de los registros.' }, { status: 502 });
   }
 
-  return NextResponse.json({ records, total: count ?? 0, page, pageSize, options });
+  return NextResponse.json({ records, total: count ?? 0, page, pageSize });
 }
 
 export async function PATCH(request: NextRequest, { params }: { params: { resource: string } }) {

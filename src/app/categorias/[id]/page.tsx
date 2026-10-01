@@ -3,6 +3,8 @@ import ShopCard from '@/components/shops/ShopCard';
 import { getCategories } from '@/services/categories.service';
 import { getFeaturedShops } from '@/services/shops.service';
 
+export const dynamic = 'force-dynamic';
+
 const categoryIcons: Record<string, string> = {
 	Agricultura: '🌾',
 	Alimentos: '🧺',

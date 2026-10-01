@@ -48,7 +48,13 @@ export async function POST(request: Request) {
     contentType: file.type,
     upsert: false,
   });
-  if (error) return NextResponse.json({ error: 'No se pudo guardar la imagen. Verifica el bucket y sus políticas de Storage.' }, { status: 403 });
+  if (error) {
+    console.error('No se pudo guardar el avatar en Supabase Storage:', error.message);
+    return NextResponse.json(
+      { error: 'No se pudo guardar la imagen. Verifica que la migración 20261001130000_avatar_storage.sql esté aplicada en Supabase.' },
+      { status: 403 }
+    );
+  }
 
   const url = supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl;
   return NextResponse.json({ url });

@@ -20,9 +20,12 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [adminAccessNotice, setAdminAccessNotice] = useState(false);
+  const [passwordUpdatedNotice, setPasswordUpdatedNotice] = useState(false);
 
   useEffect(() => {
-    setAdminAccessNotice(new URLSearchParams(window.location.search).get('error') === 'admin_required');
+    const params = new URLSearchParams(window.location.search);
+    setAdminAccessNotice(params.get('error') === 'admin_required');
+    setPasswordUpdatedNotice(params.get('password_updated') === '1');
   }, []);
 
   const handleGoogleLogin = async () => {
@@ -132,6 +135,12 @@ export default function LoginPage() {
               </div>
             )}
 
+            {passwordUpdatedNotice && (
+              <div role="status" className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+                Contraseña actualizada. Ya puedes iniciar sesión con tu nueva contraseña.
+              </div>
+            )}
+
             {errorMsg && (
               <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
                 <span>{errorMsg}</span>
@@ -212,6 +221,11 @@ export default function LoginPage() {
                       </svg>
                     )}
                   </button>
+                </div>
+                <div className="mt-2 text-right">
+                  <Link href="/reset-password" className="text-xs font-bold text-sky-700 hover:text-sky-900 hover:underline">
+                    ¿Olvidaste tu contraseña?
+                  </Link>
                 </div>
               </div>
 

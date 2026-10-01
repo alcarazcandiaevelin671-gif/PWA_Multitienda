@@ -65,13 +65,13 @@ export async function getVendorDashboardData(selectedStoreId?: string): Promise<
   const user = await getCurrentUser();
   const { data: profile, error: profileError } = await supabase
     .from('usuarios')
-    .select('nombre_completo, rol')
+    .select('nombre_completo, rol, activo')
     .eq('id', user.id)
     .maybeSingle();
 
   if (profileError) throw profileError;
-  if (String(profile?.rol ?? '').trim().toLowerCase() !== 'comerciante') {
-    throw new Error('Esta sección está disponible únicamente para comerciantes.');
+  if (profile?.activo !== true || String(profile.rol ?? '').trim().toLowerCase() !== 'comerciante') {
+    throw new Error('Esta sección está disponible únicamente para comerciantes activos.');
   }
 
   const { data: storeRows, error: storesError } = await supabase
@@ -96,7 +96,7 @@ export async function getVendorDashboardData(selectedStoreId?: string): Promise<
 
   if (storeIds.length === 0) {
     return {
-      merchantName: profile?.nombre_completo || user.email || 'Comerciante',
+      merchantName: user.email || profile.nombre_completo || 'Comerciante',
       stores,
       selectedStoreId: '',
       counts: {
@@ -134,16 +134,27 @@ export async function getVendorDashboardData(selectedStoreId?: string): Promise<
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthSales = sales.filter((sale) => new Date(sale.created_at) >= monthStart);
   const dailySales = new Map<string, number>();
+  const startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6);
+  const dateKey = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  const startDay = dateKey(startDate);
+  const today = dateKey(now);
 
   for (const sale of sales) {
-    const day = sale.created_at.slice(0, 10);
-    if (day >= new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6).toISOString().slice(0, 10)) {
+    const day = dateKey(new Date(sale.created_at));
+    if (day >= startDay && day <= today) {
       dailySales.set(day, (dailySales.get(day) ?? 0) + Number(sale.total ?? 0));
     }
   }
 
+  const salesByDay = dailySales.size === 0 ? [] : Array.from({ length: 7 }, (_, index) => {
+    const day = new Date(startDate);
+    day.setDate(startDate.getDate() + index);
+    const key = dateKey(day);
+    return { day: key, total: dailySales.get(key) ?? 0 };
+  });
+
   return {
-    merchantName: profile?.nombre_completo || user.email || 'Comerciante',
+    merchantName: user.email || profile?.nombre_completo || 'Comerciante',
     stores,
     selectedStoreId: selectedStoreId ?? '',
     counts: {
@@ -163,9 +174,7 @@ export async function getVendorDashboardData(selectedStoreId?: string): Promise<
       .slice(0, 5)
       .map((order) => ({ ...order, tienda_nombre: storeNames.get(order.tienda_id) ?? '' })),
     recentSales: sales.slice(0, 5),
-    salesByDay: Array.from(dailySales.entries())
-      .sort(([left], [right]) => left.localeCompare(right))
-      .map(([day, total]) => ({ day, total })),
+    salesByDay,
   };
 }
 

@@ -1,8 +1,11 @@
 ﻿import { getCategories } from '@/services/categories.service';
 import { getFeaturedShops } from '@/services/shops.service';
 import CategoryGrid from '@/components/home/CategoryGrid';
+import StorefrontAutoRefresh from '@/components/home/StorefrontAutoRefresh';
 import ShopCard from '@/components/shops/ShopCard';
 import ComerciosGuairaSection from '@/components/ui/ComerciosGuairaSection';
+
+export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   const categories = await getCategories();
@@ -10,6 +13,7 @@ export default async function Home() {
 
   return (
     <main className="bg-white text-slate-900 min-h-screen">
+      <StorefrontAutoRefresh />
       {/* 1. HERO SECTION */}
       <section className="bg-[#0b0f19] text-white py-16 md:py-20 border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
@@ -80,7 +84,7 @@ export default async function Home() {
 
       {/* 4. SECCIÓN DINÁMICA DE COMERCIOS */}
       <section id="comercios-destacados" className="py-2">
-        <ComerciosGuairaSection />
+        <ComerciosGuairaSection tiendas={shops} />
       </section>
 
       {/* 5. LOCALES VERIFICADOS (MAPEO DINÁMICO) */}

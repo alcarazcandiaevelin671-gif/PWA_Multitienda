@@ -1,83 +1,19 @@
-'use client';
-
-import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
 
-interface Tienda {
+interface TiendaPublica {
   id: string;
-  nombre_comercio: string;
-  slug: string;
-  descripcion: string;
-  categoria_principal: string;
+  nombre_comercio: string | null;
+  slug: string | null;
+  descripcion: string | null;
+  categoria_principal: string | null;
   logo_url: string | null;
   portada_url: string | null;
   whatsapp: string | null;
-  distritos?: {
-    nombre: string;
-  } | null;
+  distritos: { id: number; nombre: string | null } | null;
 }
 
-export default function ComerciosGuairaSection() {
-  const [tiendas, setTiendas] = useState<Tienda[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchTiendas() {
-      try {
-        setLoading(true);
-        const { data, error } = await supabase
-          .from('tiendas')
-          .select(`
-            id,
-            nombre_comercio,
-            slug,
-            descripcion,
-            categoria_principal,
-            logo_url,
-            portada_url,
-            whatsapp,
-            distritos (
-              nombre
-            )
-          `)
-          .order('creado_en', { ascending: false });
-
-        if (error) {
-          console.error('Error al cargar comercios:', error);
-        } else if (data) {
-          setTiendas(data as any);
-        }
-      } catch (err) {
-        console.error('Error inesperado:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchTiendas();
-  }, []);
-
-  if (loading) {
-    return (
-      <section className="py-12 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-2xl font-black text-slate-900 tracking-tight">🏪 Comercios del Guairá</h2>
-              <p className="text-xs text-slate-500 mt-1">Cargando tiendas de la región...</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-64 bg-slate-200 animate-pulse rounded-3xl border border-slate-300" />
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
+export default function ComerciosGuairaSection({ tiendas }: { tiendas: TiendaPublica[] }) {
 
   if (tiendas.length === 0) {
     return (
@@ -109,7 +45,8 @@ export default function ComerciosGuairaSection() {
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {tiendas.map((tienda) => {
-            const distritoNombre = (tienda.distritos as any)?.nombre || 'Guairá';
+            const distritoNombre = tienda.distritos?.nombre || 'Guairá';
+            const nombreComercio = tienda.nombre_comercio || 'Comercio del Guairá';
 
             return (
               <Link
@@ -121,7 +58,7 @@ export default function ComerciosGuairaSection() {
                   {tienda.portada_url ? (
                     <Image
                       src={tienda.portada_url}
-                      alt={tienda.nombre_comercio}
+                      alt={nombreComercio}
                       fill
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
@@ -141,7 +78,7 @@ export default function ComerciosGuairaSection() {
                   <div className="-mt-8 mb-3 flex items-end justify-between gap-3">
                     <div className="relative h-16 w-16 overflow-hidden rounded-[18px] border-4 border-white bg-slate-100 shadow-md">
                       {tienda.logo_url ? (
-                        <Image src={tienda.logo_url} alt={tienda.nombre_comercio} fill className="object-cover" />
+                        <Image src={tienda.logo_url} alt={nombreComercio} fill className="object-cover" />
                       ) : (
                         <div className="flex h-full items-center justify-center bg-slate-100 text-2xl">🏪</div>
                       )}
@@ -153,7 +90,7 @@ export default function ComerciosGuairaSection() {
                   </div>
 
                   <h3 className="line-clamp-1 text-lg font-black text-slate-900 transition-colors group-hover:text-sky-700">
-                    {tienda.nombre_comercio}
+                    {nombreComercio}
                   </h3>
 
                   {tienda.descripcion && (

@@ -97,7 +97,7 @@ export default function VendorOrdersPage() {
           </table>
         </div>
       )}
-      <Link href="/vendedor" className="mt-6 inline-flex text-sm font-bold text-blue-700 hover:underline">Volver al dashboard</Link>
+      <Link href="/comerciante" className="mt-6 inline-flex text-sm font-bold text-blue-700 hover:underline">Volver al panel de comerciante</Link>
     </main>
   );
 }

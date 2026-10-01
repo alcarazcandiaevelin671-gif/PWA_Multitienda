@@ -1,6 +1,8 @@
 import ShopCard from '@/components/shops/ShopCard';
 import { getFeaturedShops } from '@/services/shops.service';
 
+export const dynamic = 'force-dynamic';
+
 export default async function TiendasPage() {
   const shops = await getFeaturedShops();
 
