@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import useNotificaciones from '@/hooks/useNotificaciones';
 import type { Notificacion } from '@/types/database';
 
 const relativeTime = new Intl.RelativeTimeFormat('es', { numeric: 'auto' });
@@ -57,48 +58,38 @@ export default function NotificationBell({ userId, role }: { userId: string; rol
   const router = useRouter();
   const rootRef = useRef<HTMLDivElement>(null);
   const [notifications, setNotifications] = useState<Notificacion[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState('');
   const [markingId, setMarkingId] = useState<string | null>(null);
+  const { unreadCount, changeVersion } = useNotificaciones();
+
+  const load = useCallback(async () => {
+    const { data, error: loadError } = await supabase
+      .from('notificaciones')
+      .select('id, usuario_id, titulo, mensaje, tipo, leida, link, created_at')
+      .eq('usuario_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    if (loadError) {
+      setNotifications([]);
+      setError('No se pudieron cargar tus notificaciones.');
+      return;
+    }
+
+    setNotifications((data ?? []) as Notificacion[]);
+    setError('');
+  }, [userId]);
 
   useEffect(() => {
-    let active = true;
-    const load = async () => {
-      const [listResult, countResult] = await Promise.all([
-        supabase.from('notificaciones').select('id, usuario_id, titulo, mensaje, tipo, leida, link, created_at').eq('usuario_id', userId).order('created_at', { ascending: false }).limit(5),
-        supabase.from('notificaciones').select('id', { count: 'exact', head: true }).eq('usuario_id', userId).eq('leida', false),
-      ]);
-      if (!active) return;
-      if (listResult.error || countResult.error) {
-        setNotifications([]);
-        setUnreadCount(0);
-        setError('No se pudieron cargar tus notificaciones.');
-        return;
-      }
-      setNotifications((listResult.data ?? []) as Notificacion[]);
-      setUnreadCount(countResult.count ?? 0);
-      setError('');
-    };
-
     void load();
-    const channel = supabase
-      .channel(`notificaciones:${userId}`)
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'notificaciones',
-        filter: `usuario_id=eq.${userId}`,
-      }, () => { void load(); })
-      .subscribe();
-    const interval = window.setInterval(() => { void load(); }, 30_000);
+    const interval = window.setInterval(() => void load(), 30_000);
+    return () => window.clearInterval(interval);
+  }, [load]);
 
-    return () => {
-      active = false;
-      window.clearInterval(interval);
-      void supabase.removeChannel(channel);
-    };
-  }, [userId]);
+  useEffect(() => {
+    if (changeVersion > 0) void load();
+  }, [changeVersion, load]);
 
   useEffect(() => {
     if (!open) return;
@@ -129,7 +120,6 @@ export default function NotificationBell({ userId, role }: { userId: string; rol
       return;
     }
     setNotifications((current) => current.map((item) => item.id === notification.id ? { ...item, leida: true } : item));
-    if (!notification.leida) setUnreadCount((current) => Math.max(0, current - 1));
     setOpen(false);
     const destination = getNotificationDestination(notification, role);
     if (destination.kind === 'external') window.location.assign(destination.href);
