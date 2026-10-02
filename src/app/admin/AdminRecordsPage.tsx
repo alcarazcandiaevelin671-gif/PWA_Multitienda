@@ -12,8 +12,8 @@ const sections: Record<string, { resource: string; title: string; description: s
   categorias: { resource: 'categorias', title: 'Categorías', description: 'Categorías disponibles en el catálogo.' },
   departamentos: { resource: 'departamentos', title: 'Departamentos', description: 'Departamentos registrados.' },
   distritos: { resource: 'distritos', title: 'Distritos', description: 'Distritos y departamento relacionado.' },
-  auditorias: { resource: 'auditorias', title: 'Auditoría', description: 'Acciones administrativas registradas.' },
-  notificaciones: { resource: 'notificaciones', title: 'Notificaciones', description: 'Notificaciones guardadas en la plataforma.' },
+  auditorias: { resource: 'auditorias', title: 'Logs de sistema', description: 'Acciones administrativas registradas.' },
+  notificaciones: { resource: 'notificaciones', title: 'Notificaciones', description: 'Mensajes enviados, destinatarios y estado de lectura.' },
 };
 
 const columns: Record<string, Array<[string, string]>> = {
@@ -23,7 +23,7 @@ const columns: Record<string, Array<[string, string]>> = {
   departamentos: [['nombre', 'Departamento'], ['codigo', 'Código'], ['activo', 'Estado'], ['creado_en', 'Registro']],
   distritos: [['nombre', 'Distrito'], ['departamento_id', 'Departamento'], ['activo', 'Estado'], ['creado_en', 'Registro']],
   auditorias: [['accion', 'Acción'], ['tabla_afectada', 'Tabla'], ['registro_legible', 'Registro'], ['administrador', 'Administrador'], ['fecha_hora', 'Fecha']],
-  notificaciones: [['usuario_id', 'Usuario'], ['leida', 'Leída'], ['created_at', 'Fecha']],
+  notificaciones: [['titulo', 'Notificación'], ['destinatario', 'Destinatario'], ['tipo', 'Tipo'], ['mensaje', 'Mensaje'], ['leida', 'Estado'], ['created_at', 'Fecha y hora']],
 };
 
 const managedStatusSections = new Set(['usuarios', 'categorias', 'departamentos', 'distritos']);
@@ -35,7 +35,7 @@ function formatValue(value: unknown, field: string) {
   if (['creado_en', 'created_at', 'fecha', 'fecha_hora'].includes(field)) {
     const date = new Date(String(value));
     if (Number.isNaN(date.getTime())) return String(value);
-    return field === 'fecha_hora'
+    return field === 'fecha_hora' || field === 'created_at'
       ? date.toLocaleString('es-PY', { dateStyle: 'short', timeStyle: 'short' })
       : date.toLocaleDateString('es-PY');
   }
@@ -52,6 +52,12 @@ const auditActionBadges: Record<string, { label: string; className: string }> = 
   DESACTIVACION_CUENTA: { label: 'Desactivación de cuenta', className: 'border-amber-300/30 bg-amber-300/10 text-amber-200' },
 };
 
+const notificationTypeLabels: Record<string, string> = {
+  promocion: 'Promoción',
+  comercio_aprobado: 'Comercio aprobado',
+  comercio_rechazado: 'Comercio rechazado',
+};
+
 function renderRecordValue(section: string, record: RecordRow, key: string) {
   if (section === 'auditorias' && key === 'accion') {
     const action = String(record.accion ?? '').toUpperCase();
@@ -62,8 +68,48 @@ function renderRecordValue(section: string, record: RecordRow, key: string) {
     return <span title={action} className={`inline-flex max-w-56 rounded-full border px-2.5 py-1 text-xs font-semibold ${badge.className}`}>{badge.label}</span>;
   }
 
+  if (section === 'notificaciones' && key === 'tipo') {
+    const rawType = String(record.tipo ?? '').toLowerCase();
+    const type = rawType.replaceAll('_', ' ');
+    const label = notificationTypeLabels[rawType] ?? (type ? `${type.charAt(0).toLocaleUpperCase('es-PY')}${type.slice(1)}` : 'Sin tipo');
+    return <span className="inline-flex rounded-full border border-sky-300/20 bg-sky-300/10 px-2 py-1 text-xs font-semibold text-sky-200">{label}</span>;
+  }
+
+  if (section === 'notificaciones' && key === 'leida') {
+    const isRead = record.leida === true;
+    return <span className={`inline-flex rounded-full border px-2 py-1 text-xs font-semibold ${isRead ? 'border-emerald-300/20 bg-emerald-300/10 text-emerald-200' : 'border-amber-300/20 bg-amber-300/10 text-amber-200'}`}>{isRead ? 'Leída' : 'Pendiente'}</span>;
+  }
+
   const isStatus = key === 'estado' || key === 'rol' || key === 'disponible' || key === 'activo';
   return <span className={isStatus ? 'inline-flex rounded-full border border-white/10 bg-white/[0.05] px-2 py-1 text-xs font-semibold capitalize' : 'block truncate'} title={String(record[key] ?? '')}>{formatValue(record[key], key)}</span>;
+}
+
+function NotificationInspection({ record }: { record: RecordRow }) {
+  const fields = [
+    ['titulo', 'Título'],
+    ['destinatario', 'Destinatario'],
+    ['tipo', 'Tipo'],
+    ['leida', 'Estado'],
+    ['created_at', 'Fecha y hora'],
+    ['link', 'Enlace de destino'],
+  ];
+
+  return (
+    <div className="mt-5 space-y-4">
+      <dl className="grid gap-x-5 gap-y-3 sm:grid-cols-2">
+        {fields.map(([key, label]) => (
+          <div key={key} className="min-w-0 border-b border-white/[0.06] pb-3">
+            <dt className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{label}</dt>
+            <dd className="mt-1 break-words text-sm text-slate-200">{key === 'tipo' || key === 'leida' ? renderRecordValue('notificaciones', record, key) : formatValue(record[key], key)}</dd>
+          </div>
+        ))}
+      </dl>
+      <section>
+        <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">Mensaje</h4>
+        <p className="whitespace-pre-wrap break-words rounded-lg border border-white/10 bg-white/[0.03] p-3 text-sm leading-6 text-slate-200">{formatValue(record.mensaje, 'mensaje')}</p>
+      </section>
+    </div>
+  );
 }
 
 function formatAuditValue(value: unknown) {
@@ -79,7 +125,10 @@ function AuditChanges({ record }: { record: RecordRow }) {
   const after = record.datos_nuevos && typeof record.datos_nuevos === 'object' && !Array.isArray(record.datos_nuevos)
     ? record.datos_nuevos as Record<string, unknown>
     : {};
-  const fields = Array.from(new Set([...Object.keys(before), ...Object.keys(after)]));
+  const technicalFields = new Set(['id', 'usuario_id', 'registro_id', 'creado_en', 'actualizado_en', 'created_at', 'updated_at', 'fecha_hora']);
+  const fields = Array.from(new Set([...Object.keys(before), ...Object.keys(after)])).filter((field) =>
+    !technicalFields.has(field) && JSON.stringify(before[field]) !== JSON.stringify(after[field])
+  );
 
   return (
     <section className="mt-6">
@@ -89,18 +138,12 @@ function AuditChanges({ record }: { record: RecordRow }) {
           <table className="w-full min-w-[560px] text-left text-sm">
             <thead className="bg-white/[0.04] text-[10px] uppercase text-slate-400"><tr><th className="px-3 py-2">Campo</th><th className="px-3 py-2">Antes</th><th className="px-3 py-2">Después</th></tr></thead>
             <tbody className="divide-y divide-white/[0.06]">
-              {fields.map((field) => {
-                const changed = JSON.stringify(before[field]) !== JSON.stringify(after[field]);
-                return <tr key={field}><th scope="row" className="px-3 py-3 align-top font-semibold text-slate-300">{field.replaceAll('_', ' ')}</th><td className={`max-w-72 whitespace-pre-wrap break-words px-3 py-3 align-top ${changed ? 'bg-rose-400/[0.08] text-rose-200' : 'text-slate-400'}`}>{formatAuditValue(before[field])}</td><td className={`max-w-72 whitespace-pre-wrap break-words px-3 py-3 align-top ${changed ? 'bg-emerald-400/[0.08] text-emerald-200' : 'text-slate-400'}`}>{formatAuditValue(after[field])}</td></tr>;
-              })}
+              {fields.map((field) => <tr key={field}><th scope="row" className="px-3 py-3 align-top font-semibold capitalize text-slate-300">{field.replaceAll('_', ' ')}</th><td className="max-w-72 whitespace-pre-wrap break-words bg-rose-400/[0.08] px-3 py-3 align-top text-rose-200">{formatAuditValue(before[field])}</td><td className="max-w-72 whitespace-pre-wrap break-words bg-emerald-400/[0.08] px-3 py-3 align-top text-emerald-200">{formatAuditValue(after[field])}</td></tr>)}
             </tbody>
           </table>
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3"><p className="mb-2 text-xs font-bold text-rose-200">Antes</p><pre className="whitespace-pre-wrap break-words text-xs text-slate-300">{formatAuditValue(record.datos_anteriores)}</pre></div>
-          <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3"><p className="mb-2 text-xs font-bold text-emerald-200">Después</p><pre className="whitespace-pre-wrap break-words text-xs text-slate-300">{formatAuditValue(record.datos_nuevos)}</pre></div>
-        </div>
+        <p className="rounded-lg border border-white/10 bg-white/[0.03] p-3 text-sm text-slate-400">No hay campos modificados para mostrar.</p>
       )}
     </section>
   );
@@ -242,7 +285,7 @@ export default function AdminRecordsPage({ section }: { section: string }) {
       const response = await fetch(`/api/admin/comercios/${encodeURIComponent(String(record.id))}/approve`, { method: 'POST' });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'No se pudo aprobar el comercio.');
-      setNotice(result.auditWarning || 'Comercio aprobado. La acción quedó registrada en auditoría.');
+      setNotice(result.auditWarning || 'Comercio aprobado. La acción quedó registrada en los logs de sistema.');
       setRefreshKey((value) => value + 1);
       setSelectedRecord(null);
       setRejectionMode(false);
@@ -271,7 +314,7 @@ export default function AdminRecordsPage({ section }: { section: string }) {
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'No se pudo rechazar el comercio.');
-      setNotice(result.auditWarning || 'Comercio rechazado. La acción quedó registrada en auditoría.');
+      setNotice(result.auditWarning || 'Comercio rechazado. La acción quedó registrada en los logs de sistema.');
       setRefreshKey((value) => value + 1);
       setSelectedRecord(null);
       setRejectionMode(false);
@@ -360,7 +403,7 @@ export default function AdminRecordsPage({ section }: { section: string }) {
       </div>
 
       <div className="mb-4 flex flex-wrap gap-2 rounded-xl border border-white/10 bg-[#111f31] p-3">
-        <label className="min-w-56 flex-1"><span className="sr-only">Buscar</span><input type="search" value={search} onChange={(event) => setFilter(setSearch)(event.target.value)} placeholder={viewSection === 'auditorias' ? 'Buscar correo, tabla o acción…' : 'Buscar registros…'} className="w-full rounded-lg border border-white/10 bg-[#091321] px-3 py-2 text-sm text-white outline-none placeholder:text-slate-500 focus:border-sky-400" /></label>
+        <label className="min-w-56 flex-1"><span className="sr-only">Buscar</span><input type="search" value={search} onChange={(event) => setFilter(setSearch)(event.target.value)} placeholder={viewSection === 'auditorias' ? 'Buscar correo, tabla o acción…' : viewSection === 'notificaciones' ? 'Buscar título, mensaje o tipo…' : 'Buscar registros…'} className="w-full rounded-lg border border-white/10 bg-[#091321] px-3 py-2 text-sm text-white outline-none placeholder:text-slate-500 focus:border-sky-400" /></label>
         {section === 'usuarios' && <select aria-label="Filtrar por rol" value={role} onChange={(event) => setFilter(setRole)(event.target.value)} className="rounded-lg border border-white/10 bg-[#091321] px-3 py-2 text-sm text-slate-200"><option value="">Todos los roles</option><option value="cliente">Cliente</option><option value="comerciante">Comerciante</option><option value="admin">Administrador</option></select>}
         {section === 'comercios' && <select aria-label="Filtrar por estado" value={status} onChange={(event) => setFilter(setStatus)(event.target.value)} className="rounded-lg border border-white/10 bg-[#091321] px-3 py-2 text-sm text-slate-200"><option value="">Todos los estados</option><option value="pendiente">Pendiente</option><option value="activa">Activa</option><option value="suspendida">Suspendida</option><option value="rechazada">Rechazada</option></select>}
       </div>
@@ -395,17 +438,23 @@ export default function AdminRecordsPage({ section }: { section: string }) {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-sky-300">{config.title}</p>
-                <h3 id="admin-record-title" className="mt-1 text-lg font-bold text-white">{viewSection === 'auditorias' ? 'Detalle de auditoría' : 'Detalle del registro'}</h3>
+                <h3 id="admin-record-title" className="mt-1 text-lg font-bold text-white">{viewSection === 'auditorias' ? 'Detalle del log de sistema' : viewSection === 'notificaciones' ? 'Detalle de notificación' : 'Detalle del registro'}</h3>
               </div>
               <button type="button" autoFocus onClick={() => setSelectedRecord(null)} aria-label="Cerrar detalle" className="rounded-md border border-white/10 px-3 py-1 text-lg text-slate-300 hover:bg-white/5">×</button>
             </div>
-            {viewSection === 'comercios' ? <CommerceInspection record={selectedRecord} /> : <dl className="mt-5 grid gap-x-5 gap-y-4 sm:grid-cols-2">
+            {viewSection === 'comercios' ? <CommerceInspection record={selectedRecord} /> : viewSection === 'notificaciones' ? <NotificationInspection record={selectedRecord} /> : viewSection === 'auditorias' ? <dl className="mt-5 grid gap-x-5 gap-y-4 sm:grid-cols-2">
+              {columns.auditorias.map(([key, label]) => (
+                <div key={key} className="min-w-0 border-b border-white/[0.06] pb-3">
+                  <dt className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{label}</dt>
+                  <dd className="mt-1 break-words text-sm text-slate-200">{renderRecordValue(viewSection, selectedRecord, key)}</dd>
+                </div>
+              ))}
+            </dl> : <dl className="mt-5 grid gap-x-5 gap-y-4 sm:grid-cols-2">
               {Object.entries(selectedRecord)
-                .filter(([key]) => viewSection !== 'auditorias' || !['usuario_id', 'registro_id'].includes(key))
                 .map(([key, value]) => (
                   <div key={key} className="min-w-0 border-b border-white/[0.06] pb-3">
                     <dt className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{key.replaceAll('_', ' ')}</dt>
-                    <dd className="mt-1 break-words text-sm text-slate-200">{viewSection === 'auditorias' && key === 'accion' ? renderRecordValue(viewSection, selectedRecord, key) : value && typeof value === 'object' ? JSON.stringify(value) : formatValue(value, key)}</dd>
+                    <dd className="mt-1 break-words text-sm text-slate-200">{value && typeof value === 'object' ? JSON.stringify(value) : formatValue(value, key)}</dd>
                   </div>
                 ))}
             </dl>}
@@ -415,7 +464,7 @@ export default function AdminRecordsPage({ section }: { section: string }) {
               {decisionError && <p role="alert" className="mt-3 rounded-lg border border-rose-300/30 bg-rose-300/10 px-3 py-2 text-sm text-rose-200">{decisionError}</p>}
               {rejectionMode ? <form onSubmit={(event) => { event.preventDefault(); void rejectShop(selectedRecord, rejectionReason, false); }} className="mt-3 space-y-3">
                 <label htmlFor="shop-rejection-reason" className="block text-xs font-semibold text-slate-300">Motivo u observación <span className="font-normal text-slate-500">(opcional)</span></label>
-                <textarea id="shop-rejection-reason" rows={3} maxLength={500} value={rejectionReason} onChange={(event) => setRejectionReason(event.target.value)} placeholder="Escribe una observación para dejarla registrada en la auditoría…" className="w-full resize-y rounded-lg border border-white/10 bg-[#091321] px-3 py-2.5 text-sm text-white outline-none placeholder:text-slate-500 focus:border-rose-300/60" />
+                <textarea id="shop-rejection-reason" rows={3} maxLength={500} value={rejectionReason} onChange={(event) => setRejectionReason(event.target.value)} placeholder="Escribe una observación para incluirla en los logs de sistema…" className="w-full resize-y rounded-lg border border-white/10 bg-[#091321] px-3 py-2.5 text-sm text-white outline-none placeholder:text-slate-500 focus:border-rose-300/60" />
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <span className="text-xs text-slate-500">{rejectionReason.length}/500 caracteres</span>
                   <div className="flex gap-2">

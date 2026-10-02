@@ -48,6 +48,6 @@ export async function POST(_request: NextRequest, { params }: { params: { id: st
   return NextResponse.json({
     shop: updated,
     auditLogged: !auditError,
-    auditWarning: auditError ? 'El comercio fue aprobado, pero RLS no permitió registrar la auditoría.' : null,
+    auditWarning: auditError ? 'El comercio fue aprobado, pero no se pudo registrar la acción en los logs de sistema.' : null,
   });
 }

@@ -2,6 +2,7 @@
 import { CartProvider } from '@/context/CartContext';
 import Navbar from '@/components/common/Navbar';
 import Footer from '@/components/common/Footer';
+import RealtimeNotificationListener from '@/components/common/RealtimeNotificationListener';
 import AppMessageLayer from '@/components/ui/AppMessageLayer';
 import ThemePreferenceSync from '@/components/configuracion/ThemePreferenceSync';
 
@@ -18,6 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ThemePreferenceSync />
           <div className="flex min-h-screen flex-col">
             <Navbar />
+            <RealtimeNotificationListener />
             <main className="min-w-0 w-full flex-1">
               {children}
             </main>

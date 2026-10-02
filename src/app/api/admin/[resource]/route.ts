@@ -8,7 +8,7 @@ const RESOURCES = {
   departamentos: { table: 'departamentos', order: 'nombre', search: ['nombre'] },
   distritos: { table: 'distritos', order: 'nombre', search: ['nombre'] },
   auditorias: { table: 'auditorias', order: 'fecha_hora', search: ['accion', 'tabla_afectada'] },
-  notificaciones: { table: 'notificaciones', order: 'created_at', search: [] },
+  notificaciones: { table: 'notificaciones', order: 'created_at', search: ['titulo', 'mensaje', 'tipo'] },
 } as const;
 
 type Resource = keyof typeof RESOURCES;
@@ -91,6 +91,19 @@ export async function GET(request: NextRequest, { params }: { params: { resource
   };
 
   try {
+    if (resource === 'notificaciones') {
+      const recipients = await enrich('usuarios', 'id', ids('usuario_id'), 'id,nombre_completo,email');
+      const recipientsById = new Map(recipients.map((recipient) => [String(recipient.id), recipient]));
+      for (const record of records) {
+        const recipient = typeof record.usuario_id === 'string' ? recipientsById.get(record.usuario_id) : undefined;
+        const name = typeof recipient?.nombre_completo === 'string' ? recipient.nombre_completo : '';
+        const email = typeof recipient?.email === 'string' ? recipient.email : '';
+        record.destinatario = name && email && name.toLowerCase() !== email.toLowerCase()
+          ? `${name} (${email})`
+          : name || email || 'Usuario no disponible';
+      }
+    }
+
     if (resource === 'auditorias') {
       const targetIds = (table: string) => Array.from(new Set(records
         .filter((record) => record.tabla_afectada === table)
