@@ -16,6 +16,8 @@ export async function getFeaturedShops() {
       nombre_comercio,
       descripcion,
       categoria_principal,
+      latitud,
+      longitud,
       logo_url,
       portada_url,
       whatsapp,

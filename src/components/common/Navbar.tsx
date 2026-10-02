@@ -254,7 +254,7 @@ export default function Navbar() {
           Inicio
         </Link>
         <Link href="/tiendas" className="rounded-lg px-3 py-2 transition-colors hover:bg-white hover:text-blue-700 hover:shadow-sm">
-          Tiendas
+          Explorar Productos
         </Link>
         <Link href="/categorias" className="rounded-lg px-3 py-2 transition-colors hover:bg-white hover:text-blue-700 hover:shadow-sm">
           Categorías

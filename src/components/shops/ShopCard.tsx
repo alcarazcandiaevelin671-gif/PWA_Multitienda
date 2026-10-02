@@ -1,4 +1,6 @@
-﻿import Link from 'next/link';
+﻿'use client';
+
+import Link from 'next/link';
 import Image from 'next/image';
 import FavoriteToggle from '@/components/common/FavoriteToggle';
 
@@ -15,6 +17,7 @@ interface ShopCardProps {
   verificada?: boolean;
   whatsapp?: string;
   distrito?: string;
+  distanceLabel?: string;
   badge?: string;
 }
 
@@ -29,6 +32,7 @@ export default function ShopCard({
   logoUrl,
   bannerUrl,
   verificada,
+  distanceLabel,
   badge: _badge,
 }: ShopCardProps) {
   const nombre = nombreComercio || title || '';
@@ -71,6 +75,7 @@ export default function ShopCard({
         <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-slate-500">
           {detalle || 'Comercio registrado en el Departamento del Guairá.'}
         </p>
+        {distanceLabel && <p className="mt-2 text-xs font-bold text-sky-700">📍 {distanceLabel}</p>}
       </div>
 
       <Link

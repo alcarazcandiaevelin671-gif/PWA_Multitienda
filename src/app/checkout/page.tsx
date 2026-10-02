@@ -196,7 +196,7 @@ export default function CheckoutPage() {
     return (
       <main className="mx-auto max-w-3xl px-4 py-14 text-center">
         <h1 className="text-2xl font-black text-slate-900">Tu carrito está vacío</h1>
-        <Link href="/tiendas" className="mt-5 inline-flex rounded-lg bg-blue-700 px-5 py-3 font-bold text-white">Explorar tiendas</Link>
+        <Link href="/tiendas" className="mt-5 inline-flex rounded-lg bg-blue-700 px-5 py-3 font-bold text-white">Explorar Productos</Link>
       </main>
     );
   }

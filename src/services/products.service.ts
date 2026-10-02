@@ -13,6 +13,53 @@ export interface Product {
   creado_en?: string;
 }
 
+export interface FeaturedProduct extends Product {
+  precio_oferta?: number | null;
+  tienda?: {
+    nombre_comercio: string | null;
+    slug: string | null;
+    latitud?: number | null;
+    longitud?: number | null;
+    distrito_id?: number | null;
+  } | null;
+}
+
+export interface ProductDistrict {
+  id: number;
+  nombre: string;
+}
+
+export async function getProductDistricts(): Promise<ProductDistrict[]> {
+  const { data, error } = await supabase
+    .from('distritos')
+    .select('id, nombre')
+    .eq('activo', true)
+    .order('nombre', { ascending: true });
+
+  if (error) {
+    console.error('Error al obtener distritos disponibles:', error);
+    return [];
+  }
+
+  return (data || []).filter((district): district is ProductDistrict => district.id !== null && district.nombre !== null);
+}
+
+export async function getFeaturedProducts(): Promise<FeaturedProduct[]> {
+  const { data, error } = await supabase
+    .from('productos')
+    .select('id, tienda_id, titulo, descripcion, precio_gs, precio_oferta, imagen_url, categoria_id, creado_en, tienda:tiendas(nombre_comercio, slug, latitud, longitud, distrito_id)')
+    .eq('disponible', true)
+    .order('creado_en', { ascending: false })
+    .limit(60);
+
+  if (error) {
+    console.error('Error al obtener productos disponibles:', error);
+    return [];
+  }
+
+  return (data || []) as unknown as FeaturedProduct[];
+}
+
 // Obtener productos de una tienda específica
 export async function getProductsByShop(tiendaId: string): Promise<Product[]> {
   const { data, error } = await supabase

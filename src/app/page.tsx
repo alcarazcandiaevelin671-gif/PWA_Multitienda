@@ -32,10 +32,10 @@ export default async function Home() {
             </p>
             <div className="flex flex-wrap gap-4">
               <a
-                href="#comercios-destacados"
+                href="/tiendas"
                 className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm px-6 py-3 rounded-xl shadow-lg shadow-blue-500/25 transition-all"
               >
-                Explorar Locales →
+                Explorar Productos →
               </a>
             </div>
           </div>

@@ -104,7 +104,7 @@ export default function OrdersPage() {
       {!loading && !error && filteredOrders.length === 0 && (
         <div className="border-y border-slate-200 py-12 text-center">
           <p className="font-semibold text-slate-700">Todavía no tienes pedidos con esos filtros.</p>
-          <Link href="/tiendas" className="mt-4 inline-flex rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-bold text-white">Explorar tiendas</Link>
+          <Link href="/tiendas" className="mt-4 inline-flex rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-bold text-white">Explorar Productos</Link>
         </div>
       )}
       {!loading && filteredOrders.length > 0 && (
