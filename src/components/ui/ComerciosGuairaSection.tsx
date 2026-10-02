@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import FavoriteToggle from '@/components/common/FavoriteToggle';
 
 interface TiendaPublica {
   id: string;
@@ -49,11 +50,7 @@ export default function ComerciosGuairaSection({ tiendas }: { tiendas: TiendaPub
             const nombreComercio = tienda.nombre_comercio || 'Comercio del Guairá';
 
             return (
-              <Link
-                key={tienda.id}
-                href={`/tienda/${tienda.slug}`}
-                className="group flex flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_18px_35px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_50px_rgba(14,116,144,0.12)]"
-              >
+              <article key={tienda.id} className="group relative flex flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_18px_35px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_50px_rgba(14,116,144,0.12)]">
                 <div className="relative h-36 w-full overflow-hidden bg-slate-800">
                   {tienda.portada_url ? (
                     <Image
@@ -69,9 +66,10 @@ export default function ComerciosGuairaSection({ tiendas }: { tiendas: TiendaPub
                   )}
 
                   <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-slate-900/45 to-transparent" />
-                  <span className="absolute right-3 top-3 rounded-full border border-white/20 bg-slate-900/60 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur-sm">
+                  <span className="absolute left-3 top-3 rounded-full border border-white/20 bg-slate-900/60 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur-sm">
                     📍 {distritoNombre}
                   </span>
+                  <FavoriteToggle kind="tienda" targetId={tienda.id} className="absolute right-3 top-3 z-20" />
                 </div>
 
                 <div className="relative flex flex-1 flex-col px-5 pb-5 pt-0">
@@ -100,11 +98,11 @@ export default function ComerciosGuairaSection({ tiendas }: { tiendas: TiendaPub
                   )}
 
                   <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs font-bold text-slate-600">
-                    <span className="flex items-center gap-1 text-sky-700">Ver catálogo →</span>
+                    <Link href={`/tienda/${tienda.slug}`} className="flex items-center gap-1 text-sky-700 hover:text-sky-900">Ver catálogo →</Link>
                     {tienda.whatsapp && <span className="text-emerald-600">💬 WhatsApp</span>}
                   </div>
                 </div>
-              </Link>
+              </article>
             );
           })}
         </div>

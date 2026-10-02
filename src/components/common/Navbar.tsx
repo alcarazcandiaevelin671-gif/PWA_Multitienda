@@ -184,6 +184,19 @@ export default function Navbar() {
 
   const handleSelectProduct = async (product: ProductSearchResult) => {
     try {
+      const confirmedSearch = searchTerm.trim().slice(0, 120);
+      if (usuario?.id && rolUsuario === 'cliente' && confirmedSearch.length >= 2) {
+        await supabase.rpc('registrar_historial_busqueda', {
+          p_termino: confirmedSearch,
+          p_categoria_id: product.categoria_id ?? null,
+          p_distrito_id: null,
+        });
+        await supabase.rpc('registrar_interaccion_producto', {
+          p_producto_id: product.id,
+          p_tipo: 'click',
+        });
+      }
+
       const { data: tienda } = await supabase
         .from('tiendas')
         .select('slug')

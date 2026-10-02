@@ -1,8 +1,8 @@
 ﻿import { getCategories } from '@/services/categories.service';
 import { getFeaturedShops } from '@/services/shops.service';
 import CategoryGrid from '@/components/home/CategoryGrid';
+import AIRecommendationsSection from '@/components/home/AIRecommendationsSection';
 import StorefrontAutoRefresh from '@/components/home/StorefrontAutoRefresh';
-import ShopCard from '@/components/shops/ShopCard';
 import ComerciosGuairaSection from '@/components/ui/ComerciosGuairaSection';
 
 export const dynamic = 'force-dynamic';
@@ -87,34 +87,8 @@ export default async function Home() {
         <ComerciosGuairaSection tiendas={shops} />
       </section>
 
-      {/* 5. LOCALES VERIFICADOS (MAPEO DINÁMICO) */}
-      {shops && shops.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-extrabold text-slate-900">Locales Verificados</h2>
-            <span className="text-xs bg-slate-100 text-slate-600 font-bold px-3 py-1 rounded-full">
-              {shops.length} verificados
-            </span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {shops.map((shop: any) => (
-              <ShopCard
-                key={shop.id}
-                id={shop.id}
-                slug={shop.slug}
-                nombreComercio={shop.nombre_comercio}
-                descripcion={shop.descripcion}
-                categoriaPrincipal={shop.categoria || shop.categoria_principal}
-                logoUrl={shop.logo_url}
-                bannerUrl={shop.banner_url || shop.portada_url}
-                verificada={shop.verificada}
-                whatsapp={shop.whatsapp}
-                distrito={shop.distrito || shop.distritos?.nombre}
-              />
-            ))}
-          </div>
-        </section>
-      )}
+      {/* 5. RECOMENDACIONES DE PRODUCTOS */}
+      <AIRecommendationsSection />
 
     </main>
   );

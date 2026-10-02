@@ -1,4 +1,7 @@
-﻿import Link from 'next/link';
+﻿'use client';
+
+import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
 
 interface Category {
   id: number;
@@ -30,6 +33,20 @@ export default function CategoryGrid({ categories }: { categories: Category[] })
     default: '📁',
   };
 
+  const recordCategoryOpen = async (category: Category) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      await supabase.rpc('registrar_historial_busqueda', {
+        p_termino: category.nombre,
+        p_categoria_id: category.id,
+        p_distrito_id: null,
+      });
+    } catch {
+      return;
+    }
+  };
+
   return (
     <div className="my-6 grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {categories.slice(0, 8).map((cat) => {
@@ -39,6 +56,7 @@ export default function CategoryGrid({ categories }: { categories: Category[] })
           <Link
             key={cat.id}
             href={`/categorias/${cat.id}`}
+            onClick={() => { void recordCategoryOpen(cat); }}
             className="group relative overflow-hidden rounded-[24px] border border-slate-200 bg-gradient-to-br from-white via-sky-50 to-blue-50 p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-sky-200 hover:shadow-[0_20px_40px_rgba(14,116,144,0.08)]"
           >
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(59,130,246,0.18),_transparent_48%)] opacity-80" />

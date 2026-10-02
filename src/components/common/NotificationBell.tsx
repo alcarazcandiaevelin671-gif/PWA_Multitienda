@@ -4,10 +4,69 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { fetchAIRecommendations, getRecommendationSignals } from '@/lib/recommendations-client';
 import useNotificaciones from '@/hooks/useNotificaciones';
 import type { Notificacion } from '@/types/database';
 
 const relativeTime = new Intl.RelativeTimeFormat('es', { numeric: 'auto' });
+const dailyRecommendationRequests = new Set<string>();
+
+async function createDailyRecommendationNotification(userId: string) {
+  if (dailyRecommendationRequests.has(userId)) return;
+  dailyRecommendationRequests.add(userId);
+
+  try {
+    const dayStart = new Date();
+    dayStart.setUTCHours(0, 0, 0, 0);
+    const cutoff = dayStart.toISOString();
+    const attemptKey = `daily-ai-recommendation:${userId}:${cutoff.slice(0, 10)}`;
+    if (window.localStorage.getItem(attemptKey)) return;
+
+    const { data: existing, error: existingError } = await supabase
+      .from('notificaciones')
+      .select('id')
+      .eq('usuario_id', userId)
+      .eq('tipo', 'recomendacion_ia')
+      .gte('created_at', cutoff)
+      .limit(1)
+      .maybeSingle();
+
+    if (existingError) return;
+    if (existing) {
+      window.localStorage.setItem(attemptKey, 'done');
+      return;
+    }
+
+    const signals = await getRecommendationSignals(userId);
+    const recommendations = await fetchAIRecommendations(signals, 1);
+    const recommendation = recommendations[0];
+    if (!recommendation) {
+      window.localStorage.setItem(attemptKey, 'checked');
+      return;
+    }
+
+    const link = recommendation.tienda_slug ? `/tienda/${encodeURIComponent(recommendation.tienda_slug)}#product-${recommendation.id}` : '/tiendas';
+    const price = new Intl.NumberFormat('es-PY', { maximumFractionDigits: 0 }).format(recommendation.precio);
+    const hasUserSignals = signals.favoriteIds.length > 0 || signals.purchasedIds.length > 0 || signals.searchTerms.length > 0;
+    const reason = hasUserSignals
+      ? 'según tus favoritos, compras y búsquedas recientes, junto con las tendencias del catálogo.'
+      : 'entre los productos más comprados del catálogo.';
+
+    const { error: insertError } = await supabase.from('notificaciones').insert({
+      usuario_id: userId,
+      tipo: 'recomendacion_ia',
+      titulo: 'Una recomendación para ti',
+      mensaje: `Te recomendamos ${recommendation.nombre} por Gs. ${price}, ${reason}`,
+      link,
+      leida: false,
+    });
+    if (!insertError) window.localStorage.setItem(attemptKey, 'done');
+  } catch {
+    return;
+  } finally {
+    dailyRecommendationRequests.delete(userId);
+  }
+}
 
 function formatRelativeDate(value: string) {
   const date = new Date(value);
@@ -62,6 +121,10 @@ export default function NotificationBell({ userId, role }: { userId: string; rol
   const [error, setError] = useState('');
   const [markingId, setMarkingId] = useState<string | null>(null);
   const { unreadCount, changeVersion } = useNotificaciones();
+
+  useEffect(() => {
+    if (role === 'cliente') void createDailyRecommendationNotification(userId);
+  }, [role, userId]);
 
   const load = useCallback(async () => {
     const { data, error: loadError } = await supabase

@@ -18,6 +18,8 @@ type StoreLocation = {
   id: string;
   latitud?: number | null;
   longitud?: number | null;
+  slug?: string | null;
+  nombre_comercio?: string | null;
 };
 
 type Recommendation = {
@@ -26,6 +28,8 @@ type Recommendation = {
   precio: number;
   imagen_url: string | null;
   tienda_id: string;
+  tienda_slug: string | null;
+  tienda_nombre: string | null;
   similarity_score: number;
 };
 
@@ -105,6 +109,10 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const productId = searchParams.get('productId');
   const userId = searchParams.get('userId');
+  const favoriteIds = searchParams.getAll('favoriteId');
+  const purchasedIds = searchParams.getAll('purchasedId');
+  const searchTerms = searchParams.getAll('searchTerm').map((term) => term.trim()).filter(Boolean).slice(0, 20);
+  const searchedCategoryIds = new Set(searchParams.getAll('categoryId'));
   const latitudeValue = Number(searchParams.get('lat'));
   const longitudeValue = Number(searchParams.get('lng'));
   const latitude = Number.isFinite(latitudeValue) ? latitudeValue : undefined;
@@ -138,13 +146,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    if (!sourceProductId) {
-      return NextResponse.json(
-        { error: 'Debes indicar productId o un userId con productos disponibles.' },
-        { status: 400 },
-      );
-    }
-
     const { data: catalog, error: catalogError } = await supabase
       .from('productos')
       .select('id, tienda_id, titulo, nombre, descripcion, categoria_id, precio_gs, imagen_url, disponible')
@@ -153,12 +154,6 @@ export async function GET(request: NextRequest) {
     if (catalogError) throw catalogError;
 
     const products = (catalog || []) as CatalogProduct[];
-    const sourceProduct = products.find((product) => product.id === sourceProductId);
-
-    if (!sourceProduct) {
-      return NextResponse.json({ error: 'Producto de referencia no encontrado.' }, { status: 404 });
-    }
-
     const documents = products.map(tokenize);
     const documentFrequency = new Map<string, number>();
     documents.forEach((terms) => {
@@ -179,22 +174,70 @@ export async function GET(request: NextRequest) {
       return vector;
     };
 
-    const sourceVector = toTfidf(tokenize(sourceProduct));
+    const productsById = new Map(products.map((product) => [product.id, product]));
+    const favoriteVectors = favoriteIds
+      .map((id) => productsById.get(id))
+      .filter((product): product is CatalogProduct => Boolean(product))
+      .map((product) => toTfidf(tokenize(product)));
+    const purchasedVectors = purchasedIds
+      .map((id) => productsById.get(id))
+      .filter((product): product is CatalogProduct => Boolean(product))
+      .map((product) => toTfidf(tokenize(product)));
+    const sourceProduct = sourceProductId ? productsById.get(sourceProductId) : undefined;
+    const sourceVectors = sourceProduct ? [toTfidf(tokenize(sourceProduct))] : [];
+    const searchTokens = searchTerms.flatMap((term) => tokenize({
+      id: '',
+      tienda_id: '',
+      titulo: term,
+    }));
+    const searchVector = toTfidf(searchTokens);
+    const hasSearchSignal = searchTokens.length > 0;
+    const { data: bestSellers, error: bestSellerError } = await supabase.rpc('productos_mas_comprados', { p_limit: 100 });
+    const popularityById = new Map<string, number>();
+    if (!bestSellerError) {
+      for (const item of (bestSellers || []) as Array<{ producto_id: string; unidades: number }>) {
+        popularityById.set(item.producto_id, Number(item.unidades) || 0);
+      }
+    }
+    const maxPopularity = Math.max(0, ...popularityById.values());
     const storeIds = [...new Set(products.map((product) => product.tienda_id))];
     const { data: stores, error: storesError } = await supabase
       .from('tiendas')
-      .select('id, latitud, longitud')
+      .select('id, latitud, longitud, slug, nombre_comercio')
       .in('id', storeIds);
 
     if (storesError) throw storesError;
 
     const storesById = new Map((stores || []).map((store) => [store.id, store as StoreLocation]));
     const recommendations: Recommendation[] = products
-      .filter((product) => product.id !== sourceProductId)
-      .map((product, index) => {
-        const textScore = cosineSimilarity(sourceVector, toTfidf(documents[index]));
+      .map((product, index) => ({ product, index }))
+      .filter(({ product }) => product.id !== sourceProductId && !favoriteIds.includes(product.id))
+      .map(({ product, index }) => {
+        const productVector = toTfidf(documents[index]);
+        const averageSimilarity = (vectors: Map<string, number>[]) => vectors.length
+          ? vectors.reduce((total, vector) => total + cosineSimilarity(vector, productVector), 0) / vectors.length
+          : 0;
+        const signalScores: Array<{ score: number; weight: number }> = [];
+        const favoriteScore = averageSimilarity(favoriteVectors);
+        const purchasedScore = averageSimilarity(purchasedVectors);
+        const sourceScore = averageSimilarity(sourceVectors);
+        const searchScore = hasSearchSignal ? cosineSimilarity(searchVector, productVector) : 0;
+        const categoryScore = searchedCategoryIds.has(String(product.categoria_id ?? '')) ? 1 : 0;
+        const popularityScore = maxPopularity > 0 ? (popularityById.get(product.id) || 0) / maxPopularity : 0;
+
+        if (favoriteVectors.length) signalScores.push({ score: favoriteScore, weight: 0.3 });
+        if (purchasedVectors.length) signalScores.push({ score: purchasedScore, weight: 0.3 });
+        if (sourceVectors.length) signalScores.push({ score: sourceScore, weight: 0.2 });
+        if (hasSearchSignal) signalScores.push({ score: searchScore, weight: 0.2 });
+        if (searchedCategoryIds.size) signalScores.push({ score: categoryScore, weight: 0.1 });
+        if (maxPopularity > 0) signalScores.push({ score: popularityScore, weight: 0.2 });
+
+        if (signalScores.length === 0) return null;
+        const totalWeight = signalScores.reduce((total, signal) => total + signal.weight, 0);
+        const similarityScore = signalScores.reduce((total, signal) => total + signal.score * signal.weight, 0) / totalWeight;
         const locationScore = distanceScore(storesById.get(product.tienda_id), latitude, longitude);
-        const similarityScore = Math.min(1, textScore * 0.85 + locationScore * 0.15);
+        const finalScore = Math.min(1, similarityScore * 0.9 + locationScore * 0.1);
+        const store = storesById.get(product.tienda_id);
 
         return {
           id: product.id,
@@ -202,9 +245,12 @@ export async function GET(request: NextRequest) {
           precio: Number(product.precio_gs || 0),
           imagen_url: product.imagen_url || null,
           tienda_id: product.tienda_id,
-          similarity_score: Number(similarityScore.toFixed(4)),
+          tienda_slug: store?.slug || null,
+          tienda_nombre: store?.nombre_comercio || null,
+          similarity_score: Number(finalScore.toFixed(4)),
         };
       })
+      .filter((recommendation): recommendation is Recommendation => recommendation !== null)
       .sort((left, right) => right.similarity_score - left.similarity_score)
       .slice(0, limit);
 

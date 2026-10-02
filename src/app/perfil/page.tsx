@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { deleteProfileAvatar, updateSettingsIdentity, uploadProfileAvatar } from '@/services/settings.service';
+import type { HistorialBusqueda } from '@/types/database';
 
 type PerfilUsuario = {
   nombre_completo: string;
@@ -30,6 +31,13 @@ type TiendaData = {
   estado?: string | null;
 };
 
+function formatSearchDate(value: string | null) {
+  if (!value) return 'Fecha no disponible';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Fecha no disponible';
+  return new Intl.DateTimeFormat('es-PY', { dateStyle: 'medium', timeStyle: 'short' }).format(date);
+}
+
 const normalizarRol = (valor: unknown): string => {
   const rol = String(valor ?? 'cliente').trim().toLowerCase();
 
@@ -43,6 +51,8 @@ export default function PerfilPage() {
   const [loading, setLoading] = useState(true);
   const [userSession, setUserSession] = useState<any>(null);
   const [userData, setUserData] = useState<PerfilUsuario | null>(null);
+  const [searchHistory, setSearchHistory] = useState<HistorialBusqueda[]>([]);
+  const [showSearchHistory, setShowSearchHistory] = useState(false);
   const [tiendaData, setTiendaData] = useState<TiendaData | null>(null);
   const [tiendasData, setTiendasData] = useState<TiendaData[]>([]);
   const [avatarSaving, setAvatarSaving] = useState(false);
@@ -77,13 +87,14 @@ export default function PerfilPage() {
           setUserSession(currentUser);
         }
 
-        const { data: dbUser } = await supabase
-          .from('usuarios')
-          .select('*')
-          .eq('id', currentUser.id)
-          .maybeSingle();
+        const [userResult, searchHistoryResult] = await Promise.all([
+          supabase.from('usuarios').select('*').eq('id', currentUser.id).maybeSingle(),
+          supabase.from('historial_busquedas').select('id, termino, categoria_id, distrito_id, fecha_hora').eq('usuario_id', currentUser.id).order('fecha_hora', { ascending: false }).limit(20),
+        ]);
+        const dbUser = userResult.data;
 
         if (isMounted) {
+          setSearchHistory((searchHistoryResult.data || []) as HistorialBusqueda[]);
           const rolFinal = dbUser?.rol || currentUser.user_metadata?.rol || 'cliente';
           const rolNormalizado = normalizarRol(rolFinal);
 
@@ -365,6 +376,22 @@ export default function PerfilPage() {
         <section className="w-full rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
           <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[0.12em] text-emerald-800">Comercios asociados</p><h2 className="mt-1 text-lg font-extrabold text-slate-900">Tus tiendas <span className="text-slate-400">({tiendasData.length})</span></h2></div><Link href="/comerciante/tiendas" className="text-sm font-bold text-emerald-800 hover:underline">Ver información completa →</Link></div>
           <ul className="mt-4 divide-y divide-slate-100">{tiendasData.map((store) => <li key={store.id} className="flex flex-wrap items-center justify-between gap-3 py-4"><div className="min-w-0"><p className="break-words font-bold text-slate-900">{store.nombre_comercio}</p><p className="mt-1 text-sm text-slate-500">{store.distrito_nombre || 'Distrito no especificado'} · {String(store.estado || 'Sin estado').replaceAll('_', ' ')}</p></div>{store.slug && ['activa', 'activo'].includes(String(store.estado || '').toLowerCase()) && <Link href={`/tienda/${store.slug}`} className="rounded-lg px-3 py-2 text-sm font-bold text-emerald-800 transition hover:bg-emerald-50">Ver tienda ↗</Link>}</li>)}</ul>
+        </section>
+      )}
+
+      {userData.rol === 'cliente' && (
+        <section className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+          <button type="button" aria-expanded={showSearchHistory} aria-controls="profile-search-history" onClick={() => setShowSearchHistory((open) => !open)} className="flex min-h-12 w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-700">
+            <span className="flex min-w-0 items-center gap-3"><span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-lg text-sky-800">⌕</span><span className="truncate text-sm font-extrabold text-slate-900">Ver historial de búsquedas</span></span>
+            <span aria-hidden="true" className="shrink-0 text-lg font-semibold text-slate-500">{showSearchHistory ? '−' : '+'}</span>
+          </button>
+          {showSearchHistory && <div id="profile-search-history" className="mt-3 border-t border-slate-100 px-3 pt-3">
+            {searchHistory.length === 0 ? (
+              <p className="rounded-xl bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">Todavía no tienes búsquedas guardadas.</p>
+            ) : (
+              <ul className="divide-y divide-slate-100">{searchHistory.map((item) => <li key={item.id ?? `${item.termino}-${item.fecha_hora}`} className="flex flex-wrap items-center justify-between gap-2 py-3"><span className="min-w-0 truncate text-sm font-semibold text-slate-800">{item.termino || 'Búsqueda sin término'}</span><time className="shrink-0 text-xs text-slate-500">{formatSearchDate(item.fecha_hora)}</time></li>)}</ul>
+            )}
+          </div>}
         </section>
       )}
 

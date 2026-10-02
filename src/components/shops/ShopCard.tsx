@@ -1,5 +1,6 @@
 ﻿import Link from 'next/link';
 import Image from 'next/image';
+import FavoriteToggle from '@/components/common/FavoriteToggle';
 
 interface ShopCardProps {
   id: string;
@@ -51,6 +52,7 @@ export default function ShopCard({
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 via-transparent to-transparent" />
+        <FavoriteToggle kind="tienda" targetId={id} className="absolute right-3 top-3 z-20" />
       </div>
 
       <div className="mt-4 flex-1">

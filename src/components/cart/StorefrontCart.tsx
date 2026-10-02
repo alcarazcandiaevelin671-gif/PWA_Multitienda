@@ -4,8 +4,10 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
 import CartDrawer from '@/components/cart/CartDrawer';
+import FavoriteToggle from '@/components/common/FavoriteToggle';
 import { Product } from '@/types/product';
 import { getEffectiveProductPrice } from '@/lib/product-pricing';
+import { supabase } from '@/lib/supabase';
 
 interface StorefrontProduct {
   id: string;
@@ -83,6 +85,10 @@ export default function StorefrontCart({ products, categories = [], shop }: Stor
       activo: true,
     };
     addItem(item);
+    void supabase.rpc('registrar_interaccion_producto', {
+      p_producto_id: product.id,
+      p_tipo: 'click',
+    });
     setIsOpen(true);
   };
 
@@ -142,6 +148,7 @@ export default function StorefrontCart({ products, categories = [], shop }: Stor
               >
                 <div>
                   <div className="relative flex h-48 w-full items-center justify-center bg-slate-100">
+                    <FavoriteToggle kind="producto" targetId={product.id} className="absolute right-3 top-3 z-10" />
                     {product.imagen_url ? (
                       <Image src={product.imagen_url} alt={name} fill unoptimized className="object-cover" />
                     ) : (
