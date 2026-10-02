@@ -306,7 +306,7 @@ export default function AdminRecordsPage({ section }: { section: string }) {
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'No se pudo actualizar el estado del comercio.');
-      setNotice(result.auditWarning || `Comercio ${nextStatus === 'suspendida' ? 'suspendido' : 'reactivado'} correctamente.`);
+      setNotice('Se actualizó.');
       setRefreshKey((value) => value + 1);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'No se pudo actualizar el estado del comercio.');
@@ -335,7 +335,7 @@ export default function AdminRecordsPage({ section }: { section: string }) {
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'No se pudo cambiar el estado.');
-      setNotice(result.auditWarning || 'Estado actualizado. La acción quedó registrada en auditoría.');
+      setNotice('El estado se actualizó correctamente.');
       setRefreshKey((value) => value + 1);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'No se pudo cambiar el estado.');

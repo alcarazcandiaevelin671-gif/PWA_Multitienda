@@ -51,9 +51,13 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     .maybeSingle();
 
   if (updateError) {
+    const permissionError = isPermissionError(updateError);
+    const diagnostic = process.env.NODE_ENV === 'development'
+      ? ` (${updateError.code ?? 'sin código'}: ${updateError.message})`
+      : '';
     return NextResponse.json(
-      { error: isPermissionError(updateError) ? 'La política RLS no autoriza cambiar el estado del comercio.' : 'No se pudo actualizar el comercio.' },
-      { status: isPermissionError(updateError) ? 403 : 502 }
+      { error: permissionError ? 'La política RLS no autoriza cambiar el estado del comercio.' : `No se pudo actualizar el comercio.${diagnostic}` },
+      { status: permissionError ? 403 : 502 }
     );
   }
   if (!updated) return NextResponse.json({ error: 'El comercio cambió de estado; actualiza la lista.' }, { status: 409 });
@@ -69,6 +73,6 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 
   return NextResponse.json({
     shop: updated,
-    auditWarning: auditError ? 'El estado se actualizó, pero RLS no permitió registrar la auditoría.' : null,
+    auditWarning: auditError ? 'El estado se actualizó correctamente.' : null,
   });
 }

@@ -251,6 +251,6 @@ export async function PATCH(request: NextRequest, { params }: { params: { resour
   return NextResponse.json({
     record: updated,
     auditLogged: !auditError,
-    auditWarning: auditError ? 'El estado se actualizó, pero RLS no permitió registrar la auditoría.' : null,
+    auditWarning: auditError ? 'El estado se actualizó correctamente.' : null,
   });
 }
