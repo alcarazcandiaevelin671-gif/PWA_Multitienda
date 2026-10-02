@@ -35,9 +35,9 @@ export default function ResetPasswordPage() {
       <section className="mx-auto w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-900/5 sm:p-8">
         <p className="text-xs font-black uppercase tracking-[0.2em] text-sky-700">Portal Guairá</p>
         <h1 className="mt-3 text-2xl font-black text-slate-900">Recuperar contraseña</h1>
-        <p className="mt-2 text-sm leading-6 text-slate-600">Ingresa el correo asociado a tu cuenta y te enviaremos instrucciones para crear una contraseña nueva.</p>
+        <p className="mt-2 text-sm leading-6 text-slate-600">Ingresa el correo asociado a tu cuenta y te enviaremos un enlace para crear una contraseña nueva.</p>
 
-        {sent && <div role="status" className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-800">Si existe una cuenta asociada a ese correo, recibirás un mensaje con las instrucciones para restablecer tu contraseña. Revisa también la carpeta de correo no deseado.</div>}
+        {sent && <div role="status" className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-800">Si existe una cuenta asociada a ese correo, recibirás un enlace para restablecer tu contraseña. Revisa también la carpeta de correo no deseado.</div>}
         {error && <div role="alert" className="mt-5 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{error}</div>}
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
@@ -46,7 +46,7 @@ export default function ResetPasswordPage() {
             <input id="reset-email" type="email" inputMode="email" autoComplete="email" required maxLength={254} value={email} onChange={(event) => setEmail(event.target.value)} placeholder="correo@ejemplo.com" className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100" />
           </div>
           <button type="submit" disabled={loading} className="w-full rounded-xl bg-sky-700 px-4 py-3 text-sm font-bold text-white transition hover:bg-sky-800 disabled:cursor-wait disabled:opacity-60">
-            {loading ? 'Enviando instrucciones…' : 'Enviar instrucciones'}
+            {loading ? 'Enviando enlace…' : 'Enviar enlace'}
           </button>
         </form>
 

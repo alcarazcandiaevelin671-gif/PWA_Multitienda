@@ -6,13 +6,15 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { userFacingError } from '@/lib/user-facing-error';
 
-const MIN_PASSWORD_LENGTH = 12;
-const MAX_PASSWORD_LENGTH = 128;
+const MIN_PASSWORD_LENGTH = 8;
+const MAX_PASSWORD_LENGTH = 15;
 
 export default function UpdatePasswordPage() {
   const router = useRouter();
   const [password, setPassword] = useState('');
   const [confirmation, setConfirmation] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [recoveryValid, setRecoveryValid] = useState(false);
@@ -81,7 +83,7 @@ export default function UpdatePasswordPage() {
       <section className="mx-auto w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-900/5 sm:p-8">
         <p className="text-xs font-black uppercase tracking-[0.2em] text-sky-700">Portal Guairá</p>
         <h1 className="mt-3 text-2xl font-black text-slate-900">Crear nueva contraseña</h1>
-        <p className="mt-2 text-sm leading-6 text-slate-600">Elige una contraseña de entre 12 y 128 caracteres para proteger tu cuenta.</p>
+        <p className="mt-2 text-sm leading-6 text-slate-600">Elige una contraseña de entre {MIN_PASSWORD_LENGTH} y {MAX_PASSWORD_LENGTH} caracteres para proteger tu cuenta.</p>
 
         {loading && <p role="status" className="mt-6 rounded-xl bg-slate-100 p-4 text-sm text-slate-600">Verificando el enlace de recuperación…</p>}
         {error && <div role="alert" className="mt-5 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm leading-5 text-rose-800">{error}</div>}
@@ -89,11 +91,21 @@ export default function UpdatePasswordPage() {
         {!loading && recoveryValid && <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
             <label htmlFor="new-password" className="mb-1 block text-xs font-bold uppercase tracking-[0.14em] text-slate-600">Nueva contraseña</label>
-            <input id="new-password" type="password" autoComplete="new-password" required minLength={MIN_PASSWORD_LENGTH} maxLength={MAX_PASSWORD_LENGTH} value={password} onChange={(event) => setPassword(event.target.value)} className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100" />
+            <div className="relative">
+              <input id="new-password" type={showPassword ? 'text' : 'password'} autoComplete="new-password" required minLength={MIN_PASSWORD_LENGTH} maxLength={MAX_PASSWORD_LENGTH} value={password} onChange={(event) => setPassword(event.target.value)} className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 pr-12 text-sm text-slate-900 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100" />
+              <button type="button" onClick={() => setShowPassword((visible) => !visible)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700" aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'} title={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
+                {showPassword ? <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-[1.8]" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></svg> : <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-[1.8]" aria-hidden="true"><path d="M3 3l18 18" /><path d="M10.58 10.58A2 2 0 0 0 13.42 13.42" /><path d="M9.88 5.08A10.94 10.94 0 0 1 12 5c6.5 0 10 7 10 7a17.7 17.7 0 0 1-4.29 5.3" /><path d="M6.61 6.61A17.75 17.75 0 0 0 2 12s3.5 7 10 7a10.65 10.65 0 0 0 5.39-1.61" /></svg>}
+              </button>
+            </div>
           </div>
           <div>
             <label htmlFor="confirm-password" className="mb-1 block text-xs font-bold uppercase tracking-[0.14em] text-slate-600">Confirmar nueva contraseña</label>
-            <input id="confirm-password" type="password" autoComplete="new-password" required minLength={MIN_PASSWORD_LENGTH} maxLength={MAX_PASSWORD_LENGTH} value={confirmation} onChange={(event) => setConfirmation(event.target.value)} className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100" />
+            <div className="relative">
+              <input id="confirm-password" type={showConfirmation ? 'text' : 'password'} autoComplete="new-password" required minLength={MIN_PASSWORD_LENGTH} maxLength={MAX_PASSWORD_LENGTH} value={confirmation} onChange={(event) => setConfirmation(event.target.value)} className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 pr-12 text-sm text-slate-900 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100" />
+              <button type="button" onClick={() => setShowConfirmation((visible) => !visible)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700" aria-label={showConfirmation ? 'Ocultar confirmación' : 'Mostrar confirmación'} title={showConfirmation ? 'Ocultar confirmación' : 'Mostrar confirmación'}>
+                {showConfirmation ? <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-[1.8]" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></svg> : <svg viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current stroke-[1.8]" aria-hidden="true"><path d="M3 3l18 18" /><path d="M10.58 10.58A2 2 0 0 0 13.42 13.42" /><path d="M9.88 5.08A10.94 10.94 0 0 1 12 5c6.5 0 10 7 10 7a17.7 17.7 0 0 1-4.29 5.3" /><path d="M6.61 6.61A17.75 17.75 0 0 0 2 12s3.5 7 10 7a10.65 10.65 0 0 0 5.39-1.61" /></svg>}
+              </button>
+            </div>
           </div>
           <button type="submit" disabled={saving} className="w-full rounded-xl bg-sky-700 px-4 py-3 text-sm font-bold text-white transition hover:bg-sky-800 disabled:cursor-wait disabled:opacity-60">
             {saving ? 'Actualizando contraseña…' : 'Guardar nueva contraseña'}
