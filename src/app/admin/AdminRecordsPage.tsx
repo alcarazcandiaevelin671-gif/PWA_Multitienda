@@ -183,6 +183,7 @@ export default function AdminRecordsPage({ section }: { section: string }) {
   const [rejectionMode, setRejectionMode] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [decisionLoading, setDecisionLoading] = useState(false);
+  const [shopStatusLoadingId, setShopStatusLoadingId] = useState<string | null>(null);
   const [decisionError, setDecisionError] = useState('');
   const pageSize = 25;
 
@@ -284,6 +285,36 @@ export default function AdminRecordsPage({ section }: { section: string }) {
     }
   };
 
+  const changeShopStatus = async (record: RecordRow) => {
+    const currentStatus = String(record.estado ?? '').toLowerCase();
+    if (currentStatus !== 'activa' && currentStatus !== 'suspendida') return;
+
+    const nextStatus = currentStatus === 'activa' ? 'suspendida' : 'activa';
+    const shopName = String(record.nombre_comercio || 'este comercio');
+    const action = nextStatus === 'suspendida' ? 'suspender' : 'reactivar';
+    const actionLabel = nextStatus === 'suspendida' ? 'Suspender' : 'Reactivar';
+    if (!await showAppConfirm(`¿Confirmas que deseas ${action} ${shopName}?`, `¿${actionLabel} comercio?`, actionLabel)) return;
+
+    setNotice('');
+    setError('');
+    setShopStatusLoadingId(String(record.id));
+    try {
+      const response = await fetch(`/api/admin/comercios/${encodeURIComponent(String(record.id))}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estado: nextStatus }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'No se pudo actualizar el estado del comercio.');
+      setNotice(result.auditWarning || `Comercio ${nextStatus === 'suspendida' ? 'suspendido' : 'reactivado'} correctamente.`);
+      setRefreshKey((value) => value + 1);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'No se pudo actualizar el estado del comercio.');
+    } finally {
+      setShopStatusLoadingId(null);
+    }
+  };
+
   const toggleRecordStatus = async (record: RecordRow) => {
     const currentStatus = record.activo;
     if (typeof currentStatus !== 'boolean') return;
@@ -331,7 +362,7 @@ export default function AdminRecordsPage({ section }: { section: string }) {
       <div className="mb-4 flex flex-wrap gap-2 rounded-xl border border-white/10 bg-[#111f31] p-3">
         <label className="min-w-56 flex-1"><span className="sr-only">Buscar</span><input type="search" value={search} onChange={(event) => setFilter(setSearch)(event.target.value)} placeholder={viewSection === 'auditorias' ? 'Buscar correo, tabla o acción…' : 'Buscar registros…'} className="w-full rounded-lg border border-white/10 bg-[#091321] px-3 py-2 text-sm text-white outline-none placeholder:text-slate-500 focus:border-sky-400" /></label>
         {section === 'usuarios' && <select aria-label="Filtrar por rol" value={role} onChange={(event) => setFilter(setRole)(event.target.value)} className="rounded-lg border border-white/10 bg-[#091321] px-3 py-2 text-sm text-slate-200"><option value="">Todos los roles</option><option value="cliente">Cliente</option><option value="comerciante">Comerciante</option><option value="admin">Administrador</option></select>}
-        {section === 'comercios' && <select aria-label="Filtrar por estado" value={status} onChange={(event) => setFilter(setStatus)(event.target.value)} className="rounded-lg border border-white/10 bg-[#091321] px-3 py-2 text-sm text-slate-200"><option value="">Todos los estados</option><option value="activa">Activa</option><option value="rechazada">Rechazado</option></select>}
+        {section === 'comercios' && <select aria-label="Filtrar por estado" value={status} onChange={(event) => setFilter(setStatus)(event.target.value)} className="rounded-lg border border-white/10 bg-[#091321] px-3 py-2 text-sm text-slate-200"><option value="">Todos los estados</option><option value="pendiente">Pendiente</option><option value="activa">Activa</option><option value="suspendida">Suspendida</option><option value="rechazada">Rechazada</option></select>}
       </div>
 
       {notice && <div role="status" className="mb-4 rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-200">{notice}</div>}
@@ -346,7 +377,7 @@ export default function AdminRecordsPage({ section }: { section: string }) {
                 <tr key={String(record.id ?? index)} className="text-slate-200 hover:bg-white/[0.025]">
                   {fields.map(([key]) => <td key={key} className="max-w-64 px-4 py-3 align-top">{renderRecordValue(viewSection, record, key)}</td>)}
                   {hasDetailsColumn && <td className="px-4 py-3"><button type="button" onClick={() => openRecordDetails(record)} className="whitespace-nowrap rounded-md border border-white/10 px-3 py-1.5 text-xs font-semibold text-sky-200 hover:bg-white/5">Ver detalle</button></td>}
-                  {section === 'comercios' ? <td className="px-4 py-3">{record.estado === 'pendiente' ? <div className="flex flex-wrap gap-2"><button type="button" onClick={() => void approveShop(record)} className="whitespace-nowrap rounded-md border border-emerald-300/25 bg-emerald-300/10 px-3 py-1.5 text-xs font-bold text-emerald-200 hover:bg-emerald-300/20">Aprobar</button><button type="button" onClick={() => void rejectShop(record)} className="whitespace-nowrap rounded-md border border-rose-300/25 bg-rose-300/10 px-3 py-1.5 text-xs font-bold text-rose-200 hover:bg-rose-300/20">Rechazar</button></div> : <span className="text-xs text-slate-500">—</span>}</td> : managedStatusSections.has(section) ? <td className="px-4 py-3"><button type="button" onClick={() => void toggleRecordStatus(record)} disabled={typeof record.activo !== 'boolean'} className="whitespace-nowrap rounded-md border border-white/10 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40">{record.activo ? 'Desactivar' : 'Activar'}</button></td> : null}
+                  {section === 'comercios' ? <td className="px-4 py-3">{record.estado === 'pendiente' ? <div className="flex flex-wrap gap-2"><button type="button" onClick={() => void approveShop(record)} className="whitespace-nowrap rounded-md border border-emerald-300/25 bg-emerald-300/10 px-3 py-1.5 text-xs font-bold text-emerald-200 hover:bg-emerald-300/20">Aprobar</button><button type="button" onClick={() => void rejectShop(record)} className="whitespace-nowrap rounded-md border border-rose-300/25 bg-rose-300/10 px-3 py-1.5 text-xs font-bold text-rose-200 hover:bg-rose-300/20">Rechazar</button></div> : record.estado === 'activa' || record.estado === 'suspendida' ? <button type="button" onClick={() => void changeShopStatus(record)} disabled={shopStatusLoadingId === String(record.id)} className={`whitespace-nowrap rounded-md border px-3 py-1.5 text-xs font-bold disabled:cursor-wait disabled:opacity-50 ${record.estado === 'activa' ? 'border-rose-300/25 bg-rose-300/10 text-rose-200 hover:bg-rose-300/20' : 'border-emerald-300/25 bg-emerald-300/10 text-emerald-200 hover:bg-emerald-300/20'}`}>{shopStatusLoadingId === String(record.id) ? 'Actualizando…' : record.estado === 'activa' ? 'Suspender' : 'Reactivar'}</button> : <span className="text-xs text-slate-500">—</span>}</td> : managedStatusSections.has(section) ? <td className="px-4 py-3"><button type="button" onClick={() => void toggleRecordStatus(record)} disabled={typeof record.activo !== 'boolean'} className="whitespace-nowrap rounded-md border border-white/10 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40">{record.activo ? 'Desactivar' : 'Activar'}</button></td> : null}
                 </tr>
               ))}
               {!loading && !error && records.length === 0 && <tr><td colSpan={fields.length + (hasDetailsColumn ? 1 : 0) + (hasActionColumn ? 1 : 0)} className="px-4 py-14 text-center"><p className="font-semibold text-slate-300">No hay registros para mostrar</p><p className="mt-1 text-xs text-slate-500">Prueba cambiar la búsqueda o los filtros.</p></td></tr>}
