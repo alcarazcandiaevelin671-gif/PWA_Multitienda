@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { getClientUser, supabase } from '@/lib/supabase';
 import { getMyOrders, type PedidoConTienda } from '@/services/orders.service';
 import { updateAuthEmail, updateSettingsIdentity, uploadProfileAvatar } from '@/services/settings.service';
 import { userFacingError } from '@/lib/user-facing-error';
@@ -55,7 +55,7 @@ export default function PerfilCliente() {
   useEffect(() => {
     const loadProfile = async () => {
       setLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getClientUser();
 
       if (!user) {
         setMessage('Inicia sesión para ver tu perfil de cliente.');
@@ -89,7 +89,7 @@ export default function PerfilCliente() {
       });
 
       const [favoritesResult, ordersResult, interestsResult] = await Promise.all([
-        supabase.from('favoritos').select('*').eq('usuario_id', user.id).order('created_at', { ascending: false }).limit(12),
+        supabase.from('favoritos').select('*').eq('usuario_id', user.id).order('creado_en', { ascending: false }).limit(12),
         getMyOrders()
           .then((data) => ({ data }))
           .catch((orderError) => {
@@ -180,7 +180,7 @@ export default function PerfilCliente() {
   if (loading) {
     return (
       <div className="mx-auto max-w-4xl rounded-[28px] border border-slate-200 bg-white p-10 text-center shadow-sm">
-        <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-sky-200 border-t-sky-600" />
+        <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-accent-200 border-t-accent-600" />
         <p className="mt-4 text-sm font-semibold text-slate-500">Cargando perfil...</p>
       </div>
     );
@@ -188,15 +188,15 @@ export default function PerfilCliente() {
 
   if (!profile) {
     return (
-      <div className="mx-auto max-w-3xl rounded-[28px] border border-sky-200 bg-gradient-to-br from-sky-50 via-white to-blue-50 p-8 text-center shadow-[0_20px_60px_rgba(14,116,144,0.12)]">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-sky-100 text-3xl shadow-inner">🔐</div>
+      <div className="mx-auto max-w-3xl rounded-[28px] border border-accent-200 bg-gradient-to-br from-accent-50 via-white to-primary-50 p-8 text-center shadow-[0_20px_60px_rgba(219,39,119,0.12)]">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-accent-100 text-3xl shadow-inner">🔐</div>
         <h2 className="text-2xl font-black text-slate-900">Tu perfil está listo para ser visto</h2>
         <p className="mt-3 text-sm text-slate-600">Inicia sesión para consultar tus compras, favoritos y preferencias personalizadas.</p>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-          <button type="button" onClick={() => router.push('/auth/login')} className="rounded-xl bg-sky-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-sky-500/25 transition hover:bg-sky-700">
+          <button type="button" onClick={() => router.push('/auth/login')} className="rounded-xl bg-accent-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-accent-500/25 transition hover:bg-accent-700">
             Iniciar sesión
           </button>
-          <button type="button" onClick={() => router.push('/auth/registro')} className="rounded-xl border border-sky-200 bg-white px-5 py-3 text-sm font-bold text-sky-700 transition hover:bg-sky-50">
+          <button type="button" onClick={() => router.push('/auth/registro')} className="rounded-xl border border-accent-200 bg-white px-5 py-3 text-sm font-bold text-accent-700 transition hover:bg-accent-50">
             Crear cuenta
           </button>
         </div>
@@ -225,9 +225,9 @@ const role = normalizeRole(profile?.rol || 'cliente');
             description: 'Controla tu membresía, catálogo, negocio y presencia comercial en la región.',
           }
         : {
-            header: 'bg-gradient-to-r from-blue-900 via-blue-700 to-sky-600',
-            pill: 'bg-blue-100 text-blue-800 border border-blue-200',
-            accent: 'text-blue-200',
+            header: 'bg-gradient-to-r from-primary-900 via-primary-700 to-accent-600',
+            pill: 'bg-primary-100 text-primary-800 border border-primary-200',
+            accent: 'text-primary-200',
             title: 'MI PERFIL Y PREFERENCIAS',
             subtitle: 'Cliente / Comprador',
             description: 'Consulta tus datos, intereses, pedidos y tiendas de tu preferencia.',
@@ -283,9 +283,9 @@ const role = normalizeRole(profile?.rol || 'cliente');
               ['Mis Tiendas y Productos Favoritos', 'Acceso rápido a locales y artículos guardados'],
               ['Historial de Pedidos', 'Pedidos derivados a WhatsApp y seguimiento'],
             ].map(([label, text]) => (
-              <div key={label} className="flex h-full w-full items-start justify-between gap-3 rounded-2xl border border-blue-200 bg-blue-50 p-5 shadow-sm">
-                <div><p className="text-[11px] font-bold uppercase tracking-wide text-blue-800">{label}</p><p className="mt-3 text-sm font-semibold text-slate-800">{text}</p></div>
-                <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/80 text-blue-800 shadow-sm">{label.startsWith('Mis Tiendas') ? '♡' : label.startsWith('Historial') ? '▤' : '♙'}</span>
+              <div key={label} className="flex h-full w-full items-start justify-between gap-3 rounded-2xl border border-primary-200 bg-primary-50 p-5 shadow-sm">
+                <div><p className="text-[11px] font-bold uppercase tracking-wide text-primary-800">{label}</p><p className="mt-3 text-sm font-semibold text-slate-800">{text}</p></div>
+                <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/80 text-primary-800 shadow-sm">{label.startsWith('Mis Tiendas') ? '♡' : label.startsWith('Historial') ? '▤' : '♙'}</span>
               </div>
             ))}
           </section>
@@ -309,16 +309,16 @@ const role = normalizeRole(profile?.rol || 'cliente');
           <p className="mt-3 text-sm text-slate-200">{roleTheme.description}</p>
         </header>
 
-        {message && <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm font-semibold text-blue-800">{message}</div>}
+        {message && <div className="rounded-2xl border border-primary-200 bg-primary-50 p-4 text-sm font-semibold text-primary-800">{message}</div>}
 
         {roleModules}
 
         <section className="grid w-full grid-cols-1 gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
           <div className="h-full w-full rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
-            <div className="relative mx-auto h-28 w-28 overflow-hidden rounded-full border border-slate-200 bg-slate-100 shadow-md ring-4 ring-blue-50">
+            <div className="relative mx-auto h-28 w-28 overflow-hidden rounded-full border border-slate-200 bg-slate-100 shadow-md ring-4 ring-primary-50">
               {profile?.avatar_url ? <Image src={profile.avatar_url} alt="Avatar del cliente" fill unoptimized className="object-cover" /> : <span className="flex h-full items-center justify-center text-5xl">👤</span>}
             </div>
-            <label className="mt-5 inline-block cursor-pointer rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700">
+            <label className="mt-5 inline-block cursor-pointer rounded-xl bg-primary-600 px-4 py-2 text-xs font-bold text-white hover:bg-primary-700">
               {uploadingAvatar ? 'Subiendo...' : 'Actualizar foto'}
               <input type="file" accept="image/*" onChange={uploadAvatar} disabled={uploadingAvatar} className="hidden" />
             </label>
@@ -335,11 +335,11 @@ const role = normalizeRole(profile?.rol || 'cliente');
               ].map(([field, label, type]) => (
                 <label key={field} className="text-xs font-bold text-slate-700">
                   {label}
-                  <input type={type} value={form[field as keyof typeof form]} onChange={(event) => updateField(field as keyof typeof form, event.target.value)} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-normal outline-none focus:ring-2 focus:ring-blue-500" />
+                  <input type={type} value={form[field as keyof typeof form]} onChange={(event) => updateField(field as keyof typeof form, event.target.value)} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-normal outline-none focus:ring-2 focus:ring-primary-500" />
                 </label>
               ))}
             </div>
-            <button type="submit" disabled={saving} className="mt-5 rounded-xl bg-blue-600 px-5 py-3 text-xs font-bold text-white hover:bg-blue-700 disabled:opacity-50">{saving ? 'Guardando...' : 'Guardar cambios'}</button>
+            <button type="submit" disabled={saving} className="mt-5 rounded-xl bg-primary-600 px-5 py-3 text-xs font-bold text-white hover:bg-primary-700 disabled:opacity-50">{saving ? 'Guardando...' : 'Guardar cambios'}</button>
           </form>
         </section>
 
@@ -352,16 +352,16 @@ const role = normalizeRole(profile?.rol || 'cliente');
           <div className="h-full w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3"><span aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-lg text-emerald-800">▤</span><h2 className="text-lg font-extrabold text-slate-900">Mis Pedidos</h2></div>
-              <Link href="/pedidos" className="text-xs font-bold text-blue-700 hover:underline">Ver todos</Link>
+              <Link href="/pedidos" className="text-xs font-bold text-primary-700 hover:underline">Ver todos</Link>
             </div>
-            {orders.length === 0 ? <p className="mt-4 text-sm text-slate-500">No hay pedidos registrados.</p> : <div className="mt-4 space-y-3">{orders.slice(0, 5).map((order) => <Link key={order.id} href={`/pedidos/${order.id}`} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 p-3 text-sm hover:bg-blue-50"><span><span className="block font-semibold text-slate-700">{order.numero_pedido}</span><span className="text-xs text-slate-500">{order.tienda?.nombre_comercio || 'Tienda'} · {order.estado}</span></span><span className="whitespace-nowrap font-bold text-emerald-700">Gs. {Number(order.total).toLocaleString('es-PY')}</span></Link>)}</div>}
+            {orders.length === 0 ? <p className="mt-4 text-sm text-slate-500">No hay pedidos registrados.</p> : <div className="mt-4 space-y-3">{orders.slice(0, 5).map((order) => <Link key={order.id} href={`/pedidos/${order.id}`} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 p-3 text-sm hover:bg-primary-50"><span><span className="block font-semibold text-slate-700">{order.numero_pedido}</span><span className="text-xs text-slate-500">{order.tienda?.nombre_comercio || 'Tienda'} · {order.estado}</span></span><span className="whitespace-nowrap font-bold text-emerald-700">Gs. {Number(order.total).toLocaleString('es-PY')}</span></Link>)}</div>}
           </div>
         </section>
 
         <section className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center gap-3"><span aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-lg text-blue-800">✦</span><h2 className="text-lg font-extrabold text-slate-900">Mis Intereses / Categorías Preferidas</h2></div>
+          <div className="flex items-center gap-3"><span aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-50 text-lg text-primary-800">✦</span><h2 className="text-lg font-extrabold text-slate-900">Mis Intereses / Categorías Preferidas</h2></div>
           <p className="mt-1 text-sm text-slate-500">Selecciona categorías para mejorar tus recomendaciones.</p>
-          <div className="mt-4 flex flex-wrap gap-2">{CATEGORIES.map((category) => <button key={category} type="button" onClick={() => toggleInterest(category)} className={`rounded-xl px-4 py-2 text-xs font-bold transition ${interests.includes(category) ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-700'}`}>{category}</button>)}</div>
+          <div className="mt-4 flex flex-wrap gap-2">{CATEGORIES.map((category) => <button key={category} type="button" onClick={() => toggleInterest(category)} className={`rounded-xl px-4 py-2 text-xs font-bold transition ${interests.includes(category) ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-primary-50 hover:text-primary-700'}`}>{category}</button>)}</div>
         </section>
 
         <div className="flex justify-end pt-2">

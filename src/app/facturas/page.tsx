@@ -34,10 +34,10 @@ export default function FacturasPage() {
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
-          <p className="text-xs font-black uppercase text-blue-700">Cuenta</p>
+          <p className="text-xs font-black uppercase text-primary-700">Cuenta</p>
           <h1 className="mt-1 text-3xl font-black text-slate-900">Mis facturas</h1>
         </div>
-        <Link href="/pedidos" className="text-sm font-bold text-blue-700 hover:underline">Volver a pedidos</Link>
+        <Link href="/pedidos" className="text-sm font-bold text-primary-700 hover:underline">Volver a pedidos</Link>
       </div>
 
       <div className="mb-6 grid gap-4 rounded-2xl border border-slate-200 bg-white p-4 md:grid-cols-3">
@@ -46,7 +46,7 @@ export default function FacturasPage() {
           <select
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value)}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-0 focus:border-blue-500"
+            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none ring-0 focus:border-primary-500"
           >
             <option value="todos">Todos</option>
             <option value="borrador">Borrador</option>
@@ -62,7 +62,7 @@ export default function FacturasPage() {
             type="date"
             value={fromDate}
             onChange={(event) => setFromDate(event.target.value)}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-primary-500"
           />
         </label>
       </div>
@@ -104,7 +104,7 @@ export default function FacturasPage() {
                     </span>
                   </td>
                   <td className="px-4 py-4">
-                    <Link href={`/facturas/${invoice.id}`} className="font-bold text-blue-700 hover:underline">Ver detalle</Link>
+                    <Link href={`/facturas/${invoice.id}`} className="font-bold text-primary-700 hover:underline">Ver detalle</Link>
                   </td>
                 </tr>
               ))}

@@ -146,7 +146,8 @@ export default function NotificationBell({ userId, role }: { userId: string; rol
 
   useEffect(() => {
     void load();
-    const interval = window.setInterval(() => void load(), 30_000);
+    // Respaldo del canal realtime: solo con la pestaña visible.
+    const interval = window.setInterval(() => { if (document.visibilityState === 'visible') void load(); }, 60_000);
     return () => window.clearInterval(interval);
   }, [load]);
 
@@ -191,7 +192,7 @@ export default function NotificationBell({ userId, role }: { userId: string; rol
 
   return (
     <div ref={rootRef} className="relative">
-      <button type="button" onClick={() => setOpen((value) => !value)} aria-label={unreadCount ? `Notificaciones, ${unreadCount} sin leer` : 'Notificaciones'} aria-expanded={open} aria-haspopup="menu" className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:border-sky-300 hover:bg-sky-50 hover:text-sky-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-sky-600">
+      <button type="button" onClick={() => setOpen((value) => !value)} aria-label={unreadCount ? `Notificaciones, ${unreadCount} sin leer` : 'Notificaciones'} aria-expanded={open} aria-haspopup="menu" className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:border-accent-300 hover:bg-accent-50 hover:text-accent-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-600">
         <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
         {unreadCount > 0 && <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-black leading-none text-white ring-2 ring-white">{unreadCount > 99 ? '99+' : unreadCount}</span>}
       </button>
@@ -199,15 +200,15 @@ export default function NotificationBell({ userId, role }: { userId: string; rol
       {open && <div role="menu" aria-label="Notificaciones recientes" className="absolute right-0 top-[calc(100%+0.65rem)] z-[80] w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
           <h2 className="text-sm font-extrabold text-slate-900">Notificaciones</h2>
-          {unreadCount > 0 && <span className="text-[11px] font-bold text-sky-700">{unreadCount} sin leer</span>}
+          {unreadCount > 0 && <span className="text-[11px] font-bold text-accent-700">{unreadCount} sin leer</span>}
         </div>
         {error && <p role="alert" className="px-4 py-3 text-xs text-rose-700">{error}</p>}
         {!error && notifications.length === 0 && <p className="px-4 py-8 text-center text-sm text-slate-500">No tienes notificaciones.</p>}
         {notifications.length > 0 && <ul className="max-h-96 divide-y divide-slate-100 overflow-y-auto">
           {notifications.map((notification) => <li key={notification.id}>
-            <button type="button" role="menuitem" disabled={markingId === notification.id} onClick={() => void handleSelect(notification)} className={`w-full px-4 py-3 text-left transition hover:bg-slate-50 disabled:opacity-60 ${notification.leida ? 'bg-white' : 'bg-sky-50/70'}`}>
+            <button type="button" role="menuitem" disabled={markingId === notification.id} onClick={() => void handleSelect(notification)} className={`w-full px-4 py-3 text-left transition hover:bg-slate-50 disabled:opacity-60 ${notification.leida ? 'bg-white' : 'bg-accent-50/70'}`}>
               <span className="flex items-start gap-3">
-                <span aria-hidden="true" className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${notification.leida ? 'bg-transparent' : 'bg-sky-600'}`} />
+                <span aria-hidden="true" className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${notification.leida ? 'bg-transparent' : 'bg-accent-600'}`} />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-bold text-slate-800">{notification.titulo || notification.tipo || 'Notificación'}</span>
                   <span className="mt-1 block line-clamp-2 text-xs leading-5 text-slate-600">{notification.mensaje}</span>
@@ -217,7 +218,7 @@ export default function NotificationBell({ userId, role }: { userId: string; rol
             </button>
           </li>)}
         </ul>}
-        <Link href="/notificaciones" onClick={() => setOpen(false)} role="menuitem" className="block border-t border-slate-100 px-4 py-3 text-center text-xs font-bold text-sky-700 transition hover:bg-sky-50 hover:text-sky-900">Ver todas las notificaciones</Link>
+        <Link href="/notificaciones" onClick={() => setOpen(false)} role="menuitem" className="block border-t border-slate-100 px-4 py-3 text-center text-xs font-bold text-accent-700 transition hover:bg-accent-50 hover:text-accent-900">Ver todas las notificaciones</Link>
       </div>}
     </div>
   );

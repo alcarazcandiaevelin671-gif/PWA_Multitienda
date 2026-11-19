@@ -209,14 +209,14 @@ export default function SeguridadSection({ role }: { role: string | null }) {
           <span className="hidden sm:block" />
           <label className="text-sm font-semibold text-slate-700">Nueva contraseña<input type="password" autoComplete="new-password" minLength={12} maxLength={128} required value={newPassword} onChange={(event) => setNewPassword(event.target.value)} className="mt-1 block w-full rounded-xl border border-slate-300 px-3 py-2.5 font-normal" /></label>
           <label className="text-sm font-semibold text-slate-700">Confirmar contraseña<input type="password" autoComplete="new-password" minLength={12} maxLength={128} required value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} className="mt-1 block w-full rounded-xl border border-slate-300 px-3 py-2.5 font-normal" /></label>
-          <button type="submit" disabled={busy} className="w-fit rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50">{busy ? 'Procesando…' : 'Actualizar contraseña'}</button>
+          <button type="submit" disabled={busy} className="w-fit rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-primary-700 disabled:opacity-50">{busy ? 'Procesando…' : 'Actualizar contraseña'}</button>
         </form>
       </section>
 
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div><h3 className="font-bold text-slate-900">Autenticación en dos pasos</h3><p className="mt-1 text-sm text-slate-600">{loading ? 'Consultando Supabase…' : verifiedFactors.length ? `Activada · ${verifiedFactors.length} factor(es) verificado(s)` : 'No hay factores verificados.'}</p></div>
-          {!pendingFactor && <button type="button" disabled={busy || loading} onClick={() => void enrollMfa()} className="rounded-xl border border-blue-200 px-4 py-2.5 text-sm font-bold text-blue-800 hover:bg-blue-50 disabled:opacity-50">Configurar TOTP</button>}
+          {!pendingFactor && <button type="button" disabled={busy || loading} onClick={() => void enrollMfa()} className="rounded-xl border border-primary-200 px-4 py-2.5 text-sm font-bold text-primary-800 hover:bg-primary-50 disabled:opacity-50">Configurar TOTP</button>}
         </div>
         {isAdmin && !verifiedFactors.length && <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">Prioridad de administración: no hay un factor MFA verificado. El repositorio no contiene una regla que fuerce MFA para administradores; esa exigencia necesita configurarse y validarse en Supabase/backend.</p>}
         {pendingFactor && <form onSubmit={verifyMfa} className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
@@ -225,7 +225,7 @@ export default function SeguridadSection({ role }: { role: string | null }) {
           <p className="mt-3 break-all text-xs text-slate-600">Clave manual: <span className="font-mono font-bold">{pendingFactor.secret}</span></p>
           <div className="mt-4 flex flex-wrap gap-2">
             <input inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6,8}" maxLength={8} required value={totpCode} onChange={(event) => setTotpCode(event.target.value)} aria-label="Código de verificación" className="w-40 rounded-xl border border-slate-300 px-3 py-2.5 font-mono" />
-            <button type="submit" disabled={busy} className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">Verificar y activar</button>
+            <button type="submit" disabled={busy} className="rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">Verificar y activar</button>
             <button type="button" disabled={busy} onClick={() => setPendingFactor(null)} className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-600">Cancelar</button>
           </div>
         </form>}
@@ -241,7 +241,7 @@ export default function SeguridadSection({ role }: { role: string | null }) {
         <h3 className="font-bold text-slate-900">Conexiones</h3>
         <p className="mt-1 text-xs text-slate-500">Se muestran identidades vinculadas que reporta Supabase; la disponibilidad de proveedores se configura en el proyecto.</p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <div className="flex items-center justify-between rounded-xl border border-slate-200 p-3"><span className="text-sm font-semibold text-slate-800">Google</span>{googleConnected ? <button type="button" disabled={busy} onClick={() => void unlinkProvider('google')} className="text-xs font-bold text-rose-700 hover:underline disabled:opacity-50">Desvincular</button> : <button type="button" disabled={busy || loading} onClick={() => void connectGoogle()} className="text-sm font-bold text-blue-700 hover:underline disabled:opacity-50">Vincular</button>}</div>
+          <div className="flex items-center justify-between rounded-xl border border-slate-200 p-3"><span className="text-sm font-semibold text-slate-800">Google</span>{googleConnected ? <button type="button" disabled={busy} onClick={() => void unlinkProvider('google')} className="text-xs font-bold text-rose-700 hover:underline disabled:opacity-50">Desvincular</button> : <button type="button" disabled={busy || loading} onClick={() => void connectGoogle()} className="text-sm font-bold text-primary-700 hover:underline disabled:opacity-50">Vincular</button>}</div>
           <div className="flex items-center justify-between rounded-xl border border-slate-200 p-3"><span className="text-sm font-semibold text-slate-800">GitHub</span>{githubConnected ? <button type="button" disabled={busy} onClick={() => void unlinkProvider('github')} className="text-xs font-bold text-rose-700 hover:underline disabled:opacity-50">Desvincular</button> : <span className="text-xs text-slate-600">No vinculado; proveedor no verificado en Supabase</span>}</div>
         </div>
       </section>

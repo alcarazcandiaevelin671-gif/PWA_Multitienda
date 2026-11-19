@@ -3,7 +3,8 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-const REFRESH_INTERVAL_MS = 20_000;
+// Recarga en segundo plano de los comercios destacados. Cada 20 s competía con la interacción del usuario.
+const REFRESH_INTERVAL_MS = 60_000;
 
 export default function StorefrontAutoRefresh() {
   const router = useRouter();

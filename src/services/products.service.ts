@@ -111,12 +111,13 @@ export const productsService = {
       .from('productos')
       .select('*')
       .eq('tienda_id', shopId)
-      .order('created_at', { ascending: false });
+      .order('creado_en', { ascending: false });
 
     if (error) throw error;
     return (data || []) as AdminProduct[];
   },
-  async createProduct(product: Omit<AdminProduct, 'id' | 'created_at'>) {
+
+  async createProduct(product: Omit<AdminProduct, 'id' | 'creado_en'>) {
     const { data, error } = await supabase
       .from('productos')
       .insert([product])
@@ -126,7 +127,9 @@ export const productsService = {
     if (error) throw error;
     return data as AdminProduct;
   },
+
   deleteProduct,
+
   async updateProduct(productId: string, updates: Partial<AdminProduct>) {
     const { data, error } = await supabase
       .from('productos')
@@ -138,10 +141,11 @@ export const productsService = {
     if (error) throw error;
     return data as AdminProduct;
   },
-  async toggleProductStatus(productId: string, activo: boolean) {
+
+  async toggleProductStatus(productId: string, disponible: boolean) {
     const { error } = await supabase
       .from('productos')
-      .update({ activo: !activo })
+      .update({ disponible: !disponible })
       .eq('id', productId);
 
     if (error) throw error;

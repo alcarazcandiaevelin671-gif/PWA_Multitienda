@@ -43,7 +43,7 @@ export default function VendorOrdersPage() {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="PG-..."
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-primary-500"
           />
         </label>
         <label className="text-sm font-medium text-slate-700">
@@ -51,7 +51,7 @@ export default function VendorOrdersPage() {
           <select
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value)}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-primary-500"
           >
             <option value="todos">Todos</option>
             <option value="pendiente">Pendiente</option>
@@ -90,14 +90,14 @@ export default function VendorOrdersPage() {
                   <td className="px-4 py-4 font-semibold text-slate-800">Gs. {Number(order.total).toLocaleString('es-PY')}</td>
                   <td className="px-4 py-4 capitalize text-slate-700">{order.estado_pago}</td>
                   <td className="px-4 py-4"><span className="inline-flex rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-slate-700">{getOrderStateLabel(order.estado)}</span></td>
-                  <td className="px-4 py-4"><Link href={`/comerciante/pedidos/${order.id}`} className="font-bold text-blue-700 hover:underline">Gestionar</Link></td>
+                  <td className="px-4 py-4"><Link href={`/comerciante/pedidos/${order.id}`} className="font-bold text-primary-700 hover:underline">Gestionar</Link></td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
-      <Link href="/comerciante" className="mt-6 inline-flex text-sm font-bold text-blue-700 hover:underline">Volver al panel de comerciante</Link>
+      <Link href="/comerciante" className="mt-6 inline-flex text-sm font-bold text-primary-700 hover:underline">Volver al panel de comerciante</Link>
     </main>
   );
 }

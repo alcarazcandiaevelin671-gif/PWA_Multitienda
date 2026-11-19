@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { getClientUser, supabase } from '@/lib/supabase';
 
 export default function useNotificaciones() {
   const [unreadCount, setUnreadCount] = useState(0);
@@ -24,7 +24,7 @@ export default function useNotificaciones() {
     };
 
     const setup = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
+      const { data: { user }, error } = await getClientUser();
       if (!active) return;
       if (error || !user) {
         setUnreadCount(0);
@@ -39,15 +39,15 @@ export default function useNotificaciones() {
           schema: 'public',
           table: 'notificaciones',
           filter: `usuario_id=eq.${user.id}`,
-        }, (payload) => {
-          console.log('Notificación recibida en tiempo real:', payload.new ?? payload.old);
+        }, () => {
           setChangeVersion((version) => version + 1);
           if (userId) void loadUnreadCount(userId);
         })
         .subscribe();
 
       void loadUnreadCount(user.id);
-      interval = window.setInterval(() => void loadUnreadCount(user.id), 30_000);
+      // Respaldo del canal realtime: solo con la pestaña visible.
+      interval = window.setInterval(() => { if (document.visibilityState === 'visible') void loadUnreadCount(user.id); }, 60_000);
     };
 
     void setup();

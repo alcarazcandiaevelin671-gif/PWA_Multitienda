@@ -5,7 +5,7 @@ export type ConfigSection = 'identity' | 'security' | 'preferences' | 'notificat
 const sections: Array<{ id: ConfigSection; label: string; description: string }> = [
   { id: 'identity', label: 'Identidad y perfil', description: 'Datos personales y correo' },
   { id: 'security', label: 'Seguridad', description: 'Contraseña, MFA y conexiones' },
-  { id: 'preferences', label: 'Preferencias', description: 'Idioma, formato y tema' },
+  { id: 'preferences', label: 'Preferencias', description: 'Idioma, tema y colores' },
   { id: 'notifications', label: 'Notificaciones', description: 'Canales y tipos de avisos' },
   { id: 'privacy', label: 'Privacidad y datos', description: 'Exportación y controles' },
   { id: 'account', label: 'Información de la cuenta', description: 'Rol y estado de solo lectura' },
@@ -23,7 +23,7 @@ export default function ConfiguracionLayout({
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <header className="mb-7 border-b border-slate-200 pb-5">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">Tu cuenta</p>
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary-700">Tu cuenta</p>
         <h1 className="mt-1 text-3xl font-black text-slate-900">Configuración</h1>
         <p className="mt-2 text-sm text-slate-600">Administrá tu cuenta, seguridad, preferencias y privacidad.</p>
       </header>
@@ -39,7 +39,7 @@ export default function ConfiguracionLayout({
                   type="button"
                   aria-current={active ? 'page' : undefined}
                   onClick={() => onSectionChange(section.id)}
-                  className={`w-full rounded-xl px-3 py-3 text-left transition ${active ? 'bg-blue-50 text-blue-800 ring-1 ring-inset ring-blue-100' : 'text-slate-700 hover:bg-white hover:text-blue-700'}`}
+                  className={`w-full rounded-xl px-3 py-3 text-left transition ${active ? 'bg-primary-50 text-primary-800 ring-1 ring-inset ring-primary-100' : 'text-slate-700 hover:bg-white hover:text-primary-700'}`}
                 >
                   <span className="block text-sm font-bold">{section.label}</span>
                   <span className="mt-0.5 block text-xs text-slate-500">{section.description}</span>
@@ -55,7 +55,7 @@ export default function ConfiguracionLayout({
             <select
               value={activeSection}
               onChange={(event) => onSectionChange(event.target.value as ConfigSection)}
-              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm font-semibold text-slate-800 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm font-semibold text-slate-800 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
             >
               {sections.map((section) => <option key={section.id} value={section.id}>{section.label}</option>)}
             </select>

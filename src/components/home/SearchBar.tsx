@@ -81,7 +81,7 @@ export default function SearchBar({
 
 	return (
 		<div ref={containerRef} className={`relative w-full max-w-2xl ${className}`}>
-			<div className="flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-900/95 px-4 py-3 shadow-2xl shadow-black/20 transition-colors focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+			<div className="flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-900/95 px-4 py-3 shadow-2xl shadow-black/20 transition-colors focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-500/20">
 				<svg
 					aria-hidden="true"
 					className="h-5 w-5 shrink-0 text-slate-400"
@@ -102,17 +102,17 @@ export default function SearchBar({
 					className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-slate-500"
 				/>
 				{isSearching && (
-					<span className="shrink-0 text-xs font-medium text-blue-400">Buscando...</span>
+					<span className="shrink-0 text-xs font-medium text-primary-400">Buscando...</span>
 				)}
 			</div>
 
 			{isOpen && !isSearching && term.trim() && (
-				<div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 max-h-[min(70vh,32rem)] overflow-y-auto rounded-2xl border border-slate-800 bg-[#111827] p-2 shadow-2xl shadow-black/40">
+				<div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 max-h-[min(70vh,32rem)] overflow-y-auto rounded-2xl border border-slate-800 bg-slate-900 p-2 shadow-2xl shadow-black/40">
 					{hasResults ? (
 						<>
 							{results.shops.length > 0 && (
 								<section>
-									<h2 className="px-3 pb-2 pt-2 text-[10px] font-bold uppercase tracking-[0.18em] text-blue-400">
+									<h2 className="px-3 pb-2 pt-2 text-[10px] font-bold uppercase tracking-[0.18em] text-primary-400">
 										Comercios
 									</h2>
 									<div className="space-y-1">
@@ -124,7 +124,7 @@ export default function SearchBar({
 												className="w-full rounded-xl px-3 py-3 text-left transition-colors hover:bg-slate-800 focus:bg-slate-800 focus:outline-none"
 											>
 												<span className="block truncate text-sm font-semibold text-white">{shop.nombre_comercio}</span>
-												<span className="mt-1 block truncate text-xs font-medium text-blue-300">{shop.categoria_principal}</span>
+												<span className="mt-1 block truncate text-xs font-medium text-primary-300">{shop.categoria_principal}</span>
 												<span className="mt-1 block line-clamp-2 text-xs text-slate-400">{shop.descripcion}</span>
 											</button>
 										))}
@@ -134,7 +134,7 @@ export default function SearchBar({
 
 							{results.products.length > 0 && (
 								<section className="mt-2 border-t border-slate-800 pt-2">
-									<h2 className="px-3 pb-2 pt-2 text-[10px] font-bold uppercase tracking-[0.18em] text-blue-400">
+									<h2 className="px-3 pb-2 pt-2 text-[10px] font-bold uppercase tracking-[0.18em] text-primary-400">
 										Productos
 									</h2>
 									<div className="space-y-1">

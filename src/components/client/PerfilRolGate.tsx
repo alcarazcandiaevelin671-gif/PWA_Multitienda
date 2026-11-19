@@ -81,7 +81,7 @@ export default function PerfilRolGate() {
   if (rol === 'loading') {
     return (
       <div className="mx-auto max-w-4xl rounded-[28px] border border-slate-200 bg-white p-10 text-center shadow-sm">
-        <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-sky-200 border-t-sky-600" />
+        <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-accent-200 border-t-accent-600" />
         <p className="mt-4 text-sm font-semibold text-slate-500">Cargando perfil...</p>
       </div>
     );
@@ -124,17 +124,17 @@ export default function PerfilRolGate() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl rounded-[28px] border border-sky-200 bg-gradient-to-br from-sky-50 via-white to-blue-50 p-8 text-center shadow-[0_20px_60px_rgba(14,116,144,0.12)]">
-      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-sky-100 text-3xl shadow-inner">👤</div>
+    <div className="mx-auto max-w-3xl rounded-[28px] border border-accent-200 bg-gradient-to-br from-accent-50 via-white to-primary-50 p-8 text-center shadow-[0_20px_60px_rgba(219,39,119,0.12)]">
+      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-accent-100 text-3xl shadow-inner">👤</div>
       <h2 className="text-2xl font-black text-slate-900">Inicia sesión para ver tu perfil</h2>
       <p className="mt-3 text-sm text-slate-600">
         Accede a tu cuenta para gestionar tus compras, favoritos, historial y preferencias.
       </p>
       <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-        <Link href="/auth/login" className="rounded-xl bg-sky-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-sky-500/25 transition hover:bg-sky-700">
+        <Link href="/auth/login" className="rounded-xl bg-accent-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-accent-500/25 transition hover:bg-accent-700">
           Iniciar sesión
         </Link>
-        <Link href="/auth/registro" className="rounded-xl border border-sky-200 bg-white px-5 py-3 text-sm font-bold text-sky-700 transition hover:bg-sky-50">
+        <Link href="/auth/registro" className="rounded-xl border border-accent-200 bg-white px-5 py-3 text-sm font-bold text-accent-700 transition hover:bg-accent-50">
           Crear cuenta
         </Link>
       </div>

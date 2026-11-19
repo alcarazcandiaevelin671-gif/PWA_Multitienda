@@ -1,8 +1,8 @@
-import { supabase } from '@/lib/supabase';
+import { getClientUser, supabase } from '@/lib/supabase';
 import type { CheckoutConfirmation, CheckoutInput, Pedido, PedidoDetalle, PedidoEstadoHistorial } from '@/types/database';
 
 export type PedidoConTienda = Pedido & {
-  tienda: { nombre_comercio: string } | null;
+  tienda: { nombre_comercio: string; slug?: string | null; whatsapp?: string | null; telefono?: string | null } | null;
 };
 
 export const ORDER_STATUS_LABELS: Record<string, string> = {
@@ -55,7 +55,7 @@ export function getOrderStateLabel(state: string | null | undefined): string {
 }
 
 export async function getCurrentUser() {
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const { data: { user }, error } = await getClientUser();
   if (error || !user) {
     throw new Error('Inicia sesión para consultar esta información.');
   }
@@ -105,7 +105,7 @@ export async function getMyOrder(orderId: string) {
 
   const { data: pedido, error: orderError } = await supabase
     .from('pedidos')
-    .select('*, tienda:tiendas(nombre_comercio)')
+    .select('*, tienda:tiendas(nombre_comercio, slug, whatsapp, telefono)')
     .eq('id', orderId)
     .eq('usuario_id', user.id)
     .maybeSingle();

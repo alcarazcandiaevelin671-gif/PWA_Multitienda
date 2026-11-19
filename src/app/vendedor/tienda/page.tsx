@@ -510,7 +510,7 @@ export default function ComercianteTiendaPage() {
       <div className="min-h-screen bg-slate-50 py-12 px-4 flex items-center justify-center">
         <div className="max-w-md w-full bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
           
-          <div className="bg-[#0b0f19] text-white p-8 text-center border-b border-slate-800">
+          <div className="zone-hero text-white p-8 text-center border-b border-slate-800">
             <span className="text-4xl">🏪</span>
             <h1 className="text-xl font-black mt-2">Portal de Comerciantes</h1>
             <p className="text-slate-400 text-xs mt-1">
@@ -528,7 +528,7 @@ export default function ComercianteTiendaPage() {
               onClick={() => { setAuthMode('login'); setMensaje(null); }}
               className={`flex-1 py-3 text-xs font-bold transition-all ${
                 authMode === 'login'
-                  ? 'bg-white text-blue-600 border-b-2 border-blue-600'
+                  ? 'bg-white text-primary-600 border-b-2 border-primary-600'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
@@ -562,7 +562,7 @@ export default function ComercianteTiendaPage() {
                   value={authData.nombre_completo}
                   onChange={(e) => setAuthData({ ...authData, nombre_completo: e.target.value })}
                   placeholder="Tu nombre y apellido"
-                  className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600"
+                  className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600"
                 />
               </div>
             )}
@@ -577,7 +577,7 @@ export default function ComercianteTiendaPage() {
                 value={authData.email}
                 onChange={(e) => setAuthData({ ...authData, email: e.target.value })}
                 placeholder="tu@correo.com"
-                className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600"
+                className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600"
               />
             </div>
 
@@ -590,7 +590,7 @@ export default function ComercianteTiendaPage() {
                 value={authData.password}
                 onChange={(e) => setAuthData({ ...authData, password: e.target.value })}
                 placeholder="••••••••"
-                className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600"
+                className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600"
               />
             </div>
 
@@ -598,7 +598,7 @@ export default function ComercianteTiendaPage() {
               <button
                 type="button"
                 onClick={() => { setRecoveryStep(1); setMensaje(null); }}
-                className="text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline"
+                className="text-xs font-bold text-primary-600 hover:text-primary-700 hover:underline"
               >
                 ¿Olvidaste tu contraseña?
               </button>
@@ -612,25 +612,25 @@ export default function ComercianteTiendaPage() {
                   value={authData.telefono_contacto}
                   onChange={(e) => setAuthData({ ...authData, telefono_contacto: e.target.value })}
                   placeholder="Ej: 0981123456"
-                  className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600"
+                  className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600"
                 />
               </div>
             )}
 
             {authMode === 'register' && (
-              <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4 space-y-4">
+              <div className="rounded-2xl border border-primary-100 bg-primary-50/60 p-4 space-y-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <h2 className="text-sm font-black text-slate-900">Plan Comerciante (Membresía)</h2>
                     <p className="mt-1 text-xs text-slate-600">Acceso al panel y publicación de tu comercio.</p>
                   </div>
-                  <span className="whitespace-nowrap text-sm font-black text-blue-700">50.000 PYG / mes</span>
+                  <span className="whitespace-nowrap text-sm font-black text-primary-700">50.000 PYG / mes</span>
                 </div>
 
-                <div className="rounded-xl bg-white p-1 border border-blue-100">
+                <div className="rounded-xl bg-white p-1 border border-primary-100">
                   <label className="cursor-pointer">
                     <input type="radio" name="metodo_pago" value="tarjeta" defaultChecked className="peer sr-only" />
-                    <span className="block rounded-lg bg-blue-600 px-3 py-2 text-center text-xs font-bold text-white">
+                    <span className="block rounded-lg bg-primary-600 px-3 py-2 text-center text-xs font-bold text-white">
                       Tarjeta
                     </span>
                   </label>
@@ -645,7 +645,7 @@ export default function ComercianteTiendaPage() {
                       inputMode="numeric"
                       pattern="[0-9 ]{13,19}"
                       placeholder="0000 0000 0000 0000"
-                      className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-blue-600"
+                      className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-primary-600"
                     />
                   </div>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -657,7 +657,7 @@ export default function ComercianteTiendaPage() {
                         inputMode="numeric"
                         pattern="(0[1-9]|1[0-2])/[0-9]{2}"
                         placeholder="MM/AA"
-                        className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-blue-600"
+                        className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-primary-600"
                       />
                     </div>
                     <div>
@@ -669,7 +669,7 @@ export default function ComercianteTiendaPage() {
                         pattern="[0-9]{3,4}"
                         maxLength={4}
                         placeholder="123"
-                        className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-blue-600"
+                        className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-primary-600"
                       />
                     </div>
                   </div>
@@ -684,7 +684,7 @@ export default function ComercianteTiendaPage() {
             <button
               type="submit"
               disabled={authLoading}
-              className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs py-4 rounded-xl transition-all shadow-md disabled:opacity-50 cursor-pointer"
+              className="w-full mt-4 bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-xs py-4 rounded-xl transition-all shadow-md disabled:opacity-50 cursor-pointer"
             >
               {authLoading
                 ? 'Procesando...'
@@ -695,9 +695,9 @@ export default function ComercianteTiendaPage() {
           </form>
 
           {recoveryStep > 0 && (
-            <div className="mx-6 mb-6 rounded-2xl border border-blue-100 bg-blue-50/60 p-5">
+            <div className="mx-6 mb-6 rounded-2xl border border-primary-100 bg-primary-50/60 p-5">
               <div className="mb-4">
-                <p className="text-[10px] font-black uppercase tracking-wider text-blue-600">Recuperar contraseña</p>
+                <p className="text-[10px] font-black uppercase tracking-wider text-primary-600">Recuperar contraseña</p>
                 <h2 className="mt-1 text-lg font-black text-slate-900">
                   {recoveryStep === 1 && 'Solicita tu código'}
                   {recoveryStep === 2 && 'Verifica tu correo'}
@@ -720,12 +720,12 @@ export default function ComercianteTiendaPage() {
                     value={recoveryEmail}
                     onChange={(e) => setRecoveryEmail(e.target.value)}
                     placeholder="tu@correo.com"
-                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-blue-600"
+                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-primary-600"
                   />
                   <button
                     type="submit"
                     disabled={recoveryLoading}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs py-3 rounded-xl transition-all shadow-md disabled:opacity-50"
+                    className="w-full bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-xs py-3 rounded-xl transition-all shadow-md disabled:opacity-50"
                   >
                     {recoveryLoading ? 'Enviando...' : 'Enviar código'}
                   </button>
@@ -749,14 +749,14 @@ export default function ComercianteTiendaPage() {
                         onKeyDown={(e) => handleRecoveryOtpKeyDown(index, e)}
                         onPaste={handleRecoveryOtpPaste}
                         aria-label={`Dígito ${index + 1} del código`}
-                        className="h-12 w-10 rounded-xl border border-slate-200 bg-white text-center text-lg font-black text-slate-900 focus:ring-2 focus:ring-blue-600"
+                        className="h-12 w-10 rounded-xl border border-slate-200 bg-white text-center text-lg font-black text-slate-900 focus:ring-2 focus:ring-primary-600"
                       />
                     ))}
                   </div>
                   <button
                     type="submit"
                     disabled={recoveryLoading || recoveryOtp.join('').length !== 6}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs py-3 rounded-xl transition-all shadow-md disabled:opacity-50"
+                    className="w-full bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-xs py-3 rounded-xl transition-all shadow-md disabled:opacity-50"
                   >
                     {recoveryLoading ? 'Verificando...' : 'Verificar código'}
                   </button>
@@ -772,12 +772,12 @@ export default function ComercianteTiendaPage() {
                     value={recoveryPassword}
                     onChange={(e) => setRecoveryPassword(e.target.value)}
                     placeholder="Nueva contraseña"
-                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-blue-600"
+                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-primary-600"
                   />
                   <button
                     type="submit"
                     disabled={recoveryLoading}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs py-3 rounded-xl transition-all shadow-md disabled:opacity-50"
+                    className="w-full bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-xs py-3 rounded-xl transition-all shadow-md disabled:opacity-50"
                   >
                     {recoveryLoading ? 'Actualizando...' : 'Guardar nueva contraseña'}
                   </button>
@@ -787,7 +787,7 @@ export default function ComercianteTiendaPage() {
               <button
                 type="button"
                 onClick={() => { setRecoveryStep(0); setMensaje(null); }}
-                className="mt-4 w-full text-xs font-bold text-slate-500 hover:text-blue-600"
+                className="mt-4 w-full text-xs font-bold text-slate-500 hover:text-primary-600"
               >
                 ← Volver al inicio de sesión
               </button>
@@ -795,7 +795,7 @@ export default function ComercianteTiendaPage() {
           )}
 
           <div className="p-4 bg-slate-50 border-t border-slate-100 text-center">
-            <Link href="/" className="text-xs font-bold text-slate-500 hover:text-blue-600">
+            <Link href="/" className="text-xs font-bold text-slate-500 hover:text-primary-600">
               ← Volver a la página principal
             </Link>
           </div>
@@ -828,7 +828,7 @@ export default function ComercianteTiendaPage() {
 
             <button
               onClick={irAGestionarProductos}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer flex items-center gap-2"
+              className="bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer flex items-center gap-2"
             >
               📦 Gestionar Mis Productos
             </button>
@@ -837,7 +837,7 @@ export default function ComercianteTiendaPage() {
 
         <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
           {/* Cabecera */}
-          <div className="bg-[#0b0f19] text-white p-6 sm:p-8 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="zone-hero text-white p-6 sm:p-8 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -886,7 +886,7 @@ export default function ComercianteTiendaPage() {
                   <button
                     type="button"
                     onClick={irAGestionarProductos}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-black text-xs px-5 py-2.5 rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap"
+                    className="bg-primary-600 hover:bg-primary-700 text-white font-black text-xs px-5 py-2.5 rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap"
                   >
                     📦 Cargar Productos Ahora →
                   </button>
@@ -913,7 +913,7 @@ export default function ComercianteTiendaPage() {
                     value={userData.nombre_completo}
                     onChange={handleUserChange}
                     placeholder="Tu nombre y apellido"
-                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600"
+                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600"
                   />
                 </div>
 
@@ -939,7 +939,7 @@ export default function ComercianteTiendaPage() {
                     value={userData.telefono_contacto}
                     onChange={handleUserChange}
                     placeholder="Ej: 0981123456"
-                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600"
+                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600"
                   />
                 </div>
               </div>
@@ -971,9 +971,9 @@ export default function ComercianteTiendaPage() {
                           if (file) uploadImage(file, 'logo');
                         }}
                         disabled={uploadingLogo}
-                        className="text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer"
+                        className="text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-primary-600 file:text-white hover:file:bg-primary-700 cursor-pointer"
                       />
-                      {uploadingLogo && <p className="text-[10px] text-blue-600 font-bold mt-1">Subiendo logo...</p>}
+                      {uploadingLogo && <p className="text-[10px] text-primary-600 font-bold mt-1">Subiendo logo...</p>}
                     </div>
                   </div>
                 </div>
@@ -997,9 +997,9 @@ export default function ComercianteTiendaPage() {
                           if (file) uploadImage(file, 'portada');
                         }}
                         disabled={uploadingPortada}
-                        className="text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer"
+                        className="text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-primary-600 file:text-white hover:file:bg-primary-700 cursor-pointer"
                       />
-                      {uploadingPortada && <p className="text-[10px] text-blue-600 font-bold mt-1">Subiendo portada...</p>}
+                      {uploadingPortada && <p className="text-[10px] text-primary-600 font-bold mt-1">Subiendo portada...</p>}
                     </div>
                   </div>
                 </div>
@@ -1022,7 +1022,7 @@ export default function ComercianteTiendaPage() {
                     value={formData.nombre_comercio}
                     onChange={handleChange}
                     placeholder="Ej: Bodega Guairá"
-                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600"
+                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600"
                   />
                 </div>
 
@@ -1032,7 +1032,7 @@ export default function ComercianteTiendaPage() {
                     name="categoria_principal"
                     value={formData.categoria_principal}
                     onChange={handleChange}
-                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 bg-white"
+                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600 bg-white"
                   >
                     {categorias.map((cat) => (
                       <option key={cat.id} value={cat.nombre}>
@@ -1051,7 +1051,7 @@ export default function ComercianteTiendaPage() {
                   value={formData.descripcion}
                   onChange={handleChange}
                   placeholder="Cuenta brevemente qué productos o servicios ofrece tu negocio..."
-                  className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 resize-none"
+                  className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600 resize-none"
                 />
               </div>
             </div>
@@ -1074,7 +1074,7 @@ export default function ComercianteTiendaPage() {
                     value={formData.whatsapp}
                     onChange={handleChange}
                     placeholder="Ej: 0981123456"
-                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600"
+                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600"
                   />
                 </div>
 
@@ -1088,7 +1088,7 @@ export default function ComercianteTiendaPage() {
                     value={formData.telefono}
                     onChange={handleChange}
                     placeholder="Ej: 0541 40000"
-                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600"
+                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600"
                   />
                 </div>
               </div>
@@ -1104,7 +1104,7 @@ export default function ComercianteTiendaPage() {
                     value={formData.instagram_username}
                     onChange={handleChange}
                     placeholder="@mi_comercio"
-                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600"
+                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600"
                   />
                 </div>
 
@@ -1118,7 +1118,7 @@ export default function ComercianteTiendaPage() {
                     value={formData.facebook_url}
                     onChange={handleChange}
                     placeholder="https://facebook.com/mi_comercio"
-                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600"
+                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600"
                   />
                 </div>
               </div>
@@ -1137,7 +1137,7 @@ export default function ComercianteTiendaPage() {
                     name="distrito_id"
                     value={formData.distrito_id}
                     onChange={handleChange}
-                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 bg-white"
+                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600 bg-white"
                   >
                     {distritos.map((dist) => (
                       <option key={dist.id} value={dist.id}>
@@ -1155,7 +1155,7 @@ export default function ComercianteTiendaPage() {
                     value={formData.direccion_texto}
                     onChange={handleChange}
                     placeholder="Ej: Av. General Díaz c/ Coronel Bogado"
-                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600"
+                    className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600"
                   />
                 </div>
               </div>
@@ -1183,7 +1183,7 @@ export default function ComercianteTiendaPage() {
                 className={`w-full sm:w-auto font-extrabold text-xs px-8 py-4 rounded-xl transition-all shadow-md cursor-pointer ${
                   guardadoExitoso
                     ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                    : 'bg-primary-600 hover:bg-primary-700 text-white'
                 } disabled:opacity-50`}
               >
                 {loading

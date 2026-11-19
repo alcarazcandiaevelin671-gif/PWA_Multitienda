@@ -1,22 +1,26 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { ROLE_COOKIE, getAccountProfile, getVerifiedUser, roleCookieOptions } from '@/lib/server-auth';
+import { cookies } from 'next/headers';
 
 export async function requireAdmin() {
   const supabase = await createSupabaseServerClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const user = await getVerifiedUser(supabase);
 
-  if (authError || !user) {
+  if (!user) {
     return NextResponse.json({ error: 'Inicia sesión para continuar.' }, { status: 401 });
   }
 
-  const { data, error } = await supabase
-    .from('usuarios')
-    .select('rol, activo')
-    .eq('id', user.id)
-    .maybeSingle();
-  const profile = data as unknown as { rol: string; activo: boolean } | null;
+  const cookieStore = cookies();
+  const profile = await getAccountProfile(supabase, user.id, cookieStore.get(ROLE_COOKIE)?.value, (value) => {
+    try { cookieStore.set(ROLE_COOKIE, value, roleCookieOptions); } catch { /* contexto de solo lectura */ }
+  });
 
-  if (error || !profile || profile.activo !== true || !['admin', 'administrador'].includes(profile.rol.toLowerCase())) {
+  if (profile && ['admin', 'administrador'].includes(profile.rol) && user.aal !== 'aal2') {
+    return NextResponse.json({ error: 'Se requiere la verificación en dos pasos (código TOTP) para administrar.' }, { status: 403 });
+  }
+
+  if (!profile || profile.activo !== true || !['admin', 'administrador'].includes(profile.rol)) {
     return NextResponse.json({ error: 'No tienes permisos de administrador.' }, { status: 403 });
   }
 

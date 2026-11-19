@@ -114,7 +114,7 @@ export default function StorefrontCart({ products, categories = [], shop }: Stor
             value={filterTerm}
             onChange={(event) => setFilterTerm(event.target.value)}
             placeholder="Buscar producto o categoría"
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-3 text-sm text-slate-700 outline-none transition focus:border-blue-300 focus:bg-white"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-3 text-sm text-slate-700 outline-none transition focus:border-primary-300 focus:bg-white"
             aria-label="Buscar producto o categoría en esta tienda"
           />
         </div>
@@ -161,7 +161,7 @@ export default function StorefrontCart({ products, categories = [], shop }: Stor
                   </div>
                 </div>
                 <div className="flex items-center justify-between border-t border-slate-100 p-4">
-                  <span className="text-base font-extrabold text-blue-600">{price.toLocaleString('es-PY')} Gs.</span>
+                  <span className="text-base font-extrabold text-primary-600">{price.toLocaleString('es-PY')} Gs.</span>
                   <button
                     type="button"
                     onClick={() => addProduct(product)}

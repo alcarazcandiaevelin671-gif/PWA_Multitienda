@@ -6,6 +6,9 @@ import { Shop } from '@/types/shop';
 import { supabase } from '@/lib/supabase';
 import { showAppMessage } from '@/lib/app-message';
 import { getEffectiveProductPrice } from '@/lib/product-pricing';
+import { userFacingError } from '@/lib/user-facing-error';
+import { createOrder } from '@/services/orders.service';
+import { isNetworkError, queueOrder } from '@/lib/offline-orders';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -16,7 +19,7 @@ interface CartDrawerProps {
 }
 
 export default function CartDrawer({ isOpen, onClose, currentShop }: CartDrawerProps) {
-  const { items, removeItem, updateQuantity, totalAmount, clearCart, generateWhatsAppLink } = useCart();
+  const { items, removeItem, updateQuantity, totalAmount, clearCart } = useCart();
   const [paymentMethod, setPaymentMethod] = useState('Efectivo');
   const [customerName, setCustomerName] = useState('');
   const [customerAddress, setCustomerAddress] = useState('');
@@ -52,24 +55,12 @@ export default function CartDrawer({ isOpen, onClose, currentShop }: CartDrawerP
   });
 
   const handleSendOrder = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      showAppMessage('Debes iniciar sesión para completar tu compra.', 'Inicio de sesión requerido', 'error');
-      window.location.href = '/auth/login';
-      return;
-    }
-
     if (!currentShop?.whatsapp && !currentShop?.telefono) {
       showAppMessage('El comercio no tiene configurado un número de WhatsApp.', 'Compra no disponible', 'error');
       return;
     }
 
-    const phone = currentShop.whatsapp || currentShop.telefono || '';
-    const selectedPaymentMethod = paymentMethod === 'en_linea'
-      ? 'Compra en Línea (Tarjeta)'
-      : paymentMethod;
-    if (!customerName.trim() || !customerAddress.trim()) {
+    if (!customerName.trim() || customerAddress.trim().length < 3) {
       showAppMessage('Completa tu nombre y dirección de entrega.', 'Datos incompletos', 'error');
       return;
     }
@@ -79,29 +70,83 @@ export default function CartDrawer({ isOpen, onClose, currentShop }: CartDrawerP
       return;
     }
 
-    const estimate = await obtenerEstimacionEntrega();
-    setDeliveryEstimate(estimate);
-    const link = generateWhatsAppLink(
-      phone,
-      currentShop.nombre,
-      selectedPaymentMethod,
-      customerName,
-      customerAddress,
-    );
+    const selectedPaymentMethod = paymentMethod === 'en_linea'
+      ? 'Compra en Línea (Tarjeta)'
+      : paymentMethod;
 
-    if (paymentMethod === 'en_linea') {
-      setPaymentStatus('processing');
-      window.setTimeout(() => {
-        setPaymentStatus('success');
-        window.open(link, '_blank');
-      }, 1200);
+    // getSession() lee la sesión guardada en el dispositivo: funciona sin conexión.
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      showAppMessage('Debes iniciar sesión para completar tu compra.', 'Inicio de sesión requerido', 'error');
+      window.location.href = '/auth/login';
       return;
     }
-    
-    // Redirigir a WhatsApp y limpiar carrito
-    window.open(link, '_blank');
-    clearCart();
-    onClose();
+
+    const orderInput = {
+      tienda_id: currentShop.id || items[0].product.tienda_id,
+      items: items.map(({ product, cantidad }) => ({ producto_id: product.id, cantidad })),
+      metodo_pago: (paymentMethod === 'Efectivo' ? 'efectivo' : 'transferencia') as 'efectivo' | 'transferencia',
+      direccion_entrega: customerAddress.trim(),
+      notas: `Pedido enviado por WhatsApp. Cliente: ${customerName.trim()}. Pago: ${selectedPaymentMethod}.`,
+    };
+    const saveOffline = () => {
+      queueOrder({
+        origen: 'whatsapp',
+        input: orderInput,
+        resumen: {
+          tienda: currentShop.nombre,
+          total: totalAmount,
+          items: items.map(({ product, cantidad }) => ({
+            nombre: product.nombre ?? product.titulo ?? 'Producto',
+            cantidad,
+            precio: getEffectiveProductPrice(product),
+          })),
+        },
+      });
+      setPaymentStatus('idle');
+      clearCart();
+      onClose();
+      showAppMessage(
+        'Estás sin conexión. Tu pedido quedó guardado en este dispositivo y se enviará solo cuando vuelva internet. Después podrás mandar el ticket por WhatsApp desde "Mis pedidos".',
+        'Pedido guardado sin conexión',
+        'success',
+      );
+    };
+
+    if (!navigator.onLine) {
+      saveOffline();
+      return;
+    }
+
+    setPaymentStatus('processing');
+    try {
+      // Registrar el pedido para generar el ticket (mismo proceso que el checkout).
+      const { pedido } = await createOrder(orderInput);
+
+      const estimate = await obtenerEstimacionEntrega();
+      setDeliveryEstimate(estimate);
+      if (paymentMethod === 'en_linea') {
+        await new Promise((resolve) => window.setTimeout(resolve, 1200));
+      }
+
+      // El envío por WhatsApp (imagen del ticket + enlaces de productos) se hace desde la página
+      // del ticket: compartir una imagen requiere un clic del cliente sobre ese botón.
+      setPaymentStatus('success');
+      clearCart();
+      onClose();
+      window.location.assign(`/pedidos/${pedido.id}?origen=whatsapp#ticket`);
+    } catch (orderError) {
+      if (isNetworkError(orderError)) {
+        saveOffline(); // se cortó la conexión durante el envío
+        return;
+      }
+      setPaymentStatus('idle');
+      showAppMessage(
+        userFacingError(orderError, 'No se pudo registrar el pedido. Inténtalo de nuevo.'),
+        'Pedido no enviado',
+        'error',
+      );
+    }
   };
 
   return (
@@ -130,13 +175,14 @@ export default function CartDrawer({ isOpen, onClose, currentShop }: CartDrawerP
           ) : (
             items.map(({ product, cantidad }) => {
               const precioUnitario = getEffectiveProductPrice(product);
+              const nombreProducto = product.nombre ?? product.titulo ?? 'Producto';
               return (
                 <div key={product.id} className="flex items-center gap-4 bg-gray-50 p-3 rounded-xl border border-gray-100">
                   {product.imagen_url && (
-                    <Image src={product.imagen_url} alt={product.nombre} width={64} height={64} unoptimized className="w-16 h-16 object-cover rounded-lg" />
+                    <Image src={product.imagen_url} alt={nombreProducto} width={64} height={64} unoptimized className="w-16 h-16 object-cover rounded-lg" />
                   )}
                   <div className="flex-1">
-                    <h4 className="font-bold text-gray-800 text-sm">{product.nombre}</h4>
+                    <h4 className="font-bold text-gray-800 text-sm">{nombreProducto}</h4>
                     <p className="text-xs font-bold text-emerald-700">Gs. {precioUnitario.toLocaleString('es-PY')}</p>
                     
                     {/* Control de Cantidad */}
@@ -199,7 +245,7 @@ export default function CartDrawer({ isOpen, onClose, currentShop }: CartDrawerP
             <Link
               href="/checkout"
               onClick={onClose}
-              className="block w-full rounded-xl bg-blue-700 px-4 py-3 text-center text-sm font-bold text-white transition hover:bg-blue-800"
+              className="block w-full rounded-xl bg-primary-700 px-4 py-3 text-center text-sm font-bold text-white transition hover:bg-primary-800"
             >
               Continuar al checkout
             </Link>
@@ -276,8 +322,10 @@ export default function CartDrawer({ isOpen, onClose, currentShop }: CartDrawerP
             )}
 
             {paymentStatus === 'processing' && (
-              <div className="rounded-xl border border-blue-200 bg-blue-50 px-3 py-3 text-center text-xs font-bold text-blue-800">
-                Conectando con Bancard y procesando el pago de prueba...
+              <div className="rounded-xl border border-primary-200 bg-primary-50 px-3 py-3 text-center text-xs font-bold text-primary-800">
+                {paymentMethod === 'en_linea'
+                  ? 'Conectando con Bancard y procesando el pago de prueba...'
+                  : 'Registrando tu pedido y generando el ticket...'}
               </div>
             )}
 

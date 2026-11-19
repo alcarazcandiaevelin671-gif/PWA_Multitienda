@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import FavoriteToggle from '@/components/common/FavoriteToggle';
-import { supabase } from '@/lib/supabase';
+import { getClientUser, supabase } from '@/lib/supabase';
 
 type FavoriteRow = { id: string | null; tienda_id: string | null; producto_id: string | null };
 type StoreRow = { id: string; slug: string | null; nombre_comercio: string | null; descripcion: string | null; logo_url: string | null; portada_url: string | null };
@@ -22,7 +22,7 @@ export default function FavoritosPage() {
 
     const loadFavorites = async () => {
       setLoading(true);
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      const { data: { user }, error: authError } = await getClientUser();
       if (!active) return;
       if (authError) setError('No se pudo verificar la sesión.');
       setUserId(user?.id ?? null);
@@ -114,7 +114,7 @@ export default function FavoritosPage() {
           <p className="mt-2 text-sm text-slate-600">Tiendas y productos que guardaste.</p>
         </header>
 
-        {!userId && !loading && <div className="rounded-xl border border-slate-200 bg-white p-6 text-center"><p className="font-semibold text-slate-700">Inicia sesión para ver tus favoritos.</p><Link href="/auth/login" className="mt-4 inline-flex rounded-lg bg-sky-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-800">Iniciar sesión</Link></div>}
+        {!userId && !loading && <div className="rounded-xl border border-slate-200 bg-white p-6 text-center"><p className="font-semibold text-slate-700">Inicia sesión para ver tus favoritos.</p><Link href="/auth/login" className="mt-4 inline-flex rounded-lg bg-accent-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-accent-800">Iniciar sesión</Link></div>}
         {error && <p role="alert" className="mb-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{error}</p>}
         {loading ? <p role="status" className="rounded-xl border border-slate-200 bg-white px-4 py-12 text-center text-sm text-slate-500">Cargando favoritos…</p>
           : userId && favorites.length === 0 ? <p className="rounded-xl border border-slate-200 bg-white px-4 py-12 text-center text-sm text-slate-500">Todavía no guardaste tiendas ni productos.</p>
@@ -127,8 +127,8 @@ export default function FavoritosPage() {
                 <div className="p-4">
                   <p className="text-xs font-semibold text-slate-500">{favorite.kind === 'tienda' ? 'Tienda' : favorite.detail}</p>
                   <h2 className="mt-1 truncate text-base font-bold text-slate-900">{favorite.name}</h2>
-                  {favorite.price !== null && <p className="mt-2 text-sm font-extrabold text-sky-700">{favorite.price.toLocaleString('es-PY')} Gs.</p>}
-                  <Link href={favorite.href} className="mt-3 inline-flex text-xs font-bold text-sky-700 hover:text-sky-900">Ver {favorite.kind === 'tienda' ? 'tienda' : 'producto'} →</Link>
+                  {favorite.price !== null && <p className="mt-2 text-sm font-extrabold text-accent-700">{favorite.price.toLocaleString('es-PY')} Gs.</p>}
+                  <Link href={favorite.href} className="mt-3 inline-flex text-xs font-bold text-accent-700 hover:text-accent-900">Ver {favorite.kind === 'tienda' ? 'tienda' : 'producto'} →</Link>
                 </div>
               </article>
             ))}</div>}

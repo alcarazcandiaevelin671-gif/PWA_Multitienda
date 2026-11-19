@@ -25,41 +25,46 @@ export default async function TiendaPerfilPage({ params }: Props) {
     }
   );
 
-  // 1. Obtener la tienda según el slug
-  const { data: tienda, error: tiendaErr } = await supabase
-    .from('tiendas')
-    .select('*')
-    .eq('slug', slug)
-    .maybeSingle();
+  // Una sola ronda a Supabase: la tienda con sus productos disponibles (consulta anidada)
+  // y las categorías en paralelo. Antes eran 3 consultas en serie (~0.3 s cada una).
+  const [tiendaResult, categoriasResult] = await Promise.all([
+    supabase
+      .from('tiendas')
+      .select('*, productos(*)')
+      .eq('slug', slug)
+      .eq('productos.disponible', true)
+      .order('creado_en', { referencedTable: 'productos', ascending: false })
+      .maybeSingle(),
+    supabase.from('categorias').select('id, nombre'),
+  ]);
 
-  if (tiendaErr || !tienda) {
+  const tienda = tiendaResult.data;
+  if (tiendaResult.error || !tienda) {
     notFound();
   }
 
-  // 2. Obtener productos disponibles
-  const { data: productos } = await supabase
-    .from('productos')
-    .select('*')
-    .eq('tienda_id', tienda.id)
-    .eq('disponible', true)
-    .order('creado_en', { ascending: false });
-
-  const { data: categorias } = await supabase
-    .from('categorias')
-    .select('id, nombre');
+  const productos = tienda.productos;
+  const categorias = categoriasResult.data;
 
   const cleanWhatsapp = tienda.whatsapp ? tienda.whatsapp.replace(/\D/g, '') : '';
+  // Solo las tiendas activas aceptan pedidos (la base de datos también lo exige en el checkout).
+  const aceptaPedidos = String(tienda.estado ?? '').toLowerCase() === 'activa';
+  const motivoInactiva: Record<string, string> = {
+    pendiente: 'Este comercio está pendiente de aprobación.',
+    suspendida: 'Este comercio está suspendido temporalmente.',
+    rechazada: 'Este comercio no fue aprobado en el portal.',
+  };
   const listaProductos = productos || [];
   const listaCategorias = categorias || [];
 
   return (
     <div className="min-h-screen bg-slate-50 pb-16">
       {/* Cabecera / Banner */}
-      <div className="bg-[#0b0f19] text-white py-12 border-b border-slate-800">
+      <div className="zone-hero text-white py-12 border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link
             href="/"
-            className="text-xs font-semibold text-blue-400 hover:underline mb-4 inline-block"
+            className="text-xs font-semibold text-primary-400 hover:underline mb-4 inline-block"
           >
             ← Volver a Comercios
           </Link>
@@ -79,7 +84,7 @@ export default async function TiendaPerfilPage({ params }: Props) {
             </div>
 
             <div className="text-center md:text-left flex-1">
-              <span className="inline-block px-3 py-1 bg-blue-500/20 text-blue-400 text-[10px] font-black rounded-full uppercase tracking-wider mb-2">
+              <span className="inline-block px-3 py-1 bg-primary-500/20 text-primary-400 text-[10px] font-black rounded-full uppercase tracking-wider mb-2">
                 {tienda.categoria_principal || 'Comercio'}
               </span>
               <h1 className="text-3xl font-black tracking-tight">{tienda.nombre_comercio}</h1>
@@ -114,7 +119,18 @@ export default async function TiendaPerfilPage({ params }: Props) {
           📦 Productos Disponibles ({listaProductos.length})
         </h2>
 
-        {listaProductos.length === 0 ? (
+        {!aceptaPedidos ? (
+          <div className="text-center py-16 bg-white rounded-2xl border border-amber-200 p-8">
+            <span className="text-4xl mb-2 block">⏸️</span>
+            <p className="text-slate-700 font-bold text-base">
+              {motivoInactiva[String(tienda.estado ?? '').toLowerCase()] ?? 'Este comercio no está disponible.'}
+            </p>
+            <p className="text-slate-500 text-sm mt-1">Por ahora no acepta pedidos. Vuelve a consultar más tarde.</p>
+            <Link href="/tiendas" className="mt-5 inline-flex rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-primary-700">
+              Ver otras tiendas
+            </Link>
+          </div>
+        ) : listaProductos.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-2xl border border-slate-200 p-8">
             <span className="text-4xl mb-2 block">🛍️</span>
             <p className="text-slate-700 font-bold text-base">

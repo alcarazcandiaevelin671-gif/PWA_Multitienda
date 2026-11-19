@@ -7,6 +7,7 @@ import { getMyOrder } from '@/services/orders.service';
 import type { PedidoConTienda } from '@/services/orders.service';
 import type { PedidoDetalle, PedidoEstadoHistorial } from '@/types/database';
 import { userFacingError } from '@/lib/user-facing-error';
+import OrderTicket from '@/components/orders/OrderTicket';
 
 type OrderDetails = {
   pedido: PedidoConTienda;
@@ -20,6 +21,16 @@ export default function OrderDetailPage() {
   const [data, setData] = useState<OrderDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [fromWhatsApp, setFromWhatsApp] = useState(false);
+
+  useEffect(() => {
+    setFromWhatsApp(new URLSearchParams(window.location.search).get('origen') === 'whatsapp');
+  }, []);
+
+  useEffect(() => {
+    if (!data || window.location.hash !== '#ticket') return;
+    document.getElementById('ticket')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [data]);
 
   useEffect(() => {
     if (!id) {
@@ -42,7 +53,7 @@ export default function OrderDetailPage() {
     return (
       <main className="mx-auto max-w-5xl px-4 py-12">
         <p role="alert" className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{error || 'No se pudo cargar el pedido.'}</p>
-        <Link href="/pedidos" className="mt-5 inline-flex font-bold text-blue-700 hover:underline">Volver a mis pedidos</Link>
+        <Link href="/pedidos" className="mt-5 inline-flex font-bold text-primary-700 hover:underline">Volver a mis pedidos</Link>
       </main>
     );
   }
@@ -51,10 +62,16 @@ export default function OrderDetailPage() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-      <Link href="/pedidos" className="text-sm font-bold text-blue-700 hover:underline">← Mis pedidos</Link>
+      <Link href="/pedidos" className="no-print text-sm font-bold text-primary-700 hover:underline">← Mis pedidos</Link>
+      {fromWhatsApp && (
+        <div role="status" className="no-print mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          <strong>✅ Pedido registrado.</strong> Último paso: debajo del ticket elegí <strong>WhatsApp</strong> o <strong>WhatsApp Web</strong> para
+          mandarle al comercio la imagen de tu ticket con los enlaces de los productos.
+        </div>
+      )}
       <header className="mt-5 flex flex-wrap items-end justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
-          <p className="text-xs font-black uppercase text-blue-700">{pedido.tienda?.nombre_comercio || 'Tienda'}</p>
+          <p className="text-xs font-black uppercase text-primary-700">{pedido.tienda?.nombre_comercio || 'Tienda'}</p>
           <h1 className="mt-1 text-2xl font-black text-slate-900">{pedido.numero_pedido}</h1>
         </div>
         <div className="text-sm text-slate-600">
@@ -63,7 +80,7 @@ export default function OrderDetailPage() {
         </div>
       </header>
 
-      <div className="grid gap-10 py-8 lg:grid-cols-[1fr_300px]">
+      <div className="grid gap-10 py-8 lg:grid-cols-[1fr_360px]">
         <section>
           <h2 className="mb-3 text-lg font-bold text-slate-900">Productos</h2>
           <div className="divide-y divide-slate-200 border-y border-slate-200">
@@ -93,16 +110,9 @@ export default function OrderDetailPage() {
           </section>
         </section>
 
-        <aside className="h-fit border-y border-slate-200 py-5">
-          <h2 className="text-lg font-bold text-slate-900">Resumen</h2>
-          <dl className="mt-4 space-y-3 text-sm">
-            <div className="flex justify-between"><dt className="text-slate-600">Subtotal</dt><dd>Gs. {Number(pedido.subtotal).toLocaleString('es-PY')}</dd></div>
-            <div className="flex justify-between"><dt className="text-slate-600">Descuento</dt><dd>- Gs. {Number(pedido.descuento).toLocaleString('es-PY')}</dd></div>
-            <div className="flex justify-between"><dt className="text-slate-600">Envío</dt><dd>Gs. {Number(pedido.envio).toLocaleString('es-PY')}</dd></div>
-            <div className="flex justify-between border-t border-slate-200 pt-3 text-base font-black"><dt>Total</dt><dd>Gs. {Number(pedido.total).toLocaleString('es-PY')}</dd></div>
-          </dl>
-          <p className="mt-5 text-sm text-slate-600">Entrega: {pedido.direccion_entrega}</p>
-          <p className="mt-2 text-sm text-slate-600">Pago: {pedido.metodo_pago}</p>
+        <aside id="ticket" className="h-fit lg:sticky lg:top-24">
+          <h2 className="no-print mb-3 text-lg font-bold text-slate-900">Ticket del pedido</h2>
+          <OrderTicket pedido={pedido} detalles={detalles} highlightWhatsApp={fromWhatsApp} />
         </aside>
       </div>
     </main>

@@ -101,7 +101,7 @@ export default function GeolocatedShopDirectory({ shops }: { shops: Shop[] }) {
     <section aria-label="Tiendas ordenadas por cercanía">
       <div className="mb-5 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-3">
-          <button type="button" onClick={requestLocation} disabled={locating} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 py-2.5 text-sm font-bold text-sky-900 transition hover:bg-sky-100 disabled:cursor-wait disabled:opacity-60">
+          <button type="button" onClick={requestLocation} disabled={locating} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-accent-200 bg-accent-50 px-4 py-2.5 text-sm font-bold text-accent-900 transition hover:bg-accent-100 disabled:cursor-wait disabled:opacity-60">
             <span aria-hidden="true">📍</span>{locating ? 'Buscando ubicación…' : 'Usar mi ubicación actual'}
           </button>
           <label className="flex items-center gap-2 text-xs font-semibold text-slate-600">

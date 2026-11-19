@@ -36,8 +36,8 @@ export default function VendorStoresPage() {
           <p className="mt-2 max-w-xl text-sm text-slate-600">Consulta el estado, la ubicación y los datos de los comercios vinculados a tu cuenta.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <Link href="/comerciante" className="text-sm font-bold text-blue-700 hover:underline">Volver al resumen</Link>
-          <Link href="/comerciante/tienda" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700">
+          <Link href="/comerciante" className="text-sm font-bold text-primary-700 hover:underline">Volver al resumen</Link>
+          <Link href="/comerciante/tienda" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-primary-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700">
             {stores.length ? 'Editar comercio' : 'Configurar comercio'}
           </Link>
         </div>
@@ -64,7 +64,7 @@ export default function VendorStoresPage() {
 
       {error && <div role="alert" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800"><span>{error}</span><button type="button" onClick={() => setReloadKey((key) => key + 1)} className="font-bold text-rose-900 underline decoration-rose-300 underline-offset-2">Reintentar</button></div>}
       {loading && <div className="grid gap-4"><div className="h-64 animate-pulse rounded-lg border border-slate-200 bg-white" /></div>}
-      {!loading && !error && stores.length === 0 && <section className="border-y border-slate-200 bg-white px-6 py-12 text-center sm:px-10"><p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700">Tu espacio comercial</p><h2 className="mt-2 text-xl font-black text-slate-900">Aún no tienes comercios asociados</h2><p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-slate-600">Configura tu comercio para publicar productos y empezar a recibir pedidos.</p><Link href="/comerciante/tienda" className="mt-5 inline-flex min-h-11 items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-blue-700">Configurar comercio</Link></section>}
+      {!loading && !error && stores.length === 0 && <section className="border-y border-slate-200 bg-white px-6 py-12 text-center sm:px-10"><p className="text-xs font-black uppercase tracking-[0.16em] text-emerald-700">Tu espacio comercial</p><h2 className="mt-2 text-xl font-black text-slate-900">Aún no tienes comercios asociados</h2><p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-slate-600">Configura tu comercio para publicar productos y empezar a recibir pedidos.</p><Link href="/comerciante/tienda" className="mt-5 inline-flex min-h-11 items-center justify-center rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-primary-700">Configurar comercio</Link></section>}
 
       {!loading && stores.length > 0 && <>
         <div className={`grid gap-4 ${stores.length > 1 ? 'lg:grid-cols-2' : 'grid-cols-1'}`}>
@@ -88,10 +88,10 @@ export default function VendorStoresPage() {
               </dl>
               <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/70 px-5 py-4 sm:px-6">
                 <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-                  {store.slug ? <Link href={`/tienda/${store.slug}`} className="text-sm font-bold text-blue-700 hover:underline">Ver tienda pública</Link> : <span className="text-sm text-slate-500">Aún no hay enlace público</span>}
-                  {store.latitud !== null && store.longitud !== null && <a href={`https://www.google.com/maps/search/?api=1&query=${store.latitud},${store.longitud}`} target="_blank" rel="noreferrer" className="text-sm font-semibold text-slate-700 hover:text-blue-700">Abrir ubicación</a>}
+                  {store.slug ? <Link href={`/tienda/${store.slug}`} className="text-sm font-bold text-primary-700 hover:underline">Ver tienda pública</Link> : <span className="text-sm text-slate-500">Aún no hay enlace público</span>}
+                  {store.latitud !== null && store.longitud !== null && <a href={`https://www.google.com/maps/search/?api=1&query=${store.latitud},${store.longitud}`} target="_blank" rel="noreferrer" className="text-sm font-semibold text-slate-700 hover:text-primary-700">Abrir ubicación</a>}
                 </div>
-                <Link href="/comerciante/tienda" className="text-sm font-bold text-slate-700 hover:text-blue-700">Editar datos</Link>
+                <Link href="/comerciante/tienda" className="text-sm font-bold text-slate-700 hover:text-primary-700">Editar datos</Link>
               </div>
             </article>
           ))}

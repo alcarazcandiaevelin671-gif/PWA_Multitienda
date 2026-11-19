@@ -45,16 +45,16 @@ export default function FacturaDetailPage() {
     return (
       <main className="mx-auto max-w-5xl px-4 py-12">
         <p role="alert" className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{error || 'No se pudo cargar la factura.'}</p>
-        <Link href="/facturas" className="mt-5 inline-flex font-bold text-blue-700 hover:underline">Volver a mis facturas</Link>
+        <Link href="/facturas" className="mt-5 inline-flex font-bold text-primary-700 hover:underline">Volver a mis facturas</Link>
       </main>
     );
   }
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-      <Link href="/facturas" className="text-sm font-bold text-blue-700 hover:underline">← Mis facturas</Link>
+      <Link href="/facturas" className="text-sm font-bold text-primary-700 hover:underline">← Mis facturas</Link>
       <header className="mt-5 border-b border-slate-200 pb-5">
-        <p className="text-xs font-black uppercase text-blue-700">Documento</p>
+        <p className="text-xs font-black uppercase text-primary-700">Documento</p>
         <h1 className="mt-1 text-2xl font-black text-slate-900">{factura.numero}</h1>
       </header>
 

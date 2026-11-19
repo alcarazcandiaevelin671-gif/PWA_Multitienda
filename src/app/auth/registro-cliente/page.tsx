@@ -35,6 +35,8 @@ export default function RegistroClientePage() {
         email,
         password: formData.password,
         options: {
+          // Al confirmar el correo, Supabase vuelve a este sitio y se inicia la sesión.
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
             nombre_completo: nombreCompleto,
             telefono_contacto: telefono,
@@ -45,6 +47,13 @@ export default function RegistroClientePage() {
 
       if (signUpError) throw signUpError;
       if (!data.user) throw new Error('No se pudo crear la cuenta. Inténtalo nuevamente.');
+
+      // Con "Confirm email" activo no hay sesión hasta confirmar el correo: el perfil lo crea
+      // el trigger handle_new_user de la base (con los metadatos del registro, siempre como cliente).
+      if (!data.session) {
+        setRegistered(true);
+        return;
+      }
 
       const { error: profileError } = await supabase.from('usuarios').upsert(
         {
@@ -69,17 +78,17 @@ export default function RegistroClientePage() {
 
   return (
     <div className="min-h-[80vh] bg-slate-50 px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mx-auto grid max-w-6xl overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-[0_30px_80px_rgba(15,23,42,0.12)] lg:grid-cols-[1.05fr_1.2fr]">
-        <aside className="bg-gradient-to-br from-sky-900 via-blue-900 to-indigo-900 p-8 text-white lg:p-10">
-          <div className="mb-6 inline-flex items-center rounded-full border border-white/20 bg-white/5 px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] text-sky-100">
+      <div className="mx-auto grid max-w-6xl overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-[0_30px_80px_rgba(13,10,16,0.12)] lg:grid-cols-[1.05fr_1.2fr]">
+        <aside className="bg-gradient-to-br from-accent-900 via-primary-900 to-primary-900 p-8 text-white lg:p-10">
+          <div className="mb-6 inline-flex items-center rounded-full border border-white/20 bg-white/5 px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] text-accent-100">
             Portal Guairá
           </div>
           <h1 className="text-3xl font-black leading-tight sm:text-4xl">Compra y descubre en tu comunidad</h1>
-          <p className="mt-4 max-w-md text-sm leading-relaxed text-sky-100/80">
+          <p className="mt-4 max-w-md text-sm leading-relaxed text-accent-100/80">
             Crea tu cuenta de cliente para explorar comercios locales, guardar tus favoritos y gestionar tu perfil.
           </p>
 
-          <div className="mt-8 space-y-4 text-sm text-sky-50/90">
+          <div className="mt-8 space-y-4 text-sm text-accent-50/90">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
               <div className="text-lg">🏪</div>
               <p className="mt-2 font-bold">Comercios locales en un solo lugar</p>
@@ -116,7 +125,7 @@ export default function RegistroClientePage() {
                 </p>
                 <Link
                   href="/auth/login"
-                  className="mt-5 inline-flex rounded-xl bg-sky-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-sky-500/25 transition hover:bg-sky-700"
+                  className="mt-5 inline-flex rounded-xl bg-accent-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-accent-500/25 transition hover:bg-accent-700"
                 >
                   Ir a iniciar sesión
                 </Link>
@@ -136,7 +145,7 @@ export default function RegistroClientePage() {
                     value={formData.nombreCompleto}
                     onChange={handleChange}
                     placeholder="Ej. María Benítez"
-                    className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-200"
+                    className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-accent-500 focus:ring-2 focus:ring-accent-200"
                   />
                 </div>
 
@@ -154,7 +163,7 @@ export default function RegistroClientePage() {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="correo@ejemplo.com"
-                    className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-200"
+                    className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-accent-500 focus:ring-2 focus:ring-accent-200"
                   />
                 </div>
 
@@ -171,7 +180,7 @@ export default function RegistroClientePage() {
                     value={formData.telefono}
                     onChange={handleChange}
                     placeholder="0981 123 456"
-                    className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-200"
+                    className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-accent-500 focus:ring-2 focus:ring-accent-200"
                   />
                 </div>
 
@@ -190,7 +199,7 @@ export default function RegistroClientePage() {
                       value={formData.password}
                       onChange={handleChange}
                       placeholder="Mínimo 6 caracteres"
-                      className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 pr-12 text-sm text-slate-800 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-200"
+                      className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 pr-12 text-sm text-slate-800 outline-none transition focus:border-accent-500 focus:ring-2 focus:ring-accent-200"
                     />
                     <button
                       type="button"
@@ -218,7 +227,7 @@ export default function RegistroClientePage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full rounded-2xl bg-sky-600 px-4 py-3 text-sm font-black text-white shadow-lg shadow-sky-500/25 transition hover:bg-sky-700 disabled:opacity-50"
+                  className="w-full rounded-2xl bg-accent-600 px-4 py-3 text-sm font-black text-white shadow-lg shadow-accent-500/25 transition hover:bg-accent-700 disabled:opacity-50"
                 >
                   {loading ? 'Creando cuenta...' : 'Crear cuenta'}
                 </button>
@@ -227,7 +236,7 @@ export default function RegistroClientePage() {
 
             <div className="mt-6 text-center text-sm text-slate-500">
               ¿Ya tienes una cuenta?
-              <Link href="/auth/login" className="ml-2 font-bold text-sky-600 hover:underline">
+              <Link href="/auth/login" className="ml-2 font-bold text-accent-600 hover:underline">
                 Inicia sesión
               </Link>
             </div>

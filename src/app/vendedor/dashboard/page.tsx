@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { showAppConfirm } from '@/lib/app-message';
-import { supabase } from '@/lib/supabase';
+import { getClientUser, supabase } from '@/lib/supabase';
 import { userFacingError } from '@/lib/user-facing-error';
 
 const LocationPicker = dynamic(() => import('@/components/ui/LocationPicker'), { ssr: false });
@@ -88,7 +88,7 @@ export default function ComercianteDashboardPage() {
   const cargarDatosComerciante = useCallback(async () => {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getClientUser();
 
       if (!user) {
         window.location.href = '/auth/login';
@@ -388,7 +388,7 @@ export default function ComercianteDashboardPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center">
-          <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+          <div className="w-10 h-10 border-4 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
           <p className="text-slate-500 text-sm">Cargando panel de tu tienda...</p>
         </div>
       </div>
@@ -412,7 +412,7 @@ export default function ComercianteDashboardPage() {
               ? 'Tu solicitud está en revisión. El panel de productos y ventas estará disponible cuando un administrador apruebe el comercio.'
               : 'Las funciones del panel estarán disponibles cuando el comercio sea aprobado.'}
           </p>
-          <Link href="/perfil" className="mt-6 inline-flex rounded-xl bg-sky-700 px-5 py-3 text-sm font-bold text-white transition hover:bg-sky-800">
+          <Link href="/perfil" className="mt-6 inline-flex rounded-xl bg-accent-700 px-5 py-3 text-sm font-bold text-white transition hover:bg-accent-800">
             Ver mi perfil
           </Link>
         </div>
@@ -529,7 +529,7 @@ export default function ComercianteDashboardPage() {
             onClick={() => setActiveTab('productos')}
             className={`pb-3 text-sm font-bold border-b-2 transition-colors ${
               activeTab === 'productos'
-                ? 'border-blue-600 text-blue-600'
+                ? 'border-primary-600 text-primary-600'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -539,7 +539,7 @@ export default function ComercianteDashboardPage() {
             onClick={() => setActiveTab('perfil')}
             className={`pb-3 text-sm font-bold border-b-2 transition-colors ${
               activeTab === 'perfil'
-                ? 'border-blue-600 text-blue-600'
+                ? 'border-primary-600 text-primary-600'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
@@ -560,7 +560,7 @@ export default function ComercianteDashboardPage() {
                     placeholder="Ej: Chipa al Paso"
                     value={prodForm.nombre}
                     onChange={(e) => setProdForm({ ...prodForm, nombre: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary-500"
                   />
                 </div>
 
@@ -573,7 +573,7 @@ export default function ComercianteDashboardPage() {
                       placeholder="15000"
                       value={prodForm.precio}
                       onChange={(e) => setProdForm({ ...prodForm, precio: e.target.value })}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary-500"
                     />
                   </div>
                   <div>
@@ -583,7 +583,7 @@ export default function ComercianteDashboardPage() {
                       placeholder="Opcional"
                       value={prodForm.precio_oferta}
                       onChange={(e) => setProdForm({ ...prodForm, precio_oferta: e.target.value })}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary-500"
                     />
                   </div>
                 </div>
@@ -593,7 +593,7 @@ export default function ComercianteDashboardPage() {
                   <select
                     value={prodForm.categoria_id}
                     onChange={(e) => setProdForm({ ...prodForm, categoria_id: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary-500"
                   >
                     <option value="">Seleccionar categoría</option>
                     {categorias.map((categoria) => <option key={categoria.id} value={categoria.id}>{categoria.nombre}</option>)}
@@ -607,7 +607,7 @@ export default function ComercianteDashboardPage() {
                     accept="image/*"
                     multiple
                     onChange={(e) => setImagenesProducto(Array.from(e.target.files || []))}
-                    className="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    className="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
                   />
                 </div>
 
@@ -618,14 +618,14 @@ export default function ComercianteDashboardPage() {
                     placeholder="Detalles sobre el producto..."
                     value={prodForm.descripcion}
                     onChange={(e) => setProdForm({ ...prodForm, descripcion: e.target.value })}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary-500"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={guardandoProd}
-                  className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-colors shadow-md disabled:opacity-50"
+                  className="w-full py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl text-sm transition-colors shadow-md disabled:opacity-50"
                 >
                   {guardandoProd ? 'Guardando...' : editandoProducto ? 'Guardar Cambios' : 'Publicar Producto'}
                 </button>
@@ -652,7 +652,7 @@ export default function ComercianteDashboardPage() {
                       </div>
                       <div>
                         <h3 className="font-bold text-slate-900 text-sm">{prod.titulo || prod.nombre}</h3>
-                        <p className="font-bold text-blue-600 text-sm mt-0.5">
+                        <p className="font-bold text-primary-600 text-sm mt-0.5">
                           Gs. {Number(prod.precio_gs).toLocaleString('es-PY')}
                         </p>
                         {prod.descripcion && (
@@ -664,7 +664,7 @@ export default function ComercianteDashboardPage() {
                     <button
                       onClick={() => editarProducto(prod)}
                       title="Editar producto"
-                      className="text-slate-400 hover:text-blue-600 p-2 rounded-lg transition-colors text-sm"
+                      className="text-slate-400 hover:text-primary-600 p-2 rounded-lg transition-colors text-sm"
                     >
                       ✏️
                     </button>
@@ -700,7 +700,7 @@ export default function ComercianteDashboardPage() {
                   required
                   value={perfilForm.nombre_comercio}
                   onChange={(e) => setPerfilForm({ ...perfilForm, nombre_comercio: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary-500"
                 />
               </div>
 
@@ -711,7 +711,7 @@ export default function ComercianteDashboardPage() {
                   required
                   value={perfilForm.whatsapp}
                   onChange={(e) => setPerfilForm({ ...perfilForm, whatsapp: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary-500"
                 />
               </div>
 
@@ -720,7 +720,7 @@ export default function ComercianteDashboardPage() {
                 <select
                   value={perfilForm.categoria_principal}
                   onChange={(e) => setPerfilForm({ ...perfilForm, categoria_principal: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary-500"
                 >
                   <option value="">Seleccionar categoría</option>
                   {categorias.map((categoria) => <option key={categoria.id} value={categoria.nombre}>{categoria.nombre}</option>)}
@@ -733,7 +733,7 @@ export default function ComercianteDashboardPage() {
                   rows={3}
                   value={perfilForm.descripcion}
                   onChange={(e) => setPerfilForm({ ...perfilForm, descripcion: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary-500"
                 />
               </div>
 
@@ -743,7 +743,7 @@ export default function ComercianteDashboardPage() {
                   type="text"
                   value={perfilForm.direccion_texto}
                   onChange={(e) => setPerfilForm({ ...perfilForm, direccion_texto: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary-500"
                 />
               </div>
 
@@ -755,7 +755,7 @@ export default function ComercianteDashboardPage() {
 
               <button
                 type="submit"
-                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-colors shadow-md"
+                className="w-full py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl text-sm transition-colors shadow-md"
               >
                 Guardar Cambios
               </button>

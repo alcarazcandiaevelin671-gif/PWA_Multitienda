@@ -242,7 +242,7 @@ export default function ComercianteProductosPage() {
           </p>
           <Link
             href="/comerciante/tienda"
-            className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs px-6 py-3 rounded-xl transition-all"
+            className="inline-block bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-xs px-6 py-3 rounded-xl transition-all"
           >
             🔑 Iniciar sesión como comerciante
           </Link>
@@ -269,7 +269,7 @@ export default function ComercianteProductosPage() {
             </button>
             <Link
               href="/comerciante/tienda"
-              className="bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs py-3 rounded-xl transition-all"
+              className="bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-xs py-3 rounded-xl transition-all"
             >
               ⚙️ Registrar / Configurar Mi Tienda
             </Link>
@@ -284,9 +284,9 @@ export default function ComercianteProductosPage() {
       <div className="max-w-4xl mx-auto space-y-6">
 
         {/* Header con el Link de Tienda Pública integrado */}
-        <div className="bg-[#0b0f19] text-white p-6 sm:p-8 rounded-3xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="zone-hero text-white p-6 sm:p-8 rounded-3xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <span className="inline-block px-3 py-1 bg-blue-500/20 text-blue-400 text-[10px] font-black rounded-full uppercase tracking-wider mb-2">
+            <span className="inline-block px-3 py-1 bg-primary-500/20 text-primary-400 text-[10px] font-black rounded-full uppercase tracking-wider mb-2">
               Comercio: {tienda.nombre_comercio}
             </span>
             <h1 className="text-2xl font-black">📦 Catálogo de Productos</h1>
@@ -358,7 +358,7 @@ export default function ComercianteProductosPage() {
                   value={nuevoProducto.titulo}
                   onChange={(e) => setNuevoProducto({ ...nuevoProducto, titulo: e.target.value })}
                   placeholder="Ej: Empanada de Carne, remera azul..."
-                  className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600"
+                  className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600"
                 />
               </div>
 
@@ -373,12 +373,12 @@ export default function ComercianteProductosPage() {
                   value={nuevoProducto.precio_gs}
                   onChange={(e) => setNuevoProducto({ ...nuevoProducto, precio_gs: e.target.value })}
                   placeholder="Ej: 5000"
-                  className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600"
+                  className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600"
                 />
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">Categoría</label>
-                <select value={nuevoProducto.categoria_id} onChange={(event) => setNuevoProducto({ ...nuevoProducto, categoria_id: event.target.value })} className="w-full rounded-xl border border-slate-200 px-4 py-3 text-xs focus:ring-2 focus:ring-blue-600">
+                <select value={nuevoProducto.categoria_id} onChange={(event) => setNuevoProducto({ ...nuevoProducto, categoria_id: event.target.value })} className="w-full rounded-xl border border-slate-200 px-4 py-3 text-xs focus:ring-2 focus:ring-primary-600">
                   <option value="">Sin categoría</option>
                   {categories.map((category) => <option key={category.id} value={category.id}>{category.nombre}</option>)}
                 </select>
@@ -394,7 +394,7 @@ export default function ComercianteProductosPage() {
                 value={nuevoProducto.descripcion}
                 onChange={(e) => setNuevoProducto({ ...nuevoProducto, descripcion: e.target.value })}
                 placeholder="Detalles, características o tamaño..."
-                className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-600 resize-none"
+                className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary-600 resize-none"
               />
             </div>
 
@@ -417,9 +417,9 @@ export default function ComercianteProductosPage() {
                     accept="image/*"
                     onChange={handleImageUpload}
                     disabled={uploadingImg}
-                    className="text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer"
+                    className="text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-primary-600 file:text-white hover:file:bg-primary-700 cursor-pointer"
                   />
-                  {uploadingImg && <p className="text-[10px] text-blue-600 font-bold mt-1">Subiendo imagen...</p>}
+                  {uploadingImg && <p className="text-[10px] text-primary-600 font-bold mt-1">Subiendo imagen...</p>}
                 </div>
               </div>
             </div>
@@ -431,7 +431,7 @@ export default function ComercianteProductosPage() {
                 id="disponible"
                 checked={nuevoProducto.disponible}
                 onChange={(e) => setNuevoProducto({ ...nuevoProducto, disponible: e.target.checked })}
-                className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
+                className="w-4 h-4 text-primary-600 rounded border-slate-300 focus:ring-primary-500"
               />
               <label htmlFor="disponible" className="text-xs font-bold text-slate-700 cursor-pointer">
                 Disponible para la venta
@@ -441,7 +441,7 @@ export default function ComercianteProductosPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs py-4 rounded-xl transition-all shadow-md disabled:opacity-50 cursor-pointer"
+              className="w-full bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-xs py-4 rounded-xl transition-all shadow-md disabled:opacity-50 cursor-pointer"
             >
               {loading ? '⏳ Guardando Producto...' : '🚀 Publicar Producto'}
             </button>
@@ -450,7 +450,7 @@ export default function ComercianteProductosPage() {
 
         <section className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 sm:grid-cols-3">
           <label className="text-xs font-semibold text-slate-600">Buscar producto
-            <input type="search" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Nombre del producto" className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+            <input type="search" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Nombre del producto" className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-primary-500" />
           </label>
           <label className="text-xs font-semibold text-slate-600">Categoría
             <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm">
@@ -496,7 +496,7 @@ export default function ComercianteProductosPage() {
                   <div className="flex-1 min-w-0">
                     <h3 className="text-xs font-bold text-slate-900 truncate">{prod.titulo}</h3>
                     {categories.find((category) => String(category.id) === String(prod.categoria_id)) && <p className="mt-0.5 truncate text-[10px] text-slate-500">{categories.find((category) => String(category.id) === String(prod.categoria_id))?.nombre}</p>}
-                    <p className="text-xs font-black text-blue-600 mt-0.5">
+                    <p className="text-xs font-black text-primary-600 mt-0.5">
                       {Number(prod.precio_gs).toLocaleString('es-PY')} Gs.
                     </p>
                     <span className={`inline-block text-[9px] font-extrabold px-2 py-0.5 rounded-full mt-1 ${

@@ -45,7 +45,7 @@ export default function ConfiguracionPage() {
   }
 
   if (!profile) {
-    return <div className="mx-auto max-w-3xl px-4 py-12 text-center"><section className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm"><h1 className="text-2xl font-black text-slate-900">Configuración</h1><p role="alert" className="mt-3 text-sm text-slate-600">{error || 'Inicia sesión para administrar la configuración de tu cuenta.'}</p><Link href="/auth/login" className="mt-5 inline-flex rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700">Iniciar sesión</Link></section></div>;
+    return <div className="mx-auto max-w-3xl px-4 py-12 text-center"><section className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm"><h1 className="text-2xl font-black text-slate-900">Configuración</h1><p role="alert" className="mt-3 text-sm text-slate-600">{error || 'Inicia sesión para administrar la configuración de tu cuenta.'}</p><Link href="/auth/login" className="mt-5 inline-flex rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-primary-700">Iniciar sesión</Link></section></div>;
   }
 
   const content = activeSection === 'identity'

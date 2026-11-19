@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getMyOrders, getOrderStateLabel, type PedidoConTienda } from '@/services/orders.service';
 import { userFacingError } from '@/lib/user-facing-error';
+import QueuedOrdersPanel from '@/components/orders/QueuedOrdersPanel';
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<PedidoConTienda[]>([]);
@@ -13,12 +14,14 @@ export default function OrdersPage() {
   const [query, setQuery] = useState('');
   const [sortDirection, setSortDirection] = useState<'desc' | 'asc'>('desc');
 
-  useEffect(() => {
+  const loadOrders = useCallback(() => {
     getMyOrders()
-      .then(setOrders)
+      .then((data) => { setOrders(data); setError(null); })
       .catch((loadError) => setError(userFacingError(loadError, 'No se pudieron cargar los pedidos. Inténtalo de nuevo.')))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => { loadOrders(); }, [loadOrders]);
 
   const stats = useMemo(() => {
     const total = orders.length;
@@ -45,12 +48,14 @@ export default function OrdersPage() {
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
-          <p className="text-xs font-black uppercase text-blue-700">Cuenta</p>
+          <p className="text-xs font-black uppercase text-primary-700">Cuenta</p>
           <h1 className="mt-1 text-3xl font-black text-slate-900">Mis pedidos</h1>
           <p className="mt-2 text-sm text-slate-600">Consulta tus compras y sigue el estado de tus pedidos.</p>
         </div>
-        <Link href="/tiendas" className="text-sm font-bold text-blue-700 hover:underline">Seguir comprando</Link>
+        <Link href="/tiendas" className="text-sm font-bold text-primary-700 hover:underline">Seguir comprando</Link>
       </div>
+
+      <QueuedOrdersPanel onSynced={loadOrders} />
 
       <div className="mb-6 grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div className="h-full w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Total</p><p className="mt-3 text-2xl font-black text-slate-900">{stats.total}</p></div>
@@ -67,7 +72,7 @@ export default function OrdersPage() {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="PG-..."
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-primary-500"
           />
         </label>
         <label className="text-sm font-medium text-slate-700">
@@ -75,7 +80,7 @@ export default function OrdersPage() {
           <select
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value)}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-primary-500"
           >
             <option value="todos">Todos</option>
             <option value="pendiente">Pendiente</option>
@@ -91,7 +96,7 @@ export default function OrdersPage() {
           <select
             value={sortDirection}
             onChange={(event) => setSortDirection(event.target.value as 'desc' | 'asc')}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-primary-500"
           >
             <option value="desc">Más reciente</option>
             <option value="asc">Más antiguo</option>
@@ -104,7 +109,7 @@ export default function OrdersPage() {
       {!loading && !error && filteredOrders.length === 0 && (
         <div className="border-y border-slate-200 py-12 text-center">
           <p className="font-semibold text-slate-700">Todavía no tienes pedidos con esos filtros.</p>
-          <Link href="/tiendas" className="mt-4 inline-flex rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-bold text-white">Explorar Productos</Link>
+          <Link href="/tiendas" className="mt-4 inline-flex rounded-lg bg-primary-700 px-4 py-2.5 text-sm font-bold text-white">Explorar Productos</Link>
         </div>
       )}
       {!loading && filteredOrders.length > 0 && (
@@ -132,7 +137,11 @@ export default function OrdersPage() {
                   <td className="px-4 py-4 font-semibold text-slate-800">Gs. {Number(order.total).toLocaleString('es-PY')}</td>
                   <td className="px-4 py-4"><span className="inline-flex rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-slate-700">{getOrderStateLabel(order.estado)}</span></td>
                   <td className="px-4 py-4 capitalize text-slate-700">{order.estado_pago}</td>
-                  <td className="px-4 py-4 text-right"><Link href={`/pedidos/${order.id}`} className="font-bold text-blue-700 hover:underline">Ver detalle</Link></td>
+                  <td className="whitespace-nowrap px-4 py-4 text-right">
+                    <Link href={`/pedidos/${order.id}`} className="font-bold text-primary-700 hover:underline">Ver detalle</Link>
+                    <span className="mx-2 text-slate-300">·</span>
+                    <Link href={`/pedidos/${order.id}#ticket`} className="font-bold text-accent-600 hover:underline">Ticket</Link>
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -66,7 +66,7 @@ export default function VendorInvoiceDetailPage() {
         head: [['Descripción', 'Cantidad', 'Precio', 'Descuento', 'Subtotal']],
         body: details.map((item) => [item.descripcion_snapshot, String(item.cantidad), currency(item.precio), currency(item.descuento), currency(item.subtotal)]),
         styles: { font: 'helvetica', fontSize: 8, cellPadding: 2.5 },
-        headStyles: { fillColor: [37, 99, 235] },
+        headStyles: { fillColor: [219, 39, 119] },
         alternateRowStyles: { fillColor: [248, 250, 252] },
         margin: { left: 14, right: 14 },
       });
@@ -94,14 +94,14 @@ export default function VendorInvoiceDetailPage() {
   };
 
   if (loading) return <main className="mx-auto max-w-5xl px-4 py-12 text-center text-sm text-slate-500">Cargando factura...</main>;
-  if (error || !data) return <main className="mx-auto max-w-5xl px-4 py-12"><p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{error || 'No se pudo cargar la factura.'}</p><Link href="/comerciante/facturas" className="mt-5 inline-flex font-bold text-blue-700 hover:underline">Volver a facturas</Link></main>;
+  if (error || !data) return <main className="mx-auto max-w-5xl px-4 py-12"><p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{error || 'No se pudo cargar la factura.'}</p><Link href="/comerciante/facturas" className="mt-5 inline-flex font-bold text-primary-700 hover:underline">Volver a facturas</Link></main>;
 
   const { invoice, storeName, details, order, sale } = data;
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><Link href="/comerciante/facturas" className="text-sm font-bold text-blue-700 hover:underline">← Facturas</Link><button type="button" onClick={() => void downloadPdf()} disabled={exporting} className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50">{exporting ? 'Generando PDF…' : 'Descargar PDF'}</button></div>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><Link href="/comerciante/facturas" className="text-sm font-bold text-primary-700 hover:underline">← Facturas</Link><button type="button" onClick={() => void downloadPdf()} disabled={exporting} className="rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-primary-700 disabled:opacity-50">{exporting ? 'Generando PDF…' : 'Descargar PDF'}</button></div>
       <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <header className="border-b border-slate-200 bg-slate-50 p-6 sm:p-8"><p className="text-xs font-black uppercase tracking-[0.18em] text-blue-700">Comprobante interno</p><div className="mt-2 flex flex-wrap items-end justify-between gap-4"><div><h1 className="text-2xl font-black text-slate-900">Factura {invoice.numero}</h1><p className="mt-1 text-sm text-slate-600">{storeName}</p></div><span className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold capitalize text-slate-700">{invoice.estado}</span></div></header>
+        <header className="border-b border-slate-200 bg-slate-50 p-6 sm:p-8"><p className="text-xs font-black uppercase tracking-[0.18em] text-primary-700">Comprobante interno</p><div className="mt-2 flex flex-wrap items-end justify-between gap-4"><div><h1 className="text-2xl font-black text-slate-900">Factura {invoice.numero}</h1><p className="mt-1 text-sm text-slate-600">{storeName}</p></div><span className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold capitalize text-slate-700">{invoice.estado}</span></div></header>
                 <div className="grid gap-4 border-b border-slate-100 p-6 sm:grid-cols-2 sm:p-8 lg:grid-cols-3"><div><p className="text-xs font-semibold text-slate-500">Fecha</p><p className="mt-1 text-sm font-bold text-slate-900">{new Date(invoice.fecha).toLocaleDateString('es-PY')}</p></div><div><p className="text-xs font-semibold text-slate-500">Tipo de documento</p><p className="mt-1 text-sm font-bold capitalize text-slate-900">{invoice.tipo_documento}</p></div><div><p className="text-xs font-semibold text-slate-500">Moneda</p><p className="mt-1 text-sm font-bold text-slate-900">{invoice.moneda}</p></div><div><p className="text-xs font-semibold text-slate-500">Cliente asociado</p><p className="mt-1 text-sm font-bold text-slate-900">{invoice.cliente_id ? 'Cliente registrado' : 'No especificado'}</p></div></div>
                 <section className="border-b border-slate-100 p-6 sm:p-8">
                   <h2 className="text-sm font-black uppercase tracking-wide text-slate-700">Documentos relacionados</h2>

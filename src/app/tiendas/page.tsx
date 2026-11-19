@@ -10,7 +10,7 @@ export default async function TiendasPage() {
     <main className="min-h-screen bg-slate-50 px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <div className="mb-8">
-          <p className="text-xs font-bold uppercase tracking-wider text-blue-600">Catálogo comercial</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-primary-600">Catálogo comercial</p>
           <h1 className="mt-2 text-3xl font-black text-slate-900">Explorar Productos</h1>
           <p className="mt-2 max-w-2xl text-sm text-slate-500">
             Explora productos disponibles de comercios locales del Guairá.

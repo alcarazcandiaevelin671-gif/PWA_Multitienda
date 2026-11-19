@@ -5,6 +5,7 @@ import { Product } from '@/types/product';
 import { CartItem } from '@/types/cart';
 import { showAppConfirm } from '@/lib/app-message';
 import { getEffectiveProductPrice } from '@/lib/product-pricing';
+import { shortOrderNumber } from '@/lib/order-ticket';
 
 interface CartContextType {
   items: CartItem[];
@@ -20,6 +21,7 @@ interface CartContextType {
     paymentMethod?: string,
     customerName?: string,
     customerAddress?: string,
+    order?: { id: string; numero: string },
   ) => string;
 }
 
@@ -47,7 +49,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
   const addItem = (product: Product, cantidad: number = 1) => {
     setItems((prevItems) => {
-      // Validar si es de la misma tienda (opcional: limpiar si es de otra tienda)
+      // Validar si es de la misma tienda
       if (prevItems.length > 0 && prevItems[0].product.tienda_id !== product.tienda_id) {
         void showAppConfirm('Tu carrito contiene productos de otra tienda. ¿Deseas vaciar el carrito para agregar productos de esta nueva tienda?').then((confirmed) => {
           if (confirmed) {
@@ -103,6 +105,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     paymentMethod = 'Efectivo',
     customerName = 'Cliente',
     customerAddress = 'No especificada',
+    order?: { id: string; numero: string },
   ) => {
     // Formatear el número de teléfono para Paraguay (ej: 0981123456 -> 595981123456)
     let cleanPhone = merchantPhone.replace(/\D/g, '');
@@ -112,24 +115,46 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       cleanPhone = '595' + cleanPhone;
     }
 
-    let message = `🛒 *NUEVO PEDIDO - ${merchantName.toUpperCase()}*\n`;
-    message += `👤 Nombre del Cliente: ${customerName}\n\n`;
-    message += `📍 Dirección del Cliente: ${customerAddress}\n\n`;
+    // Solo símbolos del plano básico Unicode: los emojis de 4 bytes se corrompen ("�")
+    // en WhatsApp Web/Desktop al abrir enlaces wa.me.
+    const gs = (value: number) => `Gs. ${value.toLocaleString('es-PY')}`;
+    const separator = '━━━━━━━━━━━━━━━━━━';
+    const lines: string[] = [
+      `✦ *NUEVO PEDIDO · ${merchantName.toUpperCase()}* ✦`,
+    ];
+    if (order) lines.push(`*Ticket:* \`${shortOrderNumber(order.numero)}\``);
+    lines.push(
+      separator,
+      `*Cliente:* ${customerName}`,
+      `*Entrega:* ${customerAddress}`,
+      `*Pago:* ${paymentMethod}`,
+      separator,
+      '*DETALLE*',
+    );
 
-    items.forEach((item, index) => {
+    items.forEach((item) => {
       const precioUnitario = getEffectiveProductPrice(item.product);
-      const subtotal = precioUnitario * item.cantidad;
-      message += `${index + 1}. *${item.product.nombre}*\n`;
-      message += `Cantidad: ${item.cantidad}\n`;
-      message += `Precio: Gs. ${precioUnitario.toLocaleString('es-PY')}\n`;
-      message += `Subtotal: Gs. ${subtotal.toLocaleString('es-PY')}\n\n`;
+      const nombreProducto = item.product.nombre ?? item.product.titulo ?? 'Producto';
+      lines.push(
+        `▸ ${item.cantidad} × ${nombreProducto}`,
+        `   ${gs(precioUnitario)} c/u  →  *${gs(precioUnitario * item.cantidad)}*`,
+      );
     });
 
-    message += `💰 *TOTAL A PAGAR: Gs. ${totalAmount.toLocaleString('es-PY')}*\n\n`;
-    message += `💳 *MÉTODO DE PAGO: ${paymentMethod}*\n\n`;
-    message += `📌 _Pedido generado desde el Portal Multitienda Guairá_`;
+    lines.push(
+      separator,
+      `*TOTAL A PAGAR: ${gs(totalAmount)}*`,
+      separator,
+    );
+    if (order) {
+      lines.push(
+        '✔ El pedido ya está registrado como *pendiente* en tu panel.',
+        `Ver pedido: ${window.location.origin}/vendedor/pedidos/${order.id}`,
+      );
+    }
+    lines.push('_Enviado desde el Portal Multitienda Guairá_');
 
-    return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+    return `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(lines.join('\n'))}`;
   };
 
   return (

@@ -15,8 +15,8 @@ const cardGroups = [
   {
     title: 'Cuentas',
     cards: [
-      { key: 'users', label: 'Usuarios', color: 'text-sky-300' },
-      { key: 'customers', label: 'Clientes', color: 'text-cyan-300' },
+      { key: 'users', label: 'Usuarios', color: 'text-accent-300' },
+      { key: 'customers', label: 'Clientes', color: 'text-accent-300' },
       { key: 'vendors', label: 'Comerciantes', color: 'text-violet-300' },
     ],
   },
@@ -73,11 +73,11 @@ export default function AdminDashboard() {
     <div>
       <header className="admin-motion-enter mb-6 flex flex-wrap items-end justify-between gap-3 border-b border-slate-200 pb-5" style={{ animationDelay: '40ms' }}>
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-sky-700">Vista general</p>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-accent-700">Vista general</p>
             <h2 className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900">Panel administrativo</h2>
             <p className="mt-1 text-sm text-slate-600">Usuarios, comercios y actividad reciente.</p>
           </div>
-          <button type="button" onClick={() => void load()} disabled={loading} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-sky-300 hover:bg-slate-50 disabled:opacity-50">{loading ? 'Actualizando…' : 'Actualizar'}</button>
+          <button type="button" onClick={() => void load()} disabled={loading} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-accent-300 hover:bg-slate-50 disabled:opacity-50">{loading ? 'Actualizando…' : 'Actualizar'}</button>
       </header>
 
       {error && <div role="alert" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-rose-400/30 bg-rose-400/10 px-4 py-3 text-sm text-rose-200"><span>{error}</span><button onClick={() => void load()} className="font-bold underline">Reintentar</button></div>}
@@ -89,20 +89,20 @@ export default function AdminDashboard() {
             {group.cards.map((card, cardIndex) => {
               const animationDelay = `${180 + groupIndex * 180 + cardIndex * 70}ms`;
               const content = <><div className="flex items-center justify-between gap-3"><p className="text-xs font-semibold leading-5 text-slate-400">{card.label}</p><span aria-hidden="true" className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/5 text-base ${card.color}`}>{cardIcons[card.key]}</span></div><p className={`mt-3 text-3xl font-extrabold tabular-nums ${card.color}`}>{loading ? '—' : data?.counts[card.key] ?? '—'}</p></>;
-              return card.href ? <Link key={card.key} href={card.href} style={{ animationDelay }} className="admin-motion-enter admin-hover-card flex min-h-28 flex-col justify-between rounded-xl border border-white/10 bg-[#111f31] p-4 transition hover:border-sky-300/40">{content}</Link> : <article key={card.key} style={{ animationDelay }} className="admin-motion-enter admin-hover-card flex min-h-28 flex-col justify-between rounded-xl border border-white/10 bg-[#111f31] p-4">{content}</article>;
+              return card.href ? <Link key={card.key} href={card.href} style={{ animationDelay }} className="admin-motion-enter admin-hover-card flex min-h-28 flex-col justify-between rounded-xl border border-white/10 bg-[#1f1724] p-4 transition hover:border-accent-300/40">{content}</Link> : <article key={card.key} style={{ animationDelay }} className="admin-motion-enter admin-hover-card flex min-h-28 flex-col justify-between rounded-xl border border-white/10 bg-[#1f1724] p-4">{content}</article>;
             })}
           </div>
         </section>)}
       </div>
 
       <div className="mt-6 grid items-start gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(300px,0.8fr)]">
-        <section className="admin-motion-enter rounded-xl border border-white/10 bg-[#111f31] p-4" style={{ animationDelay: '460ms' }}>
-          <div className="flex items-center justify-between gap-3"><div><h3 className="font-bold text-white">Actividad reciente</h3><p className="mt-1 text-xs text-slate-400">Logs de sistema</p></div><Link href="/admin/auditorias" className="shrink-0 text-xs font-semibold text-sky-300 hover:text-sky-200">Ver todo</Link></div>
+        <section className="admin-motion-enter rounded-xl border border-white/10 bg-[#1f1724] p-4" style={{ animationDelay: '460ms' }}>
+          <div className="flex items-center justify-between gap-3"><div><h3 className="font-bold text-white">Actividad reciente</h3><p className="mt-1 text-xs text-slate-400">Logs de sistema</p></div><Link href="/admin/auditorias" className="shrink-0 text-xs font-semibold text-accent-300 hover:text-accent-200">Ver todo</Link></div>
           {data?.activityUnavailable ? <p className="mt-3 rounded-lg bg-amber-300/10 p-3 text-xs leading-5 text-amber-200">No se pudieron consultar los logs de sistema.</p> : data?.activity.length ? <ul className="mt-2 divide-y divide-white/[0.06]">{data.activity.map((item, index) => <li key={item.id ?? index} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-2"><div className="min-w-0"><p className="truncate text-xs font-semibold text-slate-200">{item.accion || 'Acción registrada'} <span className="font-normal text-slate-400">· {item.tabla_afectada || 'Registro'}</span></p></div><time className="shrink-0 text-[10px] tabular-nums text-slate-500">{item.fecha_hora ? new Date(item.fecha_hora).toLocaleString('es-PY') : 'Fecha no disponible'}</time></li>)}</ul> : <p className="mt-3 text-sm text-slate-400">No hay registros en los logs de sistema.</p>}
         </section>
 
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
-          <section className="admin-motion-enter rounded-xl border border-white/10 bg-[#111f31] p-4" style={{ animationDelay: '520ms' }}>
+          <section className="admin-motion-enter rounded-xl border border-white/10 bg-[#1f1724] p-4" style={{ animationDelay: '520ms' }}>
             <h3 className="font-bold text-white">Comercios por distrito</h3>
             <p className="mt-1 text-xs text-slate-400">Cantidad de comercios registrados.</p>
             {loading ? <div className="mt-3 h-28 animate-pulse rounded-lg bg-white/5" /> : data?.districts.length ? <ul role="img" aria-label="Gráfico de comercios por distrito" className="mt-3 flex h-32 items-end gap-1 overflow-x-auto border-b border-white/10 pb-2 sm:gap-1.5">
@@ -114,7 +114,7 @@ export default function AdminDashboard() {
             </ul> : <p className="mt-3 text-sm text-slate-400">No hay comercios registrados por distrito.</p>}
           </section>
 
-          <section className="admin-motion-enter rounded-xl border border-white/10 bg-[#111f31] p-4" style={{ animationDelay: '580ms' }}>
+          <section className="admin-motion-enter rounded-xl border border-white/10 bg-[#1f1724] p-4" style={{ animationDelay: '580ms' }}>
             <h3 className="font-bold text-white">Estado de los comercios</h3>
             <p className="mt-1 text-xs text-slate-400">Conteo actual por estado.</p>
             {loading ? <div className="mt-3 h-24 animate-pulse rounded-lg bg-white/5" /> : data?.shopStatuses.length ? <ul className="mt-2 divide-y divide-white/[0.06]">

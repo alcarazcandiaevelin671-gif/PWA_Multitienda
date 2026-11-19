@@ -9,6 +9,7 @@ import {
   writeLocalSettings,
   type UserPreferences,
 } from '@/services/settings.service';
+import { DEFAULT_APPEARANCE, applyAppearance, readAppearanceOwner } from '@/lib/appearance';
 
 export default function ThemePreferenceSync() {
   useEffect(() => {
@@ -19,6 +20,8 @@ export default function ThemePreferenceSync() {
       stopThemeListener();
       if (!userId) {
         stopThemeListener = applyThemePreference('system');
+        // Al cerrar sesión, la apariencia de esa cuenta no queda para el próximo usuario.
+        if (readAppearanceOwner()) applyAppearance(DEFAULT_APPEARANCE, { owner: null });
         return;
       }
 
@@ -26,19 +29,45 @@ export default function ThemePreferenceSync() {
       const cached = readLocalSettings<UserPreferences | null>(key, null);
       stopThemeListener = applyThemePreference(cached?.theme ?? 'system');
       try {
-        const settings = await getUserSettings();
-        if (!active || !settings) return;
-        writeLocalSettings(key, settings.preferencias);
-        stopThemeListener();
-        stopThemeListener = applyThemePreference(settings.preferencias.theme);
+        // Justo después del login, la cookie de sesión del servidor se sincroniza en paralelo:
+        // si la API responde 401, se reintenta brevemente en lugar de perder las preferencias.
+        let settings: Awaited<ReturnType<typeof getUserSettings>> = null;
+        for (let attempt = 0; ; attempt += 1) {
+          try {
+            settings = await getUserSettings();
+            break;
+          } catch (error) {
+            if (attempt >= 3 || !active) throw error;
+            await new Promise((resolve) => setTimeout(resolve, 700 * (attempt + 1)));
+          }
+        }
+        if (!active) return;
+        if (settings) {
+          writeLocalSettings(key, settings.preferencias);
+          stopThemeListener();
+          stopThemeListener = applyThemePreference(settings.preferencias.theme);
+        }
+        if (settings?.apariencia) {
+          applyAppearance(settings.apariencia, { owner: userId });
+        } else {
+          const owner = readAppearanceOwner();
+          // Sin personalización guardada: conservar la elegida como visitante en este dispositivo,
+          // pero no heredar la de otra cuenta.
+          if (owner && owner !== userId) applyAppearance(DEFAULT_APPEARANCE, { owner: userId });
+        }
       } catch {
         // Keep the per-user cache or system theme when remote settings are unavailable.
       }
     };
 
-    void supabase.auth.getUser().then(({ data }) => syncTheme(data.user?.id ?? null));
+    // INITIAL_SESSION llega al suscribirse: sin getUser() aparte, y solo se consulta
+    // /api/configuracion cuando cambia el usuario (no en cada TOKEN_REFRESHED).
+    let lastUserId: string | null | undefined;
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      void syncTheme(session?.user.id ?? null);
+      const nextUserId = session?.user.id ?? null;
+      if (nextUserId === lastUserId) return;
+      lastUserId = nextUserId;
+      void syncTheme(nextUserId);
     });
 
     return () => {

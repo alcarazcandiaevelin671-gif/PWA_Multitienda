@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { getClientUser, supabase } from '@/lib/supabase';
 import { markAllMyNotificationsAsRead, markNotificationAsRead } from '@/services/notifications.service';
 import { userFacingError } from '@/lib/user-facing-error';
 import type { Notificacion } from '@/types/database';
@@ -38,7 +38,7 @@ export default function NotificationsPage() {
   useEffect(() => {
     let active = true;
     const loadUser = async () => {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      const { data: { user }, error: authError } = await getClientUser();
       if (!active) return;
       if (authError) setError(userFacingError(authError, 'No se pudo validar la sesión.'));
       setUserId(user?.id ?? null);
@@ -94,7 +94,8 @@ export default function NotificationsPage() {
         filter: `usuario_id=eq.${userId}`,
       }, () => { void loadNotifications(); })
       .subscribe();
-    const interval = window.setInterval(() => { void loadNotifications(); }, 30_000);
+    // Respaldo del canal realtime: solo con la pestaña visible.
+    const interval = window.setInterval(() => { if (document.visibilityState === 'visible') void loadNotifications(); }, 60_000);
 
     return () => {
       active = false;
@@ -145,17 +146,17 @@ export default function NotificationsPage() {
       <div className="mx-auto max-w-4xl">
         <header className="flex flex-wrap items-end justify-between gap-4 border-b border-slate-200 pb-5">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-sky-700">Tu cuenta</p>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-accent-700">Tu cuenta</p>
             <h1 className="mt-1 text-3xl font-black text-slate-900">Notificaciones</h1>
             <p className="mt-2 text-sm text-slate-600">Avisos relacionados con tu cuenta y actividad en el portal.</p>
           </div>
-          {userId && <button type="button" onClick={() => void markAllAsRead()} disabled={markingAll || unreadCount === 0} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 transition hover:border-sky-300 hover:text-sky-800 disabled:cursor-not-allowed disabled:opacity-50">{markingAll ? 'Marcando…' : 'Marcar todas como leídas'}</button>}
+          {userId && <button type="button" onClick={() => void markAllAsRead()} disabled={markingAll || unreadCount === 0} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 transition hover:border-accent-300 hover:text-accent-800 disabled:cursor-not-allowed disabled:opacity-50">{markingAll ? 'Marcando…' : 'Marcar todas como leídas'}</button>}
         </header>
 
         {!authChecked && <p role="status" className="py-10 text-center text-sm text-slate-500">Verificando tu sesión…</p>}
         {authChecked && !userId && <div className="mt-6 rounded-xl border border-slate-200 bg-white p-6 text-center">
           <p className="font-bold text-slate-800">Inicia sesión para ver tus notificaciones.</p>
-          <Link href="/auth/login" className="mt-4 inline-flex rounded-lg bg-sky-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-800">Iniciar sesión</Link>
+          <Link href="/auth/login" className="mt-4 inline-flex rounded-lg bg-accent-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-accent-800">Iniciar sesión</Link>
         </div>}
 
         {userId && <>
@@ -171,15 +172,15 @@ export default function NotificationsPage() {
             {loading ? <p role="status" className="px-4 py-12 text-center text-sm text-slate-500">Cargando notificaciones…</p>
               : notifications.length === 0 ? <div className="px-4 py-14 text-center"><p className="font-semibold text-slate-700">{filterUnread ? 'No tienes notificaciones sin leer.' : 'Todavía no tienes notificaciones.'}</p></div>
                 : <ul className="divide-y divide-slate-100">{notifications.map((notification) => <li key={notification.id}>
-                  <button type="button" onClick={() => void openNotification(notification)} className={`flex w-full items-start gap-3 px-4 py-4 text-left transition hover:bg-slate-50 sm:px-5 ${notification.leida ? '' : 'bg-sky-50/60'}`}>
-                    <span aria-hidden="true" className={`mt-2 h-2.5 w-2.5 shrink-0 rounded-full ${notification.leida ? 'bg-slate-200' : 'bg-sky-600'}`} />
+                  <button type="button" onClick={() => void openNotification(notification)} className={`flex w-full items-start gap-3 px-4 py-4 text-left transition hover:bg-slate-50 sm:px-5 ${notification.leida ? '' : 'bg-accent-50/60'}`}>
+                    <span aria-hidden="true" className={`mt-2 h-2.5 w-2.5 shrink-0 rounded-full ${notification.leida ? 'bg-slate-200' : 'bg-accent-600'}`} />
                     <span className="min-w-0 flex-1">
                       <span className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
                         <span className="font-bold text-slate-900">{notification.titulo || notification.tipo || 'Notificación'}</span>
                         <time className="text-[11px] text-slate-400">{formatDate(notification.created_at)}</time>
                       </span>
                       <span className="mt-1 block whitespace-pre-wrap text-sm leading-6 text-slate-600">{notification.mensaje}</span>
-                      {!notification.leida && <span className="mt-2 block text-[10px] font-black uppercase tracking-wide text-sky-700">No leída</span>}
+                      {!notification.leida && <span className="mt-2 block text-[10px] font-black uppercase tracking-wide text-accent-700">No leída</span>}
                     </span>
                   </button>
                 </li>)}</ul>}

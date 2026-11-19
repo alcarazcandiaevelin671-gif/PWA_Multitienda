@@ -36,10 +36,10 @@ export default function ComerciosGuairaSection({ tiendas }: { tiendas: TiendaPub
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.24em] text-sky-600">Directorio local</p>
+            <p className="text-[11px] font-black uppercase tracking-[0.24em] text-accent-600">Directorio local</p>
             <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-900">Comercios del Guairá</h2>
           </div>
-          <span className="inline-flex items-center rounded-full border border-sky-200 bg-sky-100 px-3 py-1.5 text-xs font-bold text-sky-700">
+          <span className="inline-flex items-center rounded-full border border-accent-200 bg-accent-100 px-3 py-1.5 text-xs font-bold text-accent-700">
             {tiendas.length} {tiendas.length === 1 ? 'comercio' : 'comercios'}
           </span>
         </div>
@@ -50,7 +50,7 @@ export default function ComerciosGuairaSection({ tiendas }: { tiendas: TiendaPub
             const nombreComercio = tienda.nombre_comercio || 'Comercio del Guairá';
 
             return (
-              <article key={tienda.id} className="group relative flex flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_18px_35px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_50px_rgba(14,116,144,0.12)]">
+              <article key={tienda.id} className="group relative flex flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_18px_35px_rgba(13,10,16,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_50px_rgba(219,39,119,0.12)]">
                 <div className="relative h-36 w-full overflow-hidden bg-slate-800">
                   {tienda.portada_url ? (
                     <Image
@@ -60,7 +60,7 @@ export default function ComerciosGuairaSection({ tiendas }: { tiendas: TiendaPub
                       className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   ) : (
-                    <div className="flex h-full items-center justify-center bg-gradient-to-r from-slate-800 via-blue-900 to-slate-900 text-xs font-black uppercase tracking-[0.28em] text-white/20">
+                    <div className="flex h-full items-center justify-center bg-gradient-to-r from-slate-800 via-primary-900 to-slate-900 text-xs font-black uppercase tracking-[0.28em] text-white/20">
                       Guairá Comercial
                     </div>
                   )}
@@ -82,12 +82,12 @@ export default function ComerciosGuairaSection({ tiendas }: { tiendas: TiendaPub
                       )}
                     </div>
 
-                    <span className="rounded-full border border-sky-100 bg-sky-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-sky-700">
+                    <span className="rounded-full border border-accent-100 bg-accent-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-accent-700">
                       {tienda.categoria_principal}
                     </span>
                   </div>
 
-                  <h3 className="line-clamp-1 text-lg font-black text-slate-900 transition-colors group-hover:text-sky-700">
+                  <h3 className="line-clamp-1 text-lg font-black text-slate-900 transition-colors group-hover:text-accent-700">
                     {nombreComercio}
                   </h3>
 
@@ -98,7 +98,7 @@ export default function ComerciosGuairaSection({ tiendas }: { tiendas: TiendaPub
                   )}
 
                   <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs font-bold text-slate-600">
-                    <Link href={`/tienda/${tienda.slug}`} className="flex items-center gap-1 text-sky-700 hover:text-sky-900">Ver catálogo →</Link>
+                    <Link href={`/tienda/${tienda.slug}`} className="flex items-center gap-1 text-accent-700 hover:text-accent-900">Ver catálogo →</Link>
                     {tienda.whatsapp && <span className="text-emerald-600">💬 WhatsApp</span>}
                   </div>
                 </div>

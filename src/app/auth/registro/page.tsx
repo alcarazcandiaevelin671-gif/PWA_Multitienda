@@ -17,7 +17,7 @@ const LocationPicker = dynamic(() => import('@/components/ui/LocationPicker'), {
 
 type Opcion = { id: number; nombre: string };
 
-const INPUT_CLASS = 'w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-200';
+const INPUT_CLASS = 'w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-accent-500 focus:ring-2 focus:ring-accent-200';
 const LABEL_CLASS = 'mb-1 block text-xs font-bold uppercase tracking-[0.16em] text-slate-600';
 
 export default function RegistroComerciantePage() {
@@ -123,17 +123,17 @@ export default function RegistroComerciantePage() {
 
   return (
     <div className="min-h-[80vh] bg-slate-50 px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mx-auto grid max-w-6xl overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-[0_30px_80px_rgba(15,23,42,0.12)] lg:grid-cols-[1.05fr_1.2fr]">
-        <aside className="bg-gradient-to-br from-sky-900 via-blue-900 to-indigo-900 p-8 text-white lg:p-10">
-          <div className="mb-6 inline-flex items-center rounded-full border border-white/20 bg-white/5 px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] text-sky-100">
+      <div className="mx-auto grid max-w-6xl overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-[0_30px_80px_rgba(13,10,16,0.12)] lg:grid-cols-[1.05fr_1.2fr]">
+        <aside className="bg-gradient-to-br from-accent-900 via-primary-900 to-primary-900 p-8 text-white lg:p-10">
+          <div className="mb-6 inline-flex items-center rounded-full border border-white/20 bg-white/5 px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] text-accent-100">
             PORTAL GUAIRÁ
           </div>
           <h1 className="text-3xl font-black leading-tight sm:text-4xl">¡Lleva tu comercio al mundo digital!</h1>
-          <p className="mt-4 max-w-md text-sm leading-relaxed text-sky-100/80">
+          <p className="mt-4 max-w-md text-sm leading-relaxed text-accent-100/80">
             Registra tu negocio en el Portal Comercial Guairá y conecta tus productos con nuevos clientes.
           </p>
 
-          <div className="mt-8 space-y-4 text-sm text-sky-50/90">
+          <div className="mt-8 space-y-4 text-sm text-accent-50/90">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
               <div className="text-lg">🏪</div>
               <p className="mt-2 font-bold">Haz visible tu comercio local</p>
@@ -170,7 +170,7 @@ export default function RegistroComerciantePage() {
                     ? 'El comercio quedó pendiente de aprobación y no aparecerá como activo hasta que sea revisado. Revisa tu correo para confirmar la cuenta; después podrás iniciar sesión y consultar el estado de la solicitud.'
                     : 'El comercio quedó pendiente de aprobación y no aparecerá como activo hasta que sea revisado. Ya puedes iniciar sesión y consultar el estado de la solicitud.'}
                 </p>
-                <Link href="/auth/login?registro=comerciante" className="mt-5 inline-flex rounded-xl bg-sky-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-sky-500/25 transition hover:bg-sky-700">
+                <Link href="/auth/login?registro=comerciante" className="mt-5 inline-flex rounded-xl bg-accent-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-accent-500/25 transition hover:bg-accent-700">
                   Ir a iniciar sesión
                 </Link>
               </div>
@@ -263,10 +263,10 @@ export default function RegistroComerciantePage() {
                   <LocationPicker onLocationChange={(latitud, longitud) => setFormData((current) => ({ ...current, latitud, longitud }))} />
                 </section>
 
-                <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-relaxed text-sky-900">
+                <div className="rounded-2xl border border-accent-200 bg-accent-50 p-4 text-sm leading-relaxed text-accent-900">
                   Al enviar la solicitud, tu comercio quedará pendiente de aprobación. No se publicará como activo antes de la revisión.
                 </div>
-                <button type="submit" disabled={loading || loadingOptions || distritos.length === 0} className="w-full rounded-2xl bg-sky-600 px-4 py-3 text-sm font-black text-white shadow-lg shadow-sky-500/25 transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-50">
+                <button type="submit" disabled={loading || loadingOptions || distritos.length === 0} className="w-full rounded-2xl bg-accent-600 px-4 py-3 text-sm font-black text-white shadow-lg shadow-accent-500/25 transition hover:bg-accent-700 disabled:cursor-not-allowed disabled:opacity-50">
                   {loading ? 'Registrando solicitud...' : 'Registrar nuevo comerciante'}
                 </button>
               </form>
@@ -274,7 +274,7 @@ export default function RegistroComerciantePage() {
 
             <p className="mt-6 text-center text-sm text-slate-500">
               ¿Ya tienes cuenta de comerciante?{' '}
-              <Link href="/auth/login" className="font-bold text-sky-600 hover:underline">Inicia sesión</Link>
+              <Link href="/auth/login" className="font-bold text-accent-600 hover:underline">Inicia sesión</Link>
             </p>
           </div>
         </div>

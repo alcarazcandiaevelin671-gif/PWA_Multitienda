@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { getClientUser, supabase } from '@/lib/supabase';
 import FavoriteToggle from '@/components/common/FavoriteToggle';
 import { fetchAIRecommendations, getRecommendationSignals, type AIRecommendation } from '@/lib/recommendations-client';
 
@@ -16,7 +16,7 @@ export default function AIRecommendationsSection() {
 
     const loadRecommendations = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await getClientUser();
         const signals = await getRecommendationSignals(user?.id ?? null);
         const results = await fetchAIRecommendations(signals);
         if (active) setRecommendations(results);
@@ -35,7 +35,7 @@ export default function AIRecommendationsSection() {
     <section className="bg-slate-50 py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-7">
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-sky-700">Selección inteligente</p>
+          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-accent-700">Selección inteligente</p>
           <h2 className="mt-1 text-2xl font-extrabold text-slate-900">Recomendados</h2>
           <p className="mt-1 text-sm text-slate-600">Productos relacionados con tus intereses y el catálogo disponible.</p>
         </div>
@@ -49,7 +49,7 @@ export default function AIRecommendationsSection() {
             {recommendations.map((recommendation) => (
               <article
                 key={recommendation.id}
-                className="group overflow-hidden rounded-xl border border-slate-200 bg-white transition-colors hover:border-sky-300"
+                className="group overflow-hidden rounded-xl border border-slate-200 bg-white transition-colors hover:border-accent-300"
               >
                 <div className="relative aspect-[4/3] bg-slate-100">
                   {recommendation.imagen_url ? (
@@ -61,10 +61,10 @@ export default function AIRecommendationsSection() {
                 </div>
                 <div className="p-4">
                   <p className="truncate text-xs font-semibold text-slate-500">{recommendation.tienda_nombre || 'Comercio local'}</p>
-                  <Link href={recommendation.tienda_slug ? `/tienda/${encodeURIComponent(recommendation.tienda_slug)}#product-${recommendation.id}` : '/tiendas'} className="mt-1 block truncate text-base font-bold text-slate-900 group-hover:text-sky-700">{recommendation.nombre}</Link>
+                  <Link href={recommendation.tienda_slug ? `/tienda/${encodeURIComponent(recommendation.tienda_slug)}#product-${recommendation.id}` : '/tiendas'} className="mt-1 block truncate text-base font-bold text-slate-900 group-hover:text-accent-700">{recommendation.nombre}</Link>
                   <div className="mt-3 flex items-center justify-between gap-2">
-                    <span className="text-sm font-extrabold text-sky-700">{recommendation.precio.toLocaleString('es-PY')} Gs.</span>
-                    <Link href={recommendation.tienda_slug ? `/tienda/${encodeURIComponent(recommendation.tienda_slug)}#product-${recommendation.id}` : '/tiendas'} className="text-xs font-bold text-slate-500 hover:text-sky-700">Ver producto →</Link>
+                    <span className="text-sm font-extrabold text-accent-700">{recommendation.precio.toLocaleString('es-PY')} Gs.</span>
+                    <Link href={recommendation.tienda_slug ? `/tienda/${encodeURIComponent(recommendation.tienda_slug)}#product-${recommendation.id}` : '/tiendas'} className="text-xs font-bold text-slate-500 hover:text-accent-700">Ver producto →</Link>
                   </div>
                 </div>
               </article>

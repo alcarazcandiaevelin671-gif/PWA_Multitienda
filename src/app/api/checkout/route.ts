@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import type { CheckoutInput } from '@/types/database';
 import { userFacingError } from '@/lib/user-facing-error';
+import { getVerifiedUser } from '@/lib/server-auth';
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -64,8 +65,9 @@ export async function POST(request: Request) {
     }
   );
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) {
+  // Verificación local de la firma (la función SQL vuelve a validar auth.uid()).
+  const user = await getVerifiedUser(supabase);
+  if (!user) {
     return NextResponse.json({ error: 'Inicia sesión para confirmar tu pedido.' }, { status: 401 });
   }
 
@@ -82,6 +84,13 @@ export async function POST(request: Request) {
 
   if (createError || !createdRecords || typeof createdRecords !== 'object' || !('pedido_id' in createdRecords)) {
     const rawMessage = createError?.message || '';
+    console.error('[checkout] Error en procesar_checkout_pedido_venta_factura:', {
+      code: createError?.code,
+      message: createError?.message,
+      details: createError?.details,
+      hint: createError?.hint,
+      data: createdRecords,
+    });
     const message = userFacingError(createError, 'No se pudo completar el pedido. Inténtalo de nuevo.');
     const migrationMissing = /procesar_checkout_pedido_venta_factura|schema cache|could not find the function/i.test(rawMessage);
     return NextResponse.json(

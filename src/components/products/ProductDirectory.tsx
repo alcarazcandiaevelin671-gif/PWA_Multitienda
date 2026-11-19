@@ -92,7 +92,7 @@ export default function ProductDirectory({ products, districts }: { products: Fe
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <label className="flex items-center gap-2 text-xs font-semibold text-slate-600">
             <span>Distrito</span>
-            <select aria-label="Filtrar productos por distrito" value={districtId} onChange={(event) => setDistrictId(event.target.value)} className="min-h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-100">
+            <select aria-label="Filtrar productos por distrito" value={districtId} onChange={(event) => setDistrictId(event.target.value)} className="min-h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-800 focus:border-accent-400 focus:outline-none focus:ring-2 focus:ring-accent-100">
               <option value="all">Todos los distritos</option>
               {districts.map((district) => <option key={district.id} value={String(district.id)}>{district.nombre}</option>)}
             </select>
@@ -102,7 +102,7 @@ export default function ProductDirectory({ products, districts }: { products: Fe
 
         <div className="rounded-2xl border border-slate-200 bg-white p-4">
           <div className="flex flex-wrap items-center gap-3">
-            <button type="button" onClick={() => setShowMap((visible) => !visible)} aria-expanded={showMap} aria-controls="product-search-location-map" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-sky-200 bg-sky-50 px-4 py-2.5 text-sm font-bold text-sky-900 transition hover:bg-sky-100">
+            <button type="button" onClick={() => setShowMap((visible) => !visible)} aria-expanded={showMap} aria-controls="product-search-location-map" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-accent-200 bg-accent-50 px-4 py-2.5 text-sm font-bold text-accent-900 transition hover:bg-accent-100">
               <span aria-hidden="true">📍</span>{showMap ? 'Ocultar mapa' : location ? 'Cambiar ubicación' : 'Elegir ubicación en mapa'}
             </button>
             <label className="flex items-center gap-2 text-xs font-semibold text-slate-600">
@@ -138,10 +138,10 @@ export default function ProductDirectory({ products, districts }: { products: Fe
                 <p className="truncate text-xs font-semibold text-slate-500">{product.tienda?.nombre_comercio || 'Comercio local'}</p>
                 <h2 className="mt-1 truncate text-base font-bold text-slate-900">{product.titulo}</h2>
                 {product.descripcion && <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-500">{product.descripcion}</p>}
-                {location && <p className="mt-2 text-xs font-bold text-sky-700">📍 {formatDistance(distanceKm)}</p>}
+                {location && <p className="mt-2 text-xs font-bold text-accent-700">📍 {formatDistance(distanceKm)}</p>}
                 <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-3">
-                  <span className="text-sm font-extrabold text-sky-700">{Number(product.precio_oferta || product.precio_gs || 0).toLocaleString('es-PY')} Gs.</span>
-                  <Link href={productPath(product)} className="text-xs font-bold text-slate-600 hover:text-sky-700">Ver producto →</Link>
+                  <span className="text-sm font-extrabold text-accent-700">{Number(product.precio_oferta || product.precio_gs || 0).toLocaleString('es-PY')} Gs.</span>
+                  <Link href={productPath(product)} className="text-xs font-bold text-slate-600 hover:text-accent-700">Ver producto →</Link>
                 </div>
               </div>
             </article>

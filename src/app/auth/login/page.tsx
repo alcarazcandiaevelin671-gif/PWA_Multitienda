@@ -77,6 +77,14 @@ export default function LoginPage() {
           .maybeSingle();
 
         if (normalizeRole(profile?.rol) === 'admin') destination = '/admin';
+
+        // Segundo factor: obligatorio para administradores (configurarlo o ingresar el código)
+        // y para cualquier usuario que lo haya activado.
+        const { data: level } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        const needsCode = level?.nextLevel === 'aal2' && level.currentLevel !== 'aal2';
+        if (destination === '/admin' || needsCode) {
+          destination = `/auth/mfa?next=${encodeURIComponent(destination)}`;
+        }
       }
 
       window.location.href = destination;
@@ -90,19 +98,19 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-[80vh] bg-slate-50 px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mx-auto grid max-w-6xl overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-[0_30px_80px_rgba(15,23,42,0.12)] lg:grid-cols-[1.05fr_1.2fr]">
-        <aside className="bg-gradient-to-br from-sky-900 via-blue-900 to-indigo-900 p-8 text-white lg:p-10">
-          <div className="mb-6 inline-flex items-center rounded-full border border-white/20 bg-white/5 px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] text-sky-100">
+      <div className="mx-auto grid max-w-6xl overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-[0_30px_80px_rgba(13,10,16,0.12)] lg:grid-cols-[1.05fr_1.2fr]">
+        <aside className="bg-gradient-to-br from-accent-900 via-primary-900 to-primary-900 p-8 text-white lg:p-10">
+          <div className="mb-6 inline-flex items-center rounded-full border border-white/20 bg-white/5 px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] text-accent-100">
             Portal Guairá
           </div>
           <h1 className="text-3xl font-black leading-tight sm:text-4xl">
             Encuentra lo que buscas
           </h1>
-          <p className="mt-4 max-w-md text-sm leading-relaxed text-sky-100/80">
+          <p className="mt-4 max-w-md text-sm leading-relaxed text-accent-100/80">
             Accede a tu cuenta para guardar favoritos, consultar tu perfil y apoyar al comercio local.
           </p>
 
-          <div className="mt-8 space-y-4 text-sm text-sky-50/90">
+          <div className="mt-8 space-y-4 text-sm text-accent-50/90">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
               <div className="text-lg">🏪</div>
               <p className="mt-2 font-bold">Comercios locales verificados</p>
@@ -184,7 +192,7 @@ export default function LoginPage() {
                   placeholder="correo@ejemplo.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-200"
+                  className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-accent-500 focus:ring-2 focus:ring-accent-200"
                 />
               </div>
 
@@ -199,7 +207,7 @@ export default function LoginPage() {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 pr-12 text-sm text-slate-800 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-200"
+                    className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 pr-12 text-sm text-slate-800 outline-none transition focus:border-accent-500 focus:ring-2 focus:ring-accent-200"
                   />
                   <button
                     type="button"
@@ -223,7 +231,7 @@ export default function LoginPage() {
                   </button>
                 </div>
                 <div className="mt-2 text-right">
-                  <Link href="/reset-password" className="text-xs font-bold text-sky-700 hover:text-sky-900 hover:underline">
+                  <Link href="/reset-password" className="text-xs font-bold text-accent-700 hover:text-accent-900 hover:underline">
                     ¿Olvidaste tu contraseña?
                   </Link>
                 </div>
@@ -232,7 +240,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-2xl bg-sky-600 px-4 py-3 text-sm font-black text-white shadow-lg shadow-sky-500/25 transition hover:bg-sky-700 disabled:opacity-50"
+                className="w-full rounded-2xl bg-accent-600 px-4 py-3 text-sm font-black text-white shadow-lg shadow-accent-500/25 transition hover:bg-accent-700 disabled:opacity-50"
               >
                 {loading ? 'Procesando...' : 'Iniciar sesión'}
               </button>
@@ -240,7 +248,7 @@ export default function LoginPage() {
 
             <div className="mt-6 text-center text-sm text-slate-500">
               <span>¿Aún no tienes cuenta?</span>
-              <Link href="/auth/registro-cliente" className="ml-2 font-bold text-sky-600 hover:underline">
+              <Link href="/auth/registro-cliente" className="ml-2 font-bold text-accent-600 hover:underline">
                 Crear cuenta de cliente
               </Link>
             </div>

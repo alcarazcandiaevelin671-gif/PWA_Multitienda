@@ -1,5 +1,6 @@
 import { requireActiveSettingsUser } from '@/lib/settings-server';
 import { NextResponse } from 'next/server';
+import { normalizeAppearance } from '@/lib/appearance';
 
 const notificationChannels = ['inApp', 'email', 'push', 'sms'] as const;
 const notificationCategories = ['orders', 'stores', 'sales', 'invoices', 'messages', 'promotions', 'security', 'system'] as const;
@@ -116,11 +117,14 @@ export async function PATCH(request: Request) {
   } catch {
     return NextResponse.json({ error: 'La solicitud no tiene un formato válido.' }, { status: 400 });
   }
-  if (!settingsSections.includes(body.section as SettingsSection)) {
+  // "apariencia" se guarda dentro de preferencias.apariencia (columna jsonb existente).
+  const isAppearance = body.section === 'apariencia';
+  if (!isAppearance && !settingsSections.includes(body.section as SettingsSection)) {
     return NextResponse.json({ error: 'La sección de configuración no es válida.' }, { status: 400 });
   }
-  const section = body.section as SettingsSection;
-  const value = validSettingsValue(section, body.value);
+  const section: SettingsSection = isAppearance ? 'preferencias' : body.section as SettingsSection;
+  const appearance = isAppearance && isRecord(body.value) ? normalizeAppearance(body.value) : null;
+  const value = isAppearance ? (appearance ? {} : null) : validSettingsValue(section, body.value);
   if (!value) return NextResponse.json({ error: 'Uno o más valores de configuración no son válidos o no están disponibles.' }, { status: 400 });
 
   const { data: current, error: currentError } = await account.supabase
@@ -133,12 +137,19 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: 'No se pudo leer tu configuración para guardar los cambios.' }, { status: 403 });
   }
 
+  const currentPreferences: JsonRecord = isRecord(current?.preferencias) ? current.preferencias : {};
   const updated = {
-    preferencias: isRecord(current?.preferencias) ? current.preferencias : {},
+    preferencias: currentPreferences,
     notificaciones_config: isRecord(current?.notificaciones_config) ? current.notificaciones_config : {},
     privacidad: isRecord(current?.privacidad) ? current.privacidad : {},
     [section]: value,
   };
+  if (isAppearance) {
+    updated.preferencias = { ...currentPreferences, apariencia: appearance };
+  } else if (section === 'preferencias' && isRecord(currentPreferences.apariencia)) {
+    // Guardar idioma/tema no debe borrar la personalización de colores.
+    updated.preferencias = { ...value, apariencia: currentPreferences.apariencia };
+  }
   const { data, error } = await account.supabase
     .from('usuario_configuracion')
     .upsert({ usuario_id: account.user.id, ...updated, updated_at: new Date().toISOString() }, { onConflict: 'usuario_id' })

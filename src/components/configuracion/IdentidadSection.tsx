@@ -126,7 +126,7 @@ export default function IdentidadSection({
         <form onSubmit={saveIdentity} className="grid gap-4 sm:grid-cols-2">
           <label className="text-sm font-semibold text-slate-700">
             Nombre completo
-            <input required minLength={2} maxLength={100} value={name} onChange={(event) => setName(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 font-normal outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+            <input required minLength={2} maxLength={100} value={name} onChange={(event) => setName(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 font-normal outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100" />
           </label>
           <div className="text-sm font-semibold text-slate-700">
             Alias
@@ -134,9 +134,9 @@ export default function IdentidadSection({
           </div>
           <label className="text-sm font-semibold text-slate-700">
             Teléfono
-            <input type="tel" maxLength={40} value={phone} onChange={(event) => setPhone(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 font-normal outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+            <input type="tel" maxLength={40} value={phone} onChange={(event) => setPhone(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 font-normal outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100" />
           </label>
-          <button type="submit" disabled={saving} className="w-fit rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60">{saving ? 'Guardando…' : 'Guardar datos personales'}</button>
+          <button type="submit" disabled={saving} className="w-fit rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-primary-700 disabled:cursor-wait disabled:opacity-60">{saving ? 'Guardando…' : 'Guardar datos personales'}</button>
         </form>
       </section>
 
@@ -145,7 +145,7 @@ export default function IdentidadSection({
         <form onSubmit={requestEmailChange} className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
           <label className="min-w-0 flex-1 text-sm font-semibold text-slate-700">
             Correo autenticado
-            <input type="email" required value={email} onChange={(event) => setEmail(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 font-normal outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+            <input type="email" required value={email} onChange={(event) => setEmail(event.target.value)} className="mt-1.5 w-full rounded-xl border border-slate-300 px-3 py-2.5 font-normal outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100" />
           </label>
           <button type="submit" disabled={saving || email.trim().toLowerCase() === profile.email.toLowerCase()} className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50">Solicitar cambio</button>
         </form>
@@ -167,7 +167,7 @@ export default function IdentidadSection({
                 setPreview(file ? URL.createObjectURL(file) : null);
               }} />
             </label>
-            {selectedFile && <button type="button" disabled={saving} onClick={() => void saveAvatar()} className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50">Guardar foto</button>}
+            {selectedFile && <button type="button" disabled={saving} onClick={() => void saveAvatar()} className="rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-primary-700 disabled:opacity-50">Guardar foto</button>}
             {profile.avatar_url && <button type="button" disabled={saving} onClick={() => void removeAvatar()} className="rounded-xl px-3 py-2.5 text-sm font-bold text-rose-700 hover:bg-rose-50 disabled:opacity-50">Eliminar foto</button>}
           </div>
         </div>

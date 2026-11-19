@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { getClientUser, supabase } from '@/lib/supabase';
 import { deleteProfileAvatar, updateSettingsIdentity, uploadProfileAvatar } from '@/services/settings.service';
 import type { HistorialBusqueda } from '@/types/database';
 
@@ -71,7 +71,7 @@ export default function PerfilPage() {
         let currentUser: any = session?.user ?? undefined;
 
         if (!currentUser) {
-          const { data: authUser } = await supabase.auth.getUser();
+          const { data: authUser } = await getClientUser();
           currentUser = authUser?.user ?? undefined;
         }
 
@@ -174,7 +174,7 @@ export default function PerfilPage() {
   if (loading) {
     return (
       <div className="mx-auto max-w-4xl rounded-[28px] border border-slate-200 bg-white p-10 text-center shadow-sm">
-        <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-sky-200 border-t-sky-600" />
+        <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-accent-200 border-t-accent-600" />
         <p className="mt-4 text-sm font-semibold text-slate-500">Cargando perfil...</p>
       </div>
     );
@@ -182,17 +182,17 @@ export default function PerfilPage() {
 
   if (!userSession || !userData) {
     return (
-      <div className="mx-auto max-w-3xl rounded-[28px] border border-sky-200 bg-gradient-to-br from-sky-50 via-white to-blue-50 p-8 text-center shadow-[0_20px_60px_rgba(14,116,144,0.12)]">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-sky-100 text-3xl shadow-inner">👤</div>
+      <div className="mx-auto max-w-3xl rounded-[28px] border border-accent-200 bg-gradient-to-br from-accent-50 via-white to-primary-50 p-8 text-center shadow-[0_20px_60px_rgba(219,39,119,0.12)]">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-accent-100 text-3xl shadow-inner">👤</div>
         <h2 className="text-2xl font-black text-slate-900">Inicia sesión para ver tu perfil</h2>
         <p className="mt-3 text-sm text-slate-600">
           Accede a tu cuenta para gestionar tus compras, favoritos, historial y preferencias.
         </p>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-          <Link href="/auth/login" className="rounded-xl bg-sky-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-sky-500/25 transition hover:bg-sky-700">
+          <Link href="/auth/login" className="rounded-xl bg-accent-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-accent-500/25 transition hover:bg-accent-700">
             Iniciar sesión
           </Link>
-          <Link href="/auth/registro" className="rounded-xl border border-sky-200 bg-white px-5 py-3 text-sm font-bold text-sky-700 transition hover:bg-sky-50">
+          <Link href="/auth/registro" className="rounded-xl border border-accent-200 bg-white px-5 py-3 text-sm font-bold text-accent-700 transition hover:bg-accent-50">
             Crear cuenta
           </Link>
         </div>
@@ -275,17 +275,17 @@ export default function PerfilPage() {
 
   return (
     <div className="w-full space-y-7 px-4 py-8 sm:px-6 lg:px-8">
-      <section className="w-full overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_18px_55px_rgba(15,23,42,0.08)]">
-        <header className={`relative isolate overflow-hidden p-6 text-white sm:p-8 ${userData.rol === 'admin' ? 'border-b border-violet-200 bg-gradient-to-br from-violet-950 via-indigo-900 to-slate-900' : userData.rol === 'comerciante' ? 'border-b border-emerald-200 bg-gradient-to-br from-emerald-950 via-teal-900 to-slate-900' : 'border-b border-sky-200 bg-gradient-to-br from-sky-950 via-blue-800 to-slate-900'}`}>
+      <section className="w-full overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_18px_55px_rgba(13,10,16,0.08)]">
+        <header className={`relative isolate overflow-hidden p-6 text-white sm:p-8 ${userData.rol === 'admin' ? 'border-b border-violet-200 bg-gradient-to-br from-violet-950 via-primary-900 to-slate-900' : userData.rol === 'comerciante' ? 'border-b border-emerald-200 bg-gradient-to-br from-emerald-950 via-teal-900 to-slate-900' : 'border-b border-accent-200 bg-gradient-to-br from-accent-950 via-primary-800 to-slate-900'}`}>
           <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-4 sm:gap-5">
-              <div className={`relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 bg-white/10 text-2xl font-black shadow-lg ring-4 ring-white/10 sm:h-24 sm:w-24 ${userData.rol === 'admin' ? 'border-violet-200/60' : userData.rol === 'comerciante' ? 'border-emerald-200/60' : 'border-sky-200/60'}`}>
+              <div className={`relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 bg-white/10 text-2xl font-black shadow-lg ring-4 ring-white/10 sm:h-24 sm:w-24 ${userData.rol === 'admin' ? 'border-violet-200/60' : userData.rol === 'comerciante' ? 'border-emerald-200/60' : 'border-accent-200/60'}`}>
                 {typeof userSession.user_metadata?.avatar_url === 'string' && userSession.user_metadata.avatar_url.trim() ? <Image src={userSession.user_metadata.avatar_url} alt="Foto de perfil" fill unoptimized className="object-cover" /> : <span className="relative z-0">{iniciales}</span>}
                 <span className="absolute bottom-1 right-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-slate-900 bg-emerald-400 shadow-sm" aria-label="Sesión activa" />
               </div>
 
               <div className="min-w-0">
-                <p className={`text-[11px] font-bold uppercase tracking-[0.16em] ${userData.rol === 'admin' ? 'text-violet-200' : userData.rol === 'comerciante' ? 'text-emerald-200' : 'text-sky-200'}`}>Cuenta personal</p>
+                <p className={`text-[11px] font-bold uppercase tracking-[0.16em] ${userData.rol === 'admin' ? 'text-violet-200' : userData.rol === 'comerciante' ? 'text-emerald-200' : 'text-accent-200'}`}>Cuenta personal</p>
                 <h1 className="mt-1 break-words text-2xl font-extrabold leading-tight sm:text-3xl">{userData.nombre_completo}</h1>
                 <p className="mt-2 break-all text-sm text-white/80">{userData.email}</p>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -299,7 +299,7 @@ export default function PerfilPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-              <span className={`inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-bold ${userData.rol === 'admin' ? 'border-violet-200/30 bg-violet-300/15 text-violet-100' : userData.rol === 'comerciante' ? 'border-emerald-200/30 bg-emerald-300/15 text-emerald-100' : 'border-sky-200/30 bg-sky-300/15 text-sky-100'}`}>
+              <span className={`inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-bold ${userData.rol === 'admin' ? 'border-violet-200/30 bg-violet-300/15 text-violet-100' : userData.rol === 'comerciante' ? 'border-emerald-200/30 bg-emerald-300/15 text-emerald-100' : 'border-accent-200/30 bg-accent-300/15 text-accent-100'}`}>
                 {rolEtiqueta}
               </span>
               <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold ${userData.activo ? 'bg-emerald-300/15 text-emerald-100 ring-1 ring-inset ring-emerald-200/30' : 'bg-rose-300/15 text-rose-100 ring-1 ring-inset ring-rose-200/30'}`}>
@@ -319,11 +319,11 @@ export default function PerfilPage() {
 
         <div className="grid w-full grid-cols-1 gap-4 p-4 sm:p-6 md:grid-cols-3">
           <article className="flex h-full w-full min-w-0 items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 transition-colors hover:bg-white">
-            <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-lg text-blue-800">👤</span>
+            <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-100 text-lg text-primary-800">👤</span>
             <div className="min-w-0"><p className="text-xs font-semibold text-slate-500">Nombre completo</p><p className="mt-1 break-words text-sm font-bold text-slate-900">{userData.nombre_completo}</p></div>
           </article>
           <article className="flex h-full w-full min-w-0 items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 transition-colors hover:bg-white">
-            <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-lg text-sky-800">✉</span>
+            <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-100 text-lg text-accent-800">✉</span>
             <div className="min-w-0"><p className="text-xs font-semibold text-slate-500">Correo electrónico</p><p className="mt-1 break-all text-sm font-bold text-slate-900">{userData.email}</p></div>
           </article>
           <article className="flex h-full w-full min-w-0 items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-4 transition-colors hover:bg-white">
@@ -381,8 +381,8 @@ export default function PerfilPage() {
 
       {userData.rol === 'cliente' && (
         <section className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-          <button type="button" aria-expanded={showSearchHistory} aria-controls="profile-search-history" onClick={() => setShowSearchHistory((open) => !open)} className="flex min-h-12 w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-700">
-            <span className="flex min-w-0 items-center gap-3"><span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-lg text-sky-800">⌕</span><span className="truncate text-sm font-extrabold text-slate-900">Ver historial de búsquedas</span></span>
+          <button type="button" aria-expanded={showSearchHistory} aria-controls="profile-search-history" onClick={() => setShowSearchHistory((open) => !open)} className="flex min-h-12 w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-700">
+            <span className="flex min-w-0 items-center gap-3"><span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-50 text-lg text-accent-800">⌕</span><span className="truncate text-sm font-extrabold text-slate-900">Ver historial de búsquedas</span></span>
             <span aria-hidden="true" className="shrink-0 text-lg font-semibold text-slate-500">{showSearchHistory ? '−' : '+'}</span>
           </button>
           {showSearchHistory && <div id="profile-search-history" className="mt-3 border-t border-slate-100 px-3 pt-3">
@@ -398,9 +398,9 @@ export default function PerfilPage() {
       <section aria-label="Accesos rápidos" className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Link
           href="/configuracion"
-          className="group flex h-full w-full min-h-28 items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+          className="group flex h-full w-full min-h-28 items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-primary-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700"
         >
-          <span aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-xl text-blue-800 transition group-hover:bg-blue-100">⚙</span>
+          <span aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-xl text-primary-800 transition group-hover:bg-primary-100">⚙</span>
           <span><span className="block text-xs font-semibold text-slate-500">Cuenta</span><span className="mt-1 block text-sm font-extrabold text-slate-900">Configurar mi cuenta</span></span>
         </Link>
 

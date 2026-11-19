@@ -3,10 +3,11 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useCart } from '@/context/CartContext';
 import NotificationBell from '@/components/common/NotificationBell';
+import { openAppearancePanel } from '@/components/apariencia/AppearanceDrawer';
 
 type ProductSearchResult = {
   id: string;
@@ -27,6 +28,8 @@ const normalizeRole = (value: unknown): string => {
 
 export default function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
+  const isActive = (href: string) => (href === '/' ? pathname === '/' : pathname?.startsWith(href) ?? false);
   const { totalItems } = useCart();
   const [rolUsuario, setRolUsuario] = useState<string | null>(null);
   const [nombreMostrar, setNombreMostrar] = useState<string | null>(null);
@@ -79,44 +82,39 @@ export default function Navbar() {
       }
 
       setUsuario(userSession);
-      await syncServerSession(userSession.id);
+      // La sincronización de cookies con el servidor no bloquea la carga del perfil.
+      void syncServerSession(userSession.id);
 
+      // Una sola consulta: perfil + nombre de la tienda (relación anidada), antes eran dos en serie.
       const { data: perfil } = await supabase
         .from('usuarios')
-        .select('rol, nombre_completo')
+        .select('rol, nombre_completo, tiendas(nombre_comercio)')
         .eq('id', userSession.id)
         .maybeSingle();
 
       if (perfil) {
         const rolNormalizado = normalizeRole(perfil.rol);
         setRolUsuario(rolNormalizado);
-
-        if (rolNormalizado === 'comerciante') {
-          const { data: tienda } = await supabase
-            .from('tiendas')
-            .select('nombre_comercio')
-            .eq('usuario_id', userSession.id)
-            .maybeSingle();
-
-          if (tienda?.nombre_comercio) {
-            setNombreMostrar(tienda.nombre_comercio);
-          } else {
-            setNombreMostrar(perfil.nombre_completo || userSession.email);
-          }
-        } else {
-          setNombreMostrar(perfil.nombre_completo || userSession.email);
-        }
+        const tiendas = perfil.tiendas as { nombre_comercio?: string | null } | Array<{ nombre_comercio?: string | null }> | null;
+        const nombreTienda = Array.isArray(tiendas) ? tiendas[0]?.nombre_comercio : tiendas?.nombre_comercio;
+        setNombreMostrar(
+          (rolNormalizado === 'comerciante' && nombreTienda) || perfil.nombre_completo || userSession.email,
+        );
       }
     };
 
-    // Obtener sesión inicial
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      consultarDatosUsuario(user);
-    });
-
-    // Escuchar cambios de estado en tiempo real (login/logout)
+    // onAuthStateChange emite INITIAL_SESSION al suscribirse, así que no hace falta un getUser()
+    // aparte (duplicaba la sincronización de sesión y las consultas a usuarios/tiendas).
+    // Solo se vuelve a consultar el perfil si cambia el usuario; TOKEN_REFRESHED solo resincroniza la sesión.
+    let lastUserId: string | null | undefined;
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const nextUserId = session?.user.id ?? null;
       window.setTimeout(() => {
+        if (nextUserId === lastUserId) {
+          if (nextUserId) void syncServerSession(nextUserId);
+          return;
+        }
+        lastUserId = nextUserId;
         void consultarDatosUsuario(session?.user ?? null);
       }, 0);
     });
@@ -235,28 +233,28 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 flex w-full flex-wrap items-center justify-between gap-x-5 gap-y-3 border-b border-slate-200/80 border-t-2 border-t-sky-600 bg-white/95 px-4 py-3 shadow-sm backdrop-blur-xl sm:px-6 lg:px-8">
-      <Link href="/" className="group flex shrink-0 items-center gap-3 rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-600">
-        <span aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-700 to-blue-700 text-white shadow-sm transition group-hover:-translate-y-0.5 group-hover:shadow-md">
+    <header className="sticky top-0 z-50 flex w-full flex-wrap items-center justify-between gap-x-5 gap-y-3 border-b border-slate-200/80 border-t-2 border-t-accent-600 zone-header px-4 py-3 shadow-sm backdrop-blur-xl sm:px-6 lg:px-8">
+      <Link href="/" className="group flex shrink-0 items-center gap-3 rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary-600">
+        <span aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-700 to-primary-700 text-white shadow-sm transition group-hover:-translate-y-0.5 group-hover:shadow-md">
           <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6" aria-hidden="true">
             <path d="M3 10.5 12 4l9 6.5V21h-6v-6H9v6H3V10.5Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
             <path d="M7 11h2m6 0h2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
           </svg>
         </span>
         <span className="leading-tight">
-          <span className="block text-base font-extrabold text-slate-900 transition group-hover:text-blue-800 sm:text-lg">Portal Guairá</span>
+          <span className="block text-base font-extrabold text-slate-900 transition group-hover:text-primary-800 sm:text-lg">Portal Guairá</span>
           <span className="mt-0.5 hidden text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500 sm:block">Comercio local</span>
         </span>
       </Link>
 
-      <nav className="hidden items-center gap-1 rounded-xl border border-slate-100 bg-slate-50/80 p-1 text-sm font-semibold text-slate-600 md:flex">
-        <Link href="/" className="rounded-lg px-3 py-2 transition-colors hover:bg-white hover:text-blue-700 hover:shadow-sm">
+      <nav aria-label="Principal" className="header-pill hidden items-center gap-1 rounded-xl border p-1 text-sm font-semibold md:flex">
+        <Link href="/" aria-current={isActive('/') ? 'page' : undefined} className="header-link rounded-lg px-3 py-2 transition-colors">
           Inicio
         </Link>
-        <Link href="/tiendas" className="rounded-lg px-3 py-2 transition-colors hover:bg-white hover:text-blue-700 hover:shadow-sm">
+        <Link href="/tiendas" aria-current={isActive('/tiendas') ? 'page' : undefined} className="header-link rounded-lg px-3 py-2 transition-colors">
           Explorar Productos
         </Link>
-        <Link href="/categorias" className="rounded-lg px-3 py-2 transition-colors hover:bg-white hover:text-blue-700 hover:shadow-sm">
+        <Link href="/categorias" aria-current={isActive('/categorias') ? 'page' : undefined} className="header-link rounded-lg px-3 py-2 transition-colors">
           Categorías
         </Link>
       </nav>
@@ -264,21 +262,21 @@ export default function Navbar() {
       <div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-2 sm:gap-3">
         {usuario && rolUsuario === 'cliente' && (
           <>
-            <Link href="/checkout" aria-label={`Carrito${totalItems ? `, ${totalItems} productos` : ''}`} className="text-xs font-bold text-slate-700 hover:text-blue-700">
+            <Link href="/checkout" aria-label={`Carrito${totalItems ? `, ${totalItems} productos` : ''}`} className="text-xs font-bold text-slate-700 hover:text-primary-700">
               Carrito{totalItems > 0 ? ` (${totalItems})` : ''}
             </Link>
-            <Link href="/pedidos" className="text-xs font-bold text-slate-700 hover:text-blue-700">Mis pedidos</Link>
+            <Link href="/pedidos" className="text-xs font-bold text-slate-700 hover:text-primary-700">Mis pedidos</Link>
           </>
         )}
         <div className="relative hidden md:block">
-          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-2 transition focus-within:border-blue-300 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-100">
-            <span aria-hidden="true" className="text-slate-400">⌕</span>
+          <div className="header-pill header-search flex items-center gap-2 rounded-xl border px-3 py-2 transition focus-within:ring-2 focus-within:ring-primary-200">
+            <span aria-hidden="true" className="header-muted">⌕</span>
             <input
               type="text"
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
               placeholder="Buscar productos o categorías"
-              className="w-52 bg-transparent text-xs text-slate-700 placeholder:text-slate-400 outline-none"
+              className="header-input w-52 bg-transparent text-xs outline-none"
               aria-label="Buscar productos o categorías"
             />
           </div>
@@ -294,7 +292,7 @@ export default function Navbar() {
                       key={product.id}
                       type="button"
                       onClick={() => void handleSelectProduct(product)}
-                      className="w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-left transition hover:border-blue-200 hover:bg-blue-50"
+                      className="w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-left transition hover:border-primary-200 hover:bg-primary-50"
                     >
                       <div className="flex items-center justify-between gap-3">
                         <span className="text-sm font-bold text-slate-800">{product.titulo}</span>
@@ -310,6 +308,17 @@ export default function Navbar() {
             </div>
           )}
         </div>
+
+        <button
+          type="button"
+          onClick={openAppearancePanel}
+          title="Personalizar colores y apariencia"
+          className="flex items-center gap-1.5 rounded-xl border border-primary-200 bg-primary-50 px-3 py-2 text-xs font-bold text-primary-800 transition hover:border-primary-300 hover:bg-primary-100"
+        >
+          <span aria-hidden="true">🎨</span>
+          <span className="hidden sm:inline">Personalizar</span>
+          <span className="sr-only sm:hidden">Personalizar</span>
+        </button>
 
         {usuario?.id && rolUsuario && <NotificationBell userId={usuario.id} role={rolUsuario} />}
 
@@ -334,7 +343,7 @@ export default function Navbar() {
                 ['/comerciante/ventas', 'Ventas'],
                 ['/comerciante/facturas', 'Facturas'],
                 ['/comerciante/reportes', 'Reportes'],
-              ].map(([href, label]) => <Link key={href} href={href} onClick={(event) => event.currentTarget.closest('details')?.removeAttribute('open')} className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700">{label}</Link>)}
+              ].map(([href, label]) => <Link key={href} href={href} onClick={(event) => event.currentTarget.closest('details')?.removeAttribute('open')} className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-primary-50 hover:text-primary-700">{label}</Link>)}
             </nav>
           </details>
         )}
@@ -345,7 +354,7 @@ export default function Navbar() {
               href="/configuracion"
               aria-label="Configuración"
               title="Configuración"
-              className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 transition hover:bg-blue-50 hover:text-blue-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+              className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 transition hover:bg-primary-50 hover:text-primary-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
             >
               <span aria-hidden="true" className="text-xl leading-none">⚙</span>
               <span className="sr-only">Configuración</span>
@@ -353,9 +362,9 @@ export default function Navbar() {
             <Link
               href="/perfil"
               aria-label="Ir a mi perfil"
-              className="flex items-center justify-center rounded-full border border-slate-200 bg-white p-1 shadow-sm transition hover:border-blue-300 hover:shadow-md"
+              className="flex items-center justify-center rounded-full border border-slate-200 bg-white p-1 shadow-sm transition hover:border-primary-300 hover:shadow-md"
             >
-              <span className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-blue-700 to-emerald-600 text-lg text-white shadow-sm ring-2 ring-white">
+              <span className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-primary-700 to-emerald-600 text-lg text-white shadow-sm ring-2 ring-white">
                 {typeof usuario.user_metadata?.avatar_url === 'string' && usuario.user_metadata.avatar_url.trim() ? (
                   <Image src={usuario.user_metadata.avatar_url} alt="" fill sizes="40px" unoptimized className="object-cover" />
                 ) : (
@@ -367,7 +376,7 @@ export default function Navbar() {
         ) : (
           <Link
             href="/auth/login"
-            className="text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-xl shadow-sm transition-colors"
+            className="text-xs font-semibold text-white bg-primary-600 hover:bg-primary-700 px-4 py-2 rounded-xl shadow-sm transition-colors"
           >
             Iniciar Sesión
           </Link>

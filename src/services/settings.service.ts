@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { getCurrentUser, isMissingTableError } from '@/services/orders.service';
+import { normalizeAppearance, type Appearance } from '@/lib/appearance';
 
 export type SettingsProfile = {
   id: string;
@@ -272,7 +273,7 @@ export async function deleteProfileAvatar(url: string) {
   if (!response.ok) throw new Error(result.error || 'No se pudo eliminar la foto.');
 }
 
-export async function getUserSettings(): Promise<UserSettings | null> {
+export async function getUserSettings(): Promise<(UserSettings & { apariencia: Appearance | null }) | null> {
   const response = await fetch('/api/configuracion', { cache: 'no-store' });
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || 'No se pudo cargar la configuración.');
@@ -317,6 +318,8 @@ export async function getUserSettings(): Promise<UserSettings | null> {
       showBasicInfo: storedPrivacy.showBasicInfo === true,
       personalizedRecommendations: typeof storedPrivacy.personalizedRecommendations === 'boolean' ? storedPrivacy.personalizedRecommendations : defaults.privacidad.personalizedRecommendations,
     },
+    // Personalización de colores (Configuración > Preferencias o botón Personalizar).
+    apariencia: isSettingsRecord(storedPreferences.apariencia) ? normalizeAppearance(storedPreferences.apariencia) : null,
   };
 }
 
@@ -333,6 +336,17 @@ export async function updateUserSettings(section: SettingsSection, value: UserSe
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || 'No se pudo guardar la configuración.');
   return result.settings as UserSettings;
+}
+
+/** Guarda la personalización de colores en la cuenta (preferencias.apariencia). */
+export async function saveAppearance(value: Appearance) {
+  const response = await fetch('/api/configuracion', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ section: 'apariencia', value }),
+  });
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.error || 'No se pudo guardar la personalización.');
 }
 
 export async function updatePreferences(value: UserPreferences) {

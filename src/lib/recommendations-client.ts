@@ -23,7 +23,7 @@ export async function getRecommendationSignals(userId: string | null): Promise<R
   if (!userId) return signals;
 
   const [favoritesResult, historyResult, ordersResult] = await Promise.all([
-    supabase.from('favoritos').select('producto_id').eq('usuario_id', userId).not('producto_id', 'is', null).order('created_at', { ascending: false }).limit(12),
+    supabase.from('favoritos').select('producto_id').eq('usuario_id', userId).not('producto_id', 'is', null).order('creado_en', { ascending: false }).limit(12),
     supabase.from('historial_busquedas').select('termino, categoria_id').eq('usuario_id', userId).order('fecha_hora', { ascending: false }).limit(20),
     supabase.from('pedidos').select('id').eq('usuario_id', userId).order('created_at', { ascending: false }).limit(20),
   ]);

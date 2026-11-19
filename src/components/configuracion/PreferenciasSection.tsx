@@ -2,6 +2,7 @@
 
 import useUserSettingsSection from '@/components/configuracion/useUserSettingsSection';
 import { getDefaultPreferences } from '@/services/settings.service';
+import AppearancePanel from '@/components/apariencia/AppearancePanel';
 
 const defaultPreferences = getDefaultPreferences();
 
@@ -10,6 +11,7 @@ export default function PreferenciasSection({ userId }: { userId: string }) {
   const dirty = JSON.stringify(settings.value) !== JSON.stringify(settings.savedValue);
 
   return (
+    <>
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
       <h2 className="text-xl font-extrabold text-slate-900">Preferencias</h2>
       <p className="mt-1 text-sm text-slate-600">Se sincronizan con tu cuenta. El contenido de la interfaz continúa en español.</p>
@@ -20,7 +22,7 @@ export default function PreferenciasSection({ userId }: { userId: string }) {
         <fieldset className="sm:col-span-2">
           <legend className="text-sm font-bold text-slate-700">Tema visual</legend>
           <div role="radiogroup" aria-label="Tema visual" className="mt-2 grid grid-cols-3 gap-2">
-            {(['light', 'dark', 'system'] as const).map((theme) => <button key={theme} type="button" role="radio" aria-checked={settings.value.theme === theme} onClick={() => settings.setValue({ ...settings.value, theme })} className={`rounded-xl border px-3 py-3 text-sm font-semibold ${settings.value.theme === theme ? 'border-blue-500 bg-blue-50 text-blue-800' : 'border-slate-200 text-slate-700 hover:bg-slate-50'}`}>{theme === 'light' ? 'Claro' : theme === 'dark' ? 'Oscuro' : 'Sistema'}</button>)}
+            {(['light', 'dark', 'system'] as const).map((theme) => <button key={theme} type="button" role="radio" aria-checked={settings.value.theme === theme} onClick={() => settings.setValue({ ...settings.value, theme })} className={`rounded-xl border px-3 py-3 text-sm font-semibold ${settings.value.theme === theme ? 'border-primary-500 bg-primary-50 text-primary-800' : 'border-slate-200 text-slate-700 hover:bg-slate-50'}`}>{theme === 'light' ? 'Claro' : theme === 'dark' ? 'Oscuro' : 'Sistema'}</button>)}
           </div>
         </fieldset>
         <label className="text-sm font-semibold text-slate-700">Idioma
@@ -43,10 +45,22 @@ export default function PreferenciasSection({ userId }: { userId: string }) {
       </div>
 
       <div className="mt-5 flex flex-wrap items-center gap-2">
-        <button type="button" disabled={!settings.loaded || settings.saving || !dirty} onClick={() => void settings.save()} className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50">{settings.saving ? 'Guardando…' : 'Guardar cambios'}</button>
+        <button type="button" disabled={!settings.loaded || settings.saving || !dirty} onClick={() => void settings.save()} className="rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-primary-700 disabled:opacity-50">{settings.saving ? 'Guardando…' : 'Guardar cambios'}</button>
         <button type="button" disabled={!dirty || settings.saving} onClick={settings.cancel} className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-700 disabled:opacity-50">Cancelar</button>
         <span className="text-xs text-slate-500">{dirty ? 'Cambios sin guardar' : settings.loaded ? 'Sin cambios pendientes' : 'Cargando…'}</span>
       </div>
     </section>
+
+    <section id="apariencia" className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      <h2 className="text-xl font-extrabold text-slate-900">🎨 Apariencia y colores</h2>
+      <p className="mt-1 mb-5 text-sm text-slate-600">
+        Elegí un tema o personalizá los colores de cada zona. Los cambios se ven al instante y, al guardarlos,
+        quedan en tu cuenta. También podés abrir este panel desde el botón <strong>Personalizar</strong> de la barra superior.
+      </p>
+      <div className="max-w-xl">
+        <AppearancePanel embedded />
+      </div>
+    </section>
+    </>
   );
 }

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { showAppMessage } from '@/lib/app-message';
-import { supabase } from '@/lib/supabase';
+import { getClientUser, supabase } from '@/lib/supabase';
 
 type FavoriteKind = 'tienda' | 'producto';
 
@@ -27,7 +27,7 @@ export default function FavoriteToggle({
   useEffect(() => {
     let active = true;
     const loadFavorite = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await getClientUser();
       if (!active) return;
       setUserId(user?.id ?? null);
       if (!user) {

@@ -40,9 +40,9 @@ export default function ShopCard({
   const imageUrl = logoUrl || bannerUrl || '';
 
   return (
-    <div className="group relative flex flex-col justify-between overflow-hidden rounded-[26px] border border-slate-200 bg-white p-3 shadow-[0_18px_35px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_50px_rgba(14,116,144,0.12)]">
+    <div className="group relative flex flex-col justify-between overflow-hidden rounded-[26px] border border-slate-200 bg-white p-3 shadow-[0_18px_35px_rgba(13,10,16,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_50px_rgba(219,39,119,0.12)]">
       {verificada && (
-        <span className="absolute left-5 top-5 z-10 rounded-full border border-blue-200 bg-blue-600 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-white shadow-sm">
+        <span className="absolute left-5 top-5 z-10 rounded-full border border-primary-200 bg-primary-600 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-white shadow-sm">
           Verificado
         </span>
       )}
@@ -51,7 +51,7 @@ export default function ShopCard({
         {imageUrl ? (
           <Image src={imageUrl} alt={nombre} fill unoptimized className="object-cover transition-transform duration-500 group-hover:scale-105" />
         ) : (
-          <div className="flex h-full items-center justify-center bg-gradient-to-br from-slate-200 via-slate-100 to-sky-100 text-4xl font-black text-slate-500">
+          <div className="flex h-full items-center justify-center bg-gradient-to-br from-slate-200 via-slate-100 to-accent-100 text-4xl font-black text-slate-500">
             {nombre ? nombre.charAt(0).toUpperCase() : 'G'}
           </div>
         )}
@@ -61,7 +61,7 @@ export default function ShopCard({
 
       <div className="mt-4 flex-1">
         <div className="mb-2 flex items-center justify-between gap-3">
-          <span className="text-[10px] font-black uppercase tracking-[0.22em] text-sky-600">
+          <span className="text-[10px] font-black uppercase tracking-[0.22em] text-accent-600">
             {categoriaPrincipal || 'Comercio'}
           </span>
           <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-700">
@@ -69,18 +69,18 @@ export default function ShopCard({
           </span>
         </div>
 
-        <h3 className="line-clamp-1 text-base font-black text-slate-900 transition-colors group-hover:text-sky-700">
+        <h3 className="line-clamp-1 text-base font-black text-slate-900 transition-colors group-hover:text-accent-700">
           {nombre}
         </h3>
         <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-slate-500">
           {detalle || 'Comercio registrado en el Departamento del Guairá.'}
         </p>
-        {distanceLabel && <p className="mt-2 text-xs font-bold text-sky-700">📍 {distanceLabel}</p>}
+        {distanceLabel && <p className="mt-2 text-xs font-bold text-accent-700">📍 {distanceLabel}</p>}
       </div>
 
       <Link
         href={`/tienda/${slug || id}`}
-        className="mt-4 inline-flex w-full items-center justify-center rounded-2xl bg-slate-900 px-4 py-3 text-center text-xs font-black text-white transition-all duration-200 hover:bg-sky-700"
+        className="mt-4 inline-flex w-full items-center justify-center rounded-2xl bg-slate-900 px-4 py-3 text-center text-xs font-black text-white transition-all duration-200 hover:bg-accent-700"
       >
         Ver local →
       </Link>

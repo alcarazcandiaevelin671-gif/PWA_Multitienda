@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { getClientUser, supabase } from '@/lib/supabase';
 import type { Notificacion } from '@/types/database';
 
 const HISTORY_LIMIT = 25;
@@ -89,7 +89,7 @@ export default function RealtimeNotificationListener() {
       void syncUser(session?.user?.id ?? null);
     });
 
-    void supabase.auth.getUser().then(({ data, error }) => {
+    void getClientUser().then(({ data, error }) => {
       if (active && !error) void syncUser(data.user?.id ?? null);
     });
 
@@ -132,11 +132,11 @@ export default function RealtimeNotificationListener() {
   return (
     <aside aria-live="polite" aria-atomic="true" className="fixed bottom-4 right-4 z-[140] w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
       <div className="flex items-start gap-3 p-4">
-        <span aria-hidden="true" className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-sky-600" />
+        <span aria-hidden="true" className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-accent-600" />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-bold text-slate-900">{toast.titulo || toast.tipo || 'Nueva notificación'}</p>
           <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-sm leading-5 text-slate-600">{toast.mensaje}</p>
-          <button type="button" onClick={() => void openToast()} disabled={markingRead} className="mt-3 text-xs font-bold text-sky-700 hover:text-sky-900 disabled:opacity-50">{markingRead ? 'Procesando…' : toast.link ? 'Abrir notificación' : 'Marcar como leída'}</button>
+          <button type="button" onClick={() => void openToast()} disabled={markingRead} className="mt-3 text-xs font-bold text-accent-700 hover:text-accent-900 disabled:opacity-50">{markingRead ? 'Procesando…' : toast.link ? 'Abrir notificación' : 'Marcar como leída'}</button>
         </div>
         <button type="button" onClick={() => setToast(null)} aria-label="Cerrar aviso" className="-mr-1 -mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800">×</button>
       </div>

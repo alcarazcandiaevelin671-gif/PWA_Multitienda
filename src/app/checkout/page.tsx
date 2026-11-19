@@ -4,9 +4,12 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useCart } from '@/context/CartContext';
 import { supabase } from '@/lib/supabase';
-import { createOrder } from '@/services/orders.service';
+import { createOrder, getMyOrder } from '@/services/orders.service';
 import type { CheckoutConfirmation, CheckoutInput } from '@/types/database';
 import { userFacingError } from '@/lib/user-facing-error';
+import OrderTicket from '@/components/orders/OrderTicket';
+import type { OrderTicketData } from '@/lib/order-ticket';
+import { isNetworkError, queueOrder } from '@/lib/offline-orders';
 
 type CheckoutProduct = {
   id: string;
@@ -38,6 +41,9 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createdOrder, setCreatedOrder] = useState<CheckoutConfirmation['pedido'] | null>(null);
+  const [ticket, setTicket] = useState<OrderTicketData | null>(null);
+  const [offlineMode, setOfflineMode] = useState(false);
+  const [queuedOffline, setQueuedOffline] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<CheckoutInput['metodo_pago']>('efectivo');
   const [address, setAddress] = useState('');
   const [districtId, setDistrictId] = useState('');
@@ -51,7 +57,9 @@ export default function CheckoutPage() {
       setLoading(true);
       setError(null);
 
-      const { data: { user } } = await supabase.auth.getUser();
+      // getSession() usa la sesión guardada en el dispositivo: funciona sin conexión.
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user ?? null;
       if (!active) return;
       setAuthenticated(Boolean(user));
 
@@ -84,7 +92,23 @@ export default function CheckoutPage() {
       if (!active) return;
 
       const loadError = productsResult.error || shopResult.error || districtsResult.error;
-      if (loadError) {
+      if (loadError && !navigator.onLine) {
+        // Sin conexión y sin copia guardada: usar los datos del carrito. El servidor
+        // vuelve a validar precios y disponibilidad cuando el pedido se envíe.
+        setOfflineMode(true);
+        setProducts(items.map(({ product }) => ({
+          id: product.id,
+          tienda_id: product.tienda_id,
+          titulo: product.titulo ?? product.nombre ?? 'Producto',
+          nombre: product.nombre ?? null,
+          descripcion: product.descripcion ?? null,
+          precio_gs: Number(product.precio_gs ?? product.precio ?? 0),
+          precio_oferta: product.precio_oferta ?? null,
+          disponible: true,
+        })));
+        setShop((shopResult.data as CheckoutShop | null) ?? { id: shopIds[0], nombre_comercio: 'Tienda' });
+        setDistricts((districtsResult.data || []) as CheckoutDistrict[]);
+      } else if (loadError) {
         setError(userFacingError(loadError, 'No se pudo cargar la información del pedido. Inténtalo de nuevo.'));
       } else {
         setProducts((productsResult.data || []) as CheckoutProduct[]);
@@ -143,41 +167,97 @@ export default function CheckoutPage() {
     setError(null);
     setSubmitting(true);
 
+    const orderInput: CheckoutInput = {
+      tienda_id: shop?.id ?? '',
+      items: items.map(({ product, cantidad }) => ({ producto_id: product.id, cantidad })),
+      metodo_pago: paymentMethod,
+      direccion_entrega: address,
+      distrito_id: districtId ? Number(districtId) : null,
+      latitud: location?.latitud ?? null,
+      longitud: location?.longitud ?? null,
+      notas: notes,
+    };
+    const saveOffline = () => {
+      queueOrder({
+        origen: 'checkout',
+        input: orderInput,
+        resumen: {
+          tienda: shop?.nombre_comercio ?? 'Tienda',
+          total,
+          items: lineItems.map(({ product, cantidad, effectivePrice }) => ({
+            nombre: product.nombre || product.titulo,
+            cantidad,
+            precio: effectivePrice,
+          })),
+        },
+      });
+      clearCart();
+      setQueuedOffline(true);
+    };
+
     try {
       if (!shop || productsUnavailable || lineItems.length !== items.length) {
         throw new Error('Actualiza el carrito: hay productos que no pueden incluirse en el pedido.');
       }
 
-      const result = await createOrder({
-        tienda_id: shop.id,
-        items: items.map(({ product, cantidad }) => ({ producto_id: product.id, cantidad })),
-        metodo_pago: paymentMethod,
-        direccion_entrega: address,
-        distrito_id: districtId ? Number(districtId) : null,
-        latitud: location?.latitud ?? null,
-        longitud: location?.longitud ?? null,
-        notas: notes,
-      });
+      if (!navigator.onLine) {
+        saveOffline();
+        return;
+      }
+
+      const result = await createOrder(orderInput);
 
       setCreatedOrder(result.pedido);
       clearCart();
+      // El ticket es complementario: si falla su carga, la confirmación sigue visible.
+      void getMyOrder(result.pedido.id)
+        .then((order) => { if (order) setTicket({ pedido: order.pedido, detalles: order.detalles }); })
+        .catch(() => undefined);
     } catch (submitError) {
+      if (shop && isNetworkError(submitError)) {
+        saveOffline(); // se cortó la conexión durante el envío
+        return;
+      }
       setError(userFacingError(submitError, 'No se pudo confirmar el pedido. Inténtalo de nuevo.'));
     } finally {
       setSubmitting(false);
     }
   };
 
+  if (queuedOffline) {
+    return (
+      <main className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
+        <section className="rounded-3xl border border-amber-200 bg-white px-6 py-10 text-center">
+          <p className="text-4xl">📡</p>
+          <p className="mt-3 text-sm font-bold uppercase text-amber-700">Pedido guardado sin conexión</p>
+          <h1 className="mt-2 text-2xl font-black text-slate-900">Se enviará cuando vuelva internet</h1>
+          <p className="mt-3 text-slate-600">
+            Tu pedido quedó guardado en este dispositivo. Al reconectar se envía solo y te avisamos con el número de ticket.
+            El comercio confirmará precios y disponibilidad en ese momento.
+          </p>
+          <Link href="/pedidos" className="mt-6 inline-flex rounded-xl bg-primary-600 px-5 py-3 font-bold text-white hover:bg-primary-700">
+            Ver mis pedidos
+          </Link>
+        </section>
+      </main>
+    );
+  }
+
   if (createdOrder) {
     return (
       <main className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
-        <section className="border-y border-emerald-200 bg-white px-6 py-10 text-center">
+        <section className="no-print border-y border-emerald-200 bg-white px-6 py-10 text-center">
           <p className="text-sm font-bold uppercase text-emerald-700">Pedido recibido</p>
           <h1 className="mt-2 text-3xl font-black text-slate-900">{createdOrder.numero_pedido}</h1>
-          <p className="mt-3 text-slate-600">El pedido quedó registrado como pendiente.</p>
-          <Link href={`/pedidos/${createdOrder.id}`} className="mt-6 inline-flex rounded-lg bg-blue-700 px-5 py-3 font-bold text-white hover:bg-blue-800">
+          <p className="mt-3 text-slate-600">El pedido quedó registrado como pendiente. Guardá tu ticket.</p>
+          <Link href={`/pedidos/${createdOrder.id}`} className="mt-6 inline-flex rounded-lg bg-primary-700 px-5 py-3 font-bold text-white hover:bg-primary-800">
             Ver pedido
           </Link>
+        </section>
+        <section className="mt-8">
+          {ticket
+            ? <OrderTicket pedido={ticket.pedido} detalles={ticket.detalles} />
+            : <p className="text-center text-sm text-slate-500">Generando ticket…</p>}
         </section>
       </main>
     );
@@ -187,7 +267,7 @@ export default function CheckoutPage() {
     return (
       <main className="mx-auto max-w-3xl px-4 py-14 text-center">
         <h1 className="text-2xl font-black text-slate-900">Inicia sesión para continuar</h1>
-        <Link href="/auth/login" className="mt-5 inline-flex rounded-lg bg-blue-700 px-5 py-3 font-bold text-white">Iniciar sesión</Link>
+        <Link href="/auth/login" className="mt-5 inline-flex rounded-lg bg-primary-700 px-5 py-3 font-bold text-white">Iniciar sesión</Link>
       </main>
     );
   }
@@ -196,7 +276,7 @@ export default function CheckoutPage() {
     return (
       <main className="mx-auto max-w-3xl px-4 py-14 text-center">
         <h1 className="text-2xl font-black text-slate-900">Tu carrito está vacío</h1>
-        <Link href="/tiendas" className="mt-5 inline-flex rounded-lg bg-blue-700 px-5 py-3 font-bold text-white">Explorar Productos</Link>
+        <Link href="/tiendas" className="mt-5 inline-flex rounded-lg bg-primary-700 px-5 py-3 font-bold text-white">Explorar Productos</Link>
       </main>
     );
   }
@@ -205,10 +285,10 @@ export default function CheckoutPage() {
     <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
-          <p className="text-xs font-black uppercase text-blue-700">Checkout</p>
+          <p className="text-xs font-black uppercase text-primary-700">Checkout</p>
           <h1 className="mt-1 text-3xl font-black text-slate-900">Confirmar pedido</h1>
         </div>
-        <Link href="/tiendas" className="text-sm font-bold text-blue-700 hover:underline">Volver al catálogo</Link>
+        <Link href="/tiendas" className="text-sm font-bold text-primary-700 hover:underline">Volver al catálogo</Link>
       </div>
 
       {error && <p role="alert" className="mb-5 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{error}</p>}
@@ -243,7 +323,7 @@ export default function CheckoutPage() {
               <h2 className="text-lg font-bold text-slate-900">Entrega y pago</h2>
               <label className="block text-sm font-semibold text-slate-700">
                 Dirección de entrega
-                <input required minLength={3} maxLength={500} value={address} onChange={(event) => setAddress(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 font-normal outline-none focus:border-blue-600" />
+                <input required minLength={3} maxLength={500} value={address} onChange={(event) => setAddress(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 font-normal outline-none focus:border-primary-600" />
               </label>
               <label className="block text-sm font-semibold text-slate-700">
                 Distrito
@@ -264,7 +344,7 @@ export default function CheckoutPage() {
               </label>
               <label className="block text-sm font-semibold text-slate-700">
                 Notas para la tienda
-                <textarea maxLength={1000} rows={3} value={notes} onChange={(event) => setNotes(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 font-normal outline-none focus:border-blue-600" />
+                <textarea maxLength={1000} rows={3} value={notes} onChange={(event) => setNotes(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 font-normal outline-none focus:border-primary-600" />
               </label>
             </section>
           </div>
@@ -279,8 +359,13 @@ export default function CheckoutPage() {
             </div>
             <p className="mt-4 text-xs text-slate-500">El servidor volverá a validar disponibilidad y precios antes de registrar el pedido.</p>
             <button type="submit" disabled={submitting || loading || productsUnavailable || !shop} className="mt-5 w-full rounded-lg bg-emerald-700 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-slate-400">
-              {submitting ? 'Confirmando...' : 'Confirmar pedido'}
+              {submitting ? 'Confirmando...' : offlineMode ? 'Guardar pedido (sin conexión)' : 'Confirmar pedido'}
             </button>
+            {offlineMode && (
+              <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
+                Sin conexión: se usan los precios guardados en tu carrito. El pedido se enviará al reconectar.
+              </p>
+            )}
           </aside>
         </form>
       )}

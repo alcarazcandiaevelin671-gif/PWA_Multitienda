@@ -44,7 +44,7 @@ function formatValue(value: unknown, field: string) {
 
 const auditActionBadges: Record<string, { label: string; className: string }> = {
   INSERT: { label: 'Creación / Registro', className: 'border-emerald-300/30 bg-emerald-300/10 text-emerald-200' },
-  UPDATE: { label: 'Modificación', className: 'border-sky-300/30 bg-sky-300/10 text-sky-200' },
+  UPDATE: { label: 'Modificación', className: 'border-accent-300/30 bg-accent-300/10 text-accent-200' },
   DELETE: { label: 'Eliminación', className: 'border-rose-300/30 bg-rose-300/10 text-rose-200' },
   CAMBIO_ESTADO_ADMIN: { label: 'Cambio de estado', className: 'border-amber-300/30 bg-amber-300/10 text-amber-200' },
   APROBACION_COMERCIO: { label: 'Aprobación de comercio', className: 'border-emerald-300/30 bg-emerald-300/10 text-emerald-200' },
@@ -72,7 +72,7 @@ function renderRecordValue(section: string, record: RecordRow, key: string) {
     const rawType = String(record.tipo ?? '').toLowerCase();
     const type = rawType.replaceAll('_', ' ');
     const label = notificationTypeLabels[rawType] ?? (type ? `${type.charAt(0).toLocaleUpperCase('es-PY')}${type.slice(1)}` : 'Sin tipo');
-    return <span className="inline-flex rounded-full border border-sky-300/20 bg-sky-300/10 px-2 py-1 text-xs font-semibold text-sky-200">{label}</span>;
+    return <span className="inline-flex rounded-full border border-accent-300/20 bg-accent-300/10 px-2 py-1 text-xs font-semibold text-accent-200">{label}</span>;
   }
 
   if (section === 'notificaciones' && key === 'leida') {
@@ -197,7 +197,7 @@ function CommerceInspection({ record }: { record: RecordRow }) {
           <Info label="Latitud" value={record.latitud} />
           <Info label="Longitud" value={record.longitud} />
         </dl>
-        {hasLocation && <a href={`https://www.google.com/maps?q=${latitude},${longitude}`} target="_blank" rel="noreferrer" className="mt-3 inline-flex text-xs font-semibold text-sky-300 hover:text-sky-200 hover:underline">Abrir ubicación en el mapa</a>}
+        {hasLocation && <a href={`https://www.google.com/maps?q=${latitude},${longitude}`} target="_blank" rel="noreferrer" className="mt-3 inline-flex text-xs font-semibold text-accent-300 hover:text-accent-200 hover:underline">Abrir ubicación en el mapa</a>}
       </section>
 
       <section>
@@ -398,19 +398,19 @@ export default function AdminRecordsPage({ section }: { section: string }) {
   return (
     <div>
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-        <div><p className="text-xs font-bold uppercase tracking-[0.18em] text-sky-300">Administración</p><h2 className="mt-1 text-2xl font-extrabold text-white">{config.title}</h2><p className="mt-1 text-sm text-slate-400">{config.description}</p></div>
+        <div><p className="text-xs font-bold uppercase tracking-[0.18em] text-accent-300">Administración</p><h2 className="mt-1 text-2xl font-extrabold text-white">{config.title}</h2><p className="mt-1 text-sm text-slate-400">{config.description}</p></div>
         <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-slate-300">{loading ? 'Consultando…' : `${total.toLocaleString('es-PY')} registros`}</span>
       </div>
 
-      <div className="mb-4 flex flex-wrap gap-2 rounded-xl border border-white/10 bg-[#111f31] p-3">
-        <label className="min-w-56 flex-1"><span className="sr-only">Buscar</span><input type="search" value={search} onChange={(event) => setFilter(setSearch)(event.target.value)} placeholder={viewSection === 'auditorias' ? 'Buscar correo, tabla o acción…' : viewSection === 'notificaciones' ? 'Buscar título, mensaje o tipo…' : 'Buscar registros…'} className="w-full rounded-lg border border-white/10 bg-[#091321] px-3 py-2 text-sm text-white outline-none placeholder:text-slate-500 focus:border-sky-400" /></label>
-        {section === 'usuarios' && <select aria-label="Filtrar por rol" value={role} onChange={(event) => setFilter(setRole)(event.target.value)} className="rounded-lg border border-white/10 bg-[#091321] px-3 py-2 text-sm text-slate-200"><option value="">Todos los roles</option><option value="cliente">Cliente</option><option value="comerciante">Comerciante</option><option value="admin">Administrador</option></select>}
-        {section === 'comercios' && <select aria-label="Filtrar por estado" value={status} onChange={(event) => setFilter(setStatus)(event.target.value)} className="rounded-lg border border-white/10 bg-[#091321] px-3 py-2 text-sm text-slate-200"><option value="">Todos los estados</option><option value="pendiente">Pendiente</option><option value="activa">Activa</option><option value="suspendida">Suspendida</option><option value="rechazada">Rechazada</option></select>}
+      <div className="mb-4 flex flex-wrap gap-2 rounded-xl border border-white/10 bg-[#1f1724] p-3">
+        <label className="min-w-56 flex-1"><span className="sr-only">Buscar</span><input type="search" value={search} onChange={(event) => setFilter(setSearch)(event.target.value)} placeholder={viewSection === 'auditorias' ? 'Buscar correo, tabla o acción…' : viewSection === 'notificaciones' ? 'Buscar título, mensaje o tipo…' : 'Buscar registros…'} className="w-full rounded-lg border border-white/10 bg-[#0f0b12] px-3 py-2 text-sm text-white outline-none placeholder:text-slate-500 focus:border-accent-400" /></label>
+        {section === 'usuarios' && <select aria-label="Filtrar por rol" value={role} onChange={(event) => setFilter(setRole)(event.target.value)} className="rounded-lg border border-white/10 bg-[#0f0b12] px-3 py-2 text-sm text-slate-200"><option value="">Todos los roles</option><option value="cliente">Cliente</option><option value="comerciante">Comerciante</option><option value="admin">Administrador</option></select>}
+        {section === 'comercios' && <select aria-label="Filtrar por estado" value={status} onChange={(event) => setFilter(setStatus)(event.target.value)} className="rounded-lg border border-white/10 bg-[#0f0b12] px-3 py-2 text-sm text-slate-200"><option value="">Todos los estados</option><option value="pendiente">Pendiente</option><option value="activa">Activa</option><option value="suspendida">Suspendida</option><option value="rechazada">Rechazada</option></select>}
       </div>
 
       {notice && <div role="status" className="mb-4 rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-200">{notice}</div>}
       {error && <div role="alert" className="mb-4 rounded-lg border border-rose-400/30 bg-rose-400/10 px-4 py-3 text-sm text-rose-200">{error}</div>}
-      <div className="overflow-hidden rounded-xl border border-white/10 bg-[#111f31]">
+      <div className="overflow-hidden rounded-xl border border-white/10 bg-[#1f1724]">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] border-collapse text-left text-sm">
             <thead className="bg-white/[0.035] text-[11px] uppercase tracking-wide text-slate-400"><tr>{fields.map(([key, label]) => <th key={key} scope="col" className="whitespace-nowrap px-4 py-3 font-bold">{label}</th>)}{hasDetailsColumn && <th scope="col" className="px-4 py-3 font-bold">Detalle</th>}{hasActionColumn && <th scope="col" className="px-4 py-3 font-bold">Acción</th>}</tr></thead>
@@ -419,7 +419,7 @@ export default function AdminRecordsPage({ section }: { section: string }) {
               {!loading && !error && records.map((record, index) => (
                 <tr key={String(record.id ?? index)} className="text-slate-200 hover:bg-white/[0.025]">
                   {fields.map(([key]) => <td key={key} className="max-w-64 px-4 py-3 align-top">{renderRecordValue(viewSection, record, key)}</td>)}
-                  {hasDetailsColumn && <td className="px-4 py-3"><button type="button" onClick={() => openRecordDetails(record)} className="whitespace-nowrap rounded-md border border-white/10 px-3 py-1.5 text-xs font-semibold text-sky-200 hover:bg-white/5">Ver detalle</button></td>}
+                  {hasDetailsColumn && <td className="px-4 py-3"><button type="button" onClick={() => openRecordDetails(record)} className="whitespace-nowrap rounded-md border border-white/10 px-3 py-1.5 text-xs font-semibold text-accent-200 hover:bg-white/5">Ver detalle</button></td>}
                   {section === 'comercios' ? <td className="px-4 py-3">{record.estado === 'pendiente' ? <div className="flex flex-wrap gap-2"><button type="button" onClick={() => void approveShop(record)} className="whitespace-nowrap rounded-md border border-emerald-300/25 bg-emerald-300/10 px-3 py-1.5 text-xs font-bold text-emerald-200 hover:bg-emerald-300/20">Aprobar</button><button type="button" onClick={() => void rejectShop(record)} className="whitespace-nowrap rounded-md border border-rose-300/25 bg-rose-300/10 px-3 py-1.5 text-xs font-bold text-rose-200 hover:bg-rose-300/20">Rechazar</button></div> : record.estado === 'activa' || record.estado === 'suspendida' ? <button type="button" onClick={() => void changeShopStatus(record)} disabled={shopStatusLoadingId === String(record.id)} className={`whitespace-nowrap rounded-md border px-3 py-1.5 text-xs font-bold disabled:cursor-wait disabled:opacity-50 ${record.estado === 'activa' ? 'border-rose-300/25 bg-rose-300/10 text-rose-200 hover:bg-rose-300/20' : 'border-emerald-300/25 bg-emerald-300/10 text-emerald-200 hover:bg-emerald-300/20'}`}>{shopStatusLoadingId === String(record.id) ? 'Actualizando…' : record.estado === 'activa' ? 'Suspender' : 'Reactivar'}</button> : <span className="text-xs text-slate-500">—</span>}</td> : managedStatusSections.has(section) ? <td className="px-4 py-3"><button type="button" onClick={() => void toggleRecordStatus(record)} disabled={typeof record.activo !== 'boolean'} className="whitespace-nowrap rounded-md border border-white/10 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40">{record.activo ? 'Desactivar' : 'Activar'}</button></td> : null}
                 </tr>
               ))}
@@ -434,10 +434,10 @@ export default function AdminRecordsPage({ section }: { section: string }) {
       </div>
       {selectedRecord && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelectedRecord(null); }}>
-          <section role="dialog" aria-modal="true" aria-labelledby="admin-record-title" className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-xl border border-white/10 bg-[#111f31] p-5 shadow-2xl sm:p-6">
+          <section role="dialog" aria-modal="true" aria-labelledby="admin-record-title" className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-xl border border-white/10 bg-[#1f1724] p-5 shadow-2xl sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-sky-300">{config.title}</p>
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-accent-300">{config.title}</p>
                 <h3 id="admin-record-title" className="mt-1 text-lg font-bold text-white">{viewSection === 'auditorias' ? 'Detalle del log de sistema' : viewSection === 'notificaciones' ? 'Detalle de notificación' : 'Detalle del registro'}</h3>
               </div>
               <button type="button" autoFocus onClick={() => setSelectedRecord(null)} aria-label="Cerrar detalle" className="rounded-md border border-white/10 px-3 py-1 text-lg text-slate-300 hover:bg-white/5">×</button>
@@ -464,7 +464,7 @@ export default function AdminRecordsPage({ section }: { section: string }) {
               {decisionError && <p role="alert" className="mt-3 rounded-lg border border-rose-300/30 bg-rose-300/10 px-3 py-2 text-sm text-rose-200">{decisionError}</p>}
               {rejectionMode ? <form onSubmit={(event) => { event.preventDefault(); void rejectShop(selectedRecord, rejectionReason, false); }} className="mt-3 space-y-3">
                 <label htmlFor="shop-rejection-reason" className="block text-xs font-semibold text-slate-300">Motivo u observación <span className="font-normal text-slate-500">(opcional)</span></label>
-                <textarea id="shop-rejection-reason" rows={3} maxLength={500} value={rejectionReason} onChange={(event) => setRejectionReason(event.target.value)} placeholder="Escribe una observación para incluirla en los logs de sistema…" className="w-full resize-y rounded-lg border border-white/10 bg-[#091321] px-3 py-2.5 text-sm text-white outline-none placeholder:text-slate-500 focus:border-rose-300/60" />
+                <textarea id="shop-rejection-reason" rows={3} maxLength={500} value={rejectionReason} onChange={(event) => setRejectionReason(event.target.value)} placeholder="Escribe una observación para incluirla en los logs de sistema…" className="w-full resize-y rounded-lg border border-white/10 bg-[#0f0b12] px-3 py-2.5 text-sm text-white outline-none placeholder:text-slate-500 focus:border-rose-300/60" />
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <span className="text-xs text-slate-500">{rejectionReason.length}/500 caracteres</span>
                   <div className="flex gap-2">

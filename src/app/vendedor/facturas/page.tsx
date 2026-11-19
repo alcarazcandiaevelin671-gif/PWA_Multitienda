@@ -31,7 +31,7 @@ export default function VendorInvoicesPage() {
           <p className="text-xs font-black uppercase text-emerald-700">Comercio</p>
           <h1 className="mt-1 text-3xl font-black text-slate-900">Facturación</h1>
         </div>
-        <Link href="/comerciante" className="text-sm font-bold text-blue-700 hover:underline">Volver al panel de comerciante</Link>
+        <Link href="/comerciante" className="text-sm font-bold text-primary-700 hover:underline">Volver al panel de comerciante</Link>
       </div>
 
       <div className="mb-6 max-w-xs rounded-2xl border border-slate-200 bg-white p-4">
@@ -40,7 +40,7 @@ export default function VendorInvoicesPage() {
           <select
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value)}
-            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500"
+            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-primary-500"
           >
             <option value="todos">Todos</option>
             <option value="borrador">Borrador</option>
@@ -87,7 +87,7 @@ export default function VendorInvoicesPage() {
                       {invoice.estado}
                     </span>
                   </td>
-                  <td className="px-4 py-4"><Link href={`/comerciante/facturas/${invoice.id}`} className="font-bold text-blue-700 hover:underline">Ver factura</Link></td>
+                  <td className="px-4 py-4"><Link href={`/comerciante/facturas/${invoice.id}`} className="font-bold text-primary-700 hover:underline">Ver factura</Link></td>
                 </tr>
               ))}
             </tbody>

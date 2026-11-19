@@ -14,7 +14,10 @@ function isPermissionDenied(error: { code?: string; message?: string }) {
 export async function GET() {
   const account = await requireActiveSettingsUser();
   if ('response' in account) return account.response;
-  const { supabase, user } = account;
+  const { supabase } = account;
+  // Exportación (poco frecuente): se piden a Supabase los datos completos de la cuenta.
+  const { data: { user: fullUser } } = await supabase.auth.getUser();
+  const user = fullUser ?? { ...account.user, email_confirmed_at: undefined, created_at: undefined, last_sign_in_at: undefined };
 
   const [profileResult, favoritesResult, interestsResult, historyResult, interactionsResult, ordersResult, notificationsResult, settingsResult, invoicesResult] = await Promise.all([
     supabase.from('usuarios').select('id, email, nombre_completo, telefono_contacto, rol, activo, creado_en, actualizado_en').eq('id', user.id).maybeSingle(),

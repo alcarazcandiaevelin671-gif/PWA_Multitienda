@@ -27,8 +27,8 @@ export default function NotificacionesSection({ userId }: { userId: string }) {
       <div className="mt-5 grid gap-6 md:grid-cols-2">
         <fieldset className="space-y-3">
           <legend className="mb-2 text-sm font-bold text-slate-800">Canales</legend>
-          <label className="flex items-center justify-between gap-4 text-sm text-slate-700"><span>Dentro de la aplicación</span><input type="checkbox" checked={settings.value.channels.inApp} onChange={(event) => updateChannel('inApp', event.target.checked)} className="h-5 w-5 accent-blue-600" /></label>
-          <label className="flex items-center justify-between gap-4 text-sm text-slate-700"><span>Correo electrónico <small className="block text-xs text-slate-500">Preferencia guardada; entrega depende del servicio de correo.</small></span><input type="checkbox" checked={settings.value.channels.email} onChange={(event) => updateChannel('email', event.target.checked)} className="h-5 w-5 accent-blue-600" /></label>
+          <label className="flex items-center justify-between gap-4 text-sm text-slate-700"><span>Dentro de la aplicación</span><input type="checkbox" checked={settings.value.channels.inApp} onChange={(event) => updateChannel('inApp', event.target.checked)} className="h-5 w-5 accent-primary-600" /></label>
+          <label className="flex items-center justify-between gap-4 text-sm text-slate-700"><span>Correo electrónico <small className="block text-xs text-slate-500">Preferencia guardada; entrega depende del servicio de correo.</small></span><input type="checkbox" checked={settings.value.channels.email} onChange={(event) => updateChannel('email', event.target.checked)} className="h-5 w-5 accent-primary-600" /></label>
           <label className="flex items-center justify-between gap-4 text-sm text-slate-500"><span>Push · integración pendiente</span><input type="checkbox" checked={false} disabled aria-label="Push no disponible" className="h-5 w-5" /></label>
           <label className="flex items-center justify-between gap-4 text-sm text-slate-500"><span>SMS · integración pendiente</span><input type="checkbox" checked={false} disabled aria-label="SMS no disponible" className="h-5 w-5" /></label>
         </fieldset>
@@ -38,7 +38,7 @@ export default function NotificacionesSection({ userId }: { userId: string }) {
           {([
             ['orders', 'Pedidos y compras'], ['stores', 'Actividad de tiendas'], ['sales', 'Ventas'], ['invoices', 'Facturas'], ['messages', 'Mensajes'],
             ['promotions', 'Promociones'], ['security', 'Seguridad'], ['system', 'Novedades del sistema'],
-          ] as const).map(([key, label]) => <label key={key} className="flex items-center justify-between gap-4 text-sm text-slate-700"><span>{label}{key === 'security' && <small className="ml-2 text-xs text-slate-500">Siempre activa</small>}</span><input type="checkbox" checked={settings.value.categories[key]} disabled={key === 'security'} onChange={(event) => updateCategory(key, event.target.checked)} className="h-5 w-5 accent-blue-600 disabled:opacity-60" /></label>)}
+          ] as const).map(([key, label]) => <label key={key} className="flex items-center justify-between gap-4 text-sm text-slate-700"><span>{label}{key === 'security' && <small className="ml-2 text-xs text-slate-500">Siempre activa</small>}</span><input type="checkbox" checked={settings.value.categories[key]} disabled={key === 'security'} onChange={(event) => updateCategory(key, event.target.checked)} className="h-5 w-5 accent-primary-600 disabled:opacity-60" /></label>)}
         </fieldset>
       </div>
 
@@ -46,7 +46,7 @@ export default function NotificacionesSection({ userId }: { userId: string }) {
         <select value={settings.value.frequency} onChange={(event) => settings.setValue({ ...settings.value, frequency: event.target.value as typeof settings.value.frequency })} className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 font-normal"><option value="inmediata">Inmediata</option><option value="diaria">Resumen diario</option><option value="semanal">Resumen semanal</option><option value="ninguna">Ninguna</option></select>
       </label>
       <div className="mt-5 flex flex-wrap items-center gap-2">
-        <button type="button" disabled={!settings.loaded || settings.saving || !dirty} onClick={() => void settings.save()} className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50">{settings.saving ? 'Guardando…' : 'Guardar cambios'}</button>
+        <button type="button" disabled={!settings.loaded || settings.saving || !dirty} onClick={() => void settings.save()} className="rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-primary-700 disabled:opacity-50">{settings.saving ? 'Guardando…' : 'Guardar cambios'}</button>
         <button type="button" disabled={!dirty || settings.saving} onClick={settings.cancel} className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-700 disabled:opacity-50">Cancelar</button>
         <span className="text-xs text-slate-500">{dirty ? 'Cambios sin guardar' : settings.loaded ? 'Sin cambios pendientes' : 'Cargando…'}</span>
       </div>
