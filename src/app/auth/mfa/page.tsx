@@ -108,7 +108,13 @@ export default function MfaPage() {
       await syncServerSession();
       window.location.replace(next);
     } catch (cause) {
-      setError(userFacingError(cause, 'El código no es válido o ya venció. Usa el código que se muestra ahora en tu aplicación.'));
+      const detalle = cause instanceof Error ? cause.message : String(cause ?? '');
+      if (/invalid totp|invalid code|code.*(invalid|expired)/i.test(detalle)) {
+        setError('El código no coincide. Revisa que la hora de tu celular esté en automático (Ajustes → Fecha y hora) '
+          + 'y escribe el código que se muestra ahora. Si escaneaste un QR de otro intento, borra esa cuenta en la app y escanea el QR de esta pantalla.');
+      } else {
+        setError(`${userFacingError(cause, 'No se pudo verificar el código.')}${detalle ? ` (Detalle: ${detalle})` : ''}`);
+      }
       setCode('');
     } finally {
       setBusy(false);
