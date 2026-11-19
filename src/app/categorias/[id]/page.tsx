@@ -3,7 +3,8 @@ import ShopCard from '@/components/shops/ShopCard';
 import { getCategories } from '@/services/categories.service';
 import { getFeaturedShops } from '@/services/shops.service';
 
-export const dynamic = 'force-dynamic';
+// Catálogo público: se regenera en segundo plano cada 30 s (Next 15+ ya no cachea las consultas solo).
+export const revalidate = 30;
 
 const categoryIcons: Record<string, string> = {
 	Agricultura: '🌾',
@@ -16,11 +17,12 @@ const categoryIcons: Record<string, string> = {
 	Servicios: '💼',
 };
 
-export default async function CategoriaDetallePage({ params }: { params: { id: string } }) {
-	const [categories, shops] = await Promise.all([getCategories(), getFeaturedShops()]);
-	const category = categories.find((item: any) => String(item.id) === params.id);
+export default async function CategoriaDetallePage(props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
+    const [categories, shops] = await Promise.all([getCategories(), getFeaturedShops()]);
+    const category = categories.find((item: any) => String(item.id) === params.id);
 
-	if (!category) {
+    if (!category) {
 		return (
 			<main className="min-h-screen bg-slate-50 px-4 py-16 text-center">
 				<h1 className="text-2xl font-black text-slate-900">Categoría no encontrada</h1>
@@ -31,11 +33,11 @@ export default async function CategoriaDetallePage({ params }: { params: { id: s
 		);
 	}
 
-	const categoryShops = shops.filter(
+    const categoryShops = shops.filter(
 		(shop: any) => shop.categoria_principal === category.nombre || shop.categoria === category.nombre,
 	);
 
-	return (
+    return (
 		<main className="min-h-screen bg-slate-50 px-4 py-10 sm:px-6 lg:px-8">
 			<div className="mx-auto max-w-7xl">
 				<Link href="/categorias" className="text-sm font-semibold text-primary-600 hover:underline">

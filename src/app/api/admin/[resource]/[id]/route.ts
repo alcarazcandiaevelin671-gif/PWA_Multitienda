@@ -7,7 +7,8 @@ export async function GET(_request: NextRequest) {
   return NextResponse.json({ error: 'El detalle transaccional ya no está disponible en el panel de administración.' }, { status: 410 });
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   let nextStatus: string;
   try {
     const body = await request.json() as { estado?: unknown };

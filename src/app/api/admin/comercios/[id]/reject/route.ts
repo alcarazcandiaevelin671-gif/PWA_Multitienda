@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { isDeniedResponse, isPermissionError, requireAdmin } from '@/lib/admin-server';
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   let observacion = '';
   try {
     const body = await request.json() as { observacion?: unknown };

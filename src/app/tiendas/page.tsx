@@ -1,7 +1,8 @@
 import ProductDirectory from '@/components/products/ProductDirectory';
 import { getFeaturedProducts, getProductDistricts } from '@/services/products.service';
 
-export const dynamic = 'force-dynamic';
+// Catálogo público: se regenera en segundo plano cada 30 s (Next 15+ ya no cachea las consultas solo).
+export const revalidate = 30;
 
 export default async function TiendasPage() {
   const [products, districts] = await Promise.all([getFeaturedProducts(), getProductDistricts()]);

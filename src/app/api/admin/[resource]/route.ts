@@ -19,7 +19,8 @@ const STATUS_FIELDS = {
   distritos: 'activo',
 } as const;
 
-export async function GET(request: NextRequest, { params }: { params: { resource: string } }) {
+export async function GET(request: NextRequest, props: { params: Promise<{ resource: string }> }) {
+  const params = await props.params;
   if (!Object.hasOwn(RESOURCES, params.resource)) {
     return NextResponse.json({ error: 'Sección administrativa no válida.' }, { status: 404 });
   }
@@ -190,7 +191,8 @@ export async function GET(request: NextRequest, { params }: { params: { resource
   return NextResponse.json({ records, total: count ?? 0, page, pageSize });
 }
 
-export async function PATCH(request: NextRequest, { params }: { params: { resource: string } }) {
+export async function PATCH(request: NextRequest, props: { params: Promise<{ resource: string }> }) {
+  const params = await props.params;
   if (!Object.hasOwn(RESOURCES, params.resource)) {
     return NextResponse.json({ error: 'Sección administrativa no válida.' }, { status: 404 });
   }

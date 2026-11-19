@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { isDeniedResponse, isPermissionError, requireAdmin } from '@/lib/admin-server';
 
-export async function POST(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const access = await requireAdmin();
   if (isDeniedResponse(access)) return access;
 

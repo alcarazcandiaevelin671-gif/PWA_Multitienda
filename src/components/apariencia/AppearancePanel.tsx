@@ -123,10 +123,13 @@ export default function AppearancePanel({ embedded = false, onClose }: Props) {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  // Copias para la limpieza al cerrar el panel (se actualizan después de cada render).
   const draftRef = useRef(draft);
-  draftRef.current = draft;
   const savedRef = useRef(saved);
-  savedRef.current = saved;
+  useEffect(() => {
+    draftRef.current = draft;
+    savedRef.current = saved;
+  }, [draft, saved]);
 
   useEffect(() => {
     const stored = readStoredAppearance() ?? DEFAULT_APPEARANCE;

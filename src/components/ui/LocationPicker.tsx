@@ -6,16 +6,13 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { showAppMessage } from '@/lib/app-message';
 
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
-// Íconos servidos desde la propia app (antes desde unpkg.com: dependencia de un tercero
-// y filtración de la IP del usuario). Lo permite la CSP img-src 'self'.
+// Íconos servidos desde /public/leaflet (antes desde unpkg.com: dependencia de un tercero y
+// filtración de la IP del usuario). URL directa: funciona igual con webpack y Turbopack.
 const customIcon = L.icon({
-  iconUrl: markerIcon.src,
-  iconRetinaUrl: markerIcon2x.src,
-  shadowUrl: markerShadow.src,
+  iconUrl: '/leaflet/marker-icon.png',
+  iconRetinaUrl: '/leaflet/marker-icon-2x.png',
+  shadowUrl: '/leaflet/marker-shadow.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
 });

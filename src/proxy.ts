@@ -18,8 +18,8 @@ function protectApi(request: NextRequest) {
     }
   }
 
-  const ip = request.ip
-    ?? request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+  // Next 16 ya no expone request.ip: se usa la IP que informa el proxy/hosting.
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
     ?? request.headers.get('x-real-ip')
     ?? 'local';
   const result = checkRateLimit(pathname, ip);
@@ -35,7 +35,7 @@ function protectApi(request: NextRequest) {
   return response;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith('/api/')) return protectApi(request);
 
   let response = NextResponse.next({ request });

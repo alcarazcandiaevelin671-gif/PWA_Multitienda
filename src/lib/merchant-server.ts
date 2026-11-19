@@ -9,7 +9,7 @@ export async function requireMerchantPageAccess() {
     if (!user) return null;
 
     // El middleware ya dejó la cookie de rol firmada: normalmente no hace falta consultar la base.
-    const profile = await getAccountProfile(supabase, user.id, cookies().get(ROLE_COOKIE)?.value);
+    const profile = await getAccountProfile(supabase, user.id, (await cookies()).get(ROLE_COOKIE)?.value);
     if (profile?.activo !== true || profile.rol !== 'comerciante') return null;
 
     return user;

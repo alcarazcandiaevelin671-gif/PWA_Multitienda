@@ -3,7 +3,8 @@ import AIRecommendationsSection from '@/components/home/AIRecommendationsSection
 import StorefrontAutoRefresh from '@/components/home/StorefrontAutoRefresh';
 import ComerciosGuairaSection from '@/components/ui/ComerciosGuairaSection';
 
-export const dynamic = 'force-dynamic';
+// Catálogo público: se regenera en segundo plano cada 30 s (Next 15+ ya no cachea las consultas solo).
+export const revalidate = 30;
 
 export default async function Home() {
   const shops = await getFeaturedShops();

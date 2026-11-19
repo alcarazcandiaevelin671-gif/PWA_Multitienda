@@ -9,7 +9,8 @@ const removedSections = new Set([
   'ventas', 'venta_detalles', 'facturas', 'factura_detalles', 'reportes',
 ]);
 
-export default function AdminSectionPage({ params }: { params: { section: string } }) {
+export default async function AdminSectionPage(props: { params: Promise<{ section: string }> }) {
+  const params = await props.params;
   if (removedSections.has(params.section)) redirect('/admin');
   if (!availableSections.has(params.section)) notFound();
   return <AdminRecordsPage section={params.section} />;

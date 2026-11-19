@@ -32,7 +32,7 @@ export async function POST(request: Request) {
 export async function DELETE() {
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.signOut();
-  cookies().delete(ROLE_COOKIE);
+  (await cookies()).delete(ROLE_COOKIE);
 
   if (error) return NextResponse.json({ error: 'No se pudo cerrar la sesión.' }, { status: 500 });
   return NextResponse.json({ ok: true });

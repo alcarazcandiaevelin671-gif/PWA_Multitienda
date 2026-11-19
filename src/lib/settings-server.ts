@@ -10,7 +10,7 @@ export async function requireActiveSettingsUser() {
     return { response: NextResponse.json({ error: 'Inicia sesión para continuar.' }, { status: 401 }) };
   }
 
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const profile = await getAccountProfile(supabase, user.id, cookieStore.get(ROLE_COOKIE)?.value, (value) => {
     try { cookieStore.set(ROLE_COOKIE, value, roleCookieOptions); } catch { /* contexto de solo lectura */ }
   });
