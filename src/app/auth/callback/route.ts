@@ -29,7 +29,23 @@ export async function GET(request: Request) {
       }
     );
 
-    await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+    // Inicio con Google (u otro proveedor) o confirmación de correo: igual que con contraseña,
+    // los administradores pasan por la verificación en dos pasos, y también quien ya activó MFA.
+    if (!error && data.session) {
+      const [{ data: perfil }, { data: nivel }] = await Promise.all([
+        supabase.from('usuarios').select('rol').eq('id', data.session.user.id).maybeSingle(),
+        supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
+      ]);
+      const esAdmin = ['admin', 'administrador'].includes(String(perfil?.rol ?? '').toLowerCase());
+      const necesitaCodigo = nivel?.nextLevel === 'aal2' && nivel.currentLevel !== 'aal2';
+      if (esAdmin || necesitaCodigo) {
+        const mfaUrl = new URL('/auth/mfa', requestUrl.origin);
+        mfaUrl.searchParams.set('next', esAdmin ? '/admin' : '/');
+        return NextResponse.redirect(mfaUrl);
+      }
+    }
   }
 
   return NextResponse.redirect(requestUrl.origin);

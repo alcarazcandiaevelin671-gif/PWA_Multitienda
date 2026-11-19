@@ -106,10 +106,25 @@ export default function Navbar() {
     // onAuthStateChange emite INITIAL_SESSION al suscribirse, así que no hace falta un getUser()
     // aparte (duplicaba la sincronización de sesión y las consultas a usuarios/tiendas).
     // Solo se vuelve a consultar el perfil si cambia el usuario; TOKEN_REFRESHED solo resincroniza la sesión.
+    // Inicio de sesión con Google (los tokens llegan en la URL y no pasan por el servidor):
+    // un administrador, o quien activó MFA, debe pasar por la verificación en dos pasos.
+    const exigirSegundoFactor = async (userId: string) => {
+      if (window.location.pathname.startsWith('/auth/')) return;
+      const { data: nivel } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (nivel?.currentLevel === 'aal2') return;
+      const { data: perfil } = await supabase.from('usuarios').select('rol').eq('id', userId).maybeSingle();
+      const esAdmin = normalizeRole(perfil?.rol) === 'admin';
+      if (esAdmin || nivel?.nextLevel === 'aal2') {
+        const destino = esAdmin ? '/admin' : window.location.pathname + window.location.search;
+        window.location.assign(`/auth/mfa?next=${encodeURIComponent(destino)}`);
+      }
+    };
+
     let lastUserId: string | null | undefined;
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       const nextUserId = session?.user.id ?? null;
       window.setTimeout(() => {
+        if (event === 'SIGNED_IN' && nextUserId) void exigirSegundoFactor(nextUserId);
         if (nextUserId === lastUserId) {
           if (nextUserId) void syncServerSession(nextUserId);
           return;
