@@ -29,7 +29,7 @@ datos, y su correspondencia con:
 | 5 | Media | Sin encabezados de seguridad HTTP (CSP, HSTS, anti-clickjacking, etc.). | Corregido (`next.config.mjs`). |
 | 6 | Media | Sin límite de peticiones en la API (fuerza bruta, registro masivo, abuso). | Corregido (`src/lib/rate-limit.ts` + middleware). |
 | 7 | Media | Sin verificación de origen en peticiones que modifican datos (CSRF). | Corregido (middleware: se rechaza `Origin` de otro sitio con 403). |
-| 8 | Media | Next.js 14 tiene vulnerabilidades publicadas (principalmente denegación de servicio). | **Pendiente:** requiere migrar a Next.js 16 (cambio mayor). Ver pendientes técnicos. |
+| 8 | Media | Next.js 14 tiene vulnerabilidades publicadas (principalmente denegación de servicio). | ✅ Resuelto: migrado a Next.js 16.4.6 / React 19.3 (`npm audit`: 0 vulnerabilidades). |
 | 9 | Media | Los correos no se verifican al registrarse (`mailer_autoconfirm = true`). | **Pendiente:** configuración en Supabase (ver pendientes). |
 | 10 | Baja | Íconos del mapa cargados desde unpkg.com (tercero: cadena de suministro y filtración de IP). | Corregido: se sirven desde la propia app. |
 | 11 | Baja | El contenido de las notificaciones se registraba en la consola del navegador. | Corregido. |
@@ -74,9 +74,9 @@ Pruebas que **pasaron** en la auditoría (sin cambios necesarios):
 3. **Supabase → Authentication:**
    - Activar **Confirm email** (verificación de correo).
    - Contraseña mínima de **10+ caracteres** con letras y números, y **Leaked password protection** (HaveIBeenPwned).
-   - **MFA (TOTP)** obligatorio para administradores.
+   - ~~MFA (TOTP) obligatorio para administradores~~ ✅ implementado: `/auth/mfa`, proxy, API de administración y `es_administrador_actual()` exigen aal2 (ver docs/GUIA_ADMIN_MFA.md). Aplicar `20261119140000_admin_requires_mfa.sql` cuando ambos administradores tengan su código.
    - Revisar *Rate limits* de Auth (inicio de sesión, envío de correos).
-4. **Migrar a Next.js 16** para cerrar las vulnerabilidades publicadas de Next 14 (requiere React 19 y adaptar `cookies()` asíncrono). Hacerlo en una rama con pruebas.
+4. ~~Migrar a Next.js 16~~ ✅ hecho (19/11/2026).
 5. En despliegues con **varias instancias o serverless**, reemplazar el limitador en memoria por uno compartido (Redis/Upstash).
 6. Habilitar **copias de seguridad con recuperación a un punto en el tiempo (PITR)** en Supabase y probar una restauración.
 
