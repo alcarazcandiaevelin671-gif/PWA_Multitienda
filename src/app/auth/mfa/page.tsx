@@ -2,11 +2,11 @@
 
 /* eslint-disable @next/next/no-img-element -- el QR es un SVG en data URL generado por Supabase */
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { userFacingError } from '@/lib/user-facing-error';
 
-type Step = 'cargando' | 'configurar' | 'verificar';
+type Step = 'cargando' | 'configurar' | 'verificar' | 'error';
 
 /** Solo rutas internas (evita redirecciones abiertas). */
 function safeNext(value: string | null) {
@@ -36,7 +36,13 @@ export default function MfaPage() {
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState('');
 
+  // En desarrollo React ejecuta los efectos dos veces: sin esta guarda se pedían dos QR a la vez
+  // y el segundo fallaba ("ya existe"), dejando la pantalla sin QR.
+  const started = useRef(false);
+
   useEffect(() => {
+    if (started.current) return;
+    started.current = true;
     const destination = safeNext(new URLSearchParams(window.location.search).get('next'));
     setNext(destination);
 
@@ -70,7 +76,8 @@ export default function MfaPage() {
           .map((factor) => supabase.auth.mfa.unenroll({ factorId: factor.id })));
         const { data: enrolled, error: enrollError } = await supabase.auth.mfa.enroll({
           factorType: 'totp',
-          friendlyName: `Portal Guairá ${new Date().toLocaleDateString('es-PY')}`,
+          // Nombre único: Supabase no permite dos factores con el mismo nombre.
+          friendlyName: `Portal Guairá ${new Date().toISOString().slice(0, 19).replace('T', ' ')}`,
         });
         if (enrollError) throw enrollError;
         setFactorId(enrolled.id);
@@ -78,8 +85,10 @@ export default function MfaPage() {
         setSecret(enrolled.totp.secret);
         setStep('configurar');
       } catch (cause) {
-        setError(userFacingError(cause, 'No se pudo preparar la verificación en dos pasos.'));
-        setStep('verificar');
+        // Mensaje propio: el traductor genérico convertía "already exists" en un aviso sobre el correo.
+        const detalle = cause instanceof Error ? cause.message : '';
+        setError(`No se pudo preparar la verificación en dos pasos.${detalle ? ` Detalle: ${detalle}` : ''} Presiona "Reintentar".`);
+        setStep('error');
       }
     };
     void load();
@@ -172,7 +181,13 @@ export default function MfaPage() {
           </>
         )}
 
-        {step !== 'cargando' && factorId && (
+        {step === 'error' && (
+          <button type="button" onClick={() => window.location.reload()} className="mt-6 w-full rounded-xl bg-primary-600 px-4 py-3 text-sm font-black text-white hover:bg-primary-700">
+            Reintentar
+          </button>
+        )}
+
+        {(step === 'configurar' || step === 'verificar') && factorId && (
           <form onSubmit={(event) => void submit(event)} className="mt-6">
             <label htmlFor="mfa-code" className="text-sm font-bold text-slate-800">Código de 6 números</label>
             <input
