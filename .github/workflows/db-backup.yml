@@ -1,0 +1,85 @@
+# Copia de seguridad automática de la base de datos (Supabase) + prueba de restauración.
+# Configuración (una sola vez): GitHub → Settings → Secrets and variables → Actions → New repository secret
+#   SUPABASE_DB_URL     cadena de conexión del "Session pooler" de Supabase (con la contraseña de la base)
+#   BACKUP_PASSPHRASE   clave larga para cifrar las copias (guárdala también fuera de GitHub)
+# Documentación: docs/BACKUPS.md
+name: Copia de seguridad de la base de datos
+
+on:
+  schedule:
+    - cron: '0 7 * * *' # todos los días a las 07:00 UTC = 04:00 en Paraguay
+  workflow_dispatch: # botón "Run workflow" para hacer una copia manual
+
+permissions:
+  contents: read
+
+concurrency:
+  group: db-backup
+  cancel-in-progress: false
+
+env:
+  PG_MAJOR: '17' # versión de las herramientas; debe ser >= a la versión de Postgres de Supabase
+
+jobs:
+  copia-y-verificacion:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      # Servidor de PRUEBA para restaurar la copia (con PostGIS, como Supabase). Se descarta al terminar.
+      postgres:
+        image: postgis/postgis:17-3.5
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Comprobar secretos
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          [ -n "$SUPABASE_DB_URL" ] || { echo "::error::Falta el secreto SUPABASE_DB_URL (ver docs/BACKUPS.md)"; exit 1; }
+          [ -n "$BACKUP_PASSPHRASE" ] || { echo "::error::Falta el secreto BACKUP_PASSPHRASE (ver docs/BACKUPS.md)"; exit 1; }
+
+      - name: Instalar herramientas de PostgreSQL ${{ env.PG_MAJOR }}
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
+            | sudo tee /etc/apt/sources.list.d/pgdg.list > /dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq "postgresql-client-${PG_MAJOR}"
+          echo "PG_BIN=/usr/lib/postgresql/${PG_MAJOR}/bin" >> "$GITHUB_ENV"
+
+      - name: Crear copia cifrada
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: bash scripts/backup/backup.sh backups
+
+      - name: Probar restauración (base vacía y aislada)
+        env:
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+          TEST_DB_URL: postgresql://postgres:postgres@localhost:5432/postgres
+        run: bash scripts/backup/verify-restore.sh "$(cat backups/ULTIMA_COPIA.txt)"
+
+      - name: Guardar la copia (30 días)
+        # Se guarda aunque la verificación falle, para poder revisarla; el workflow queda en rojo.
+        if: ${{ !cancelled() && hashFiles('backups/*.enc') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: copia-db-${{ github.run_number }}
+          path: |
+            backups/*.tar.gz.enc
+            backups/*.tar.gz.enc.sha256
+          retention-days: 30
+          if-no-files-found: error

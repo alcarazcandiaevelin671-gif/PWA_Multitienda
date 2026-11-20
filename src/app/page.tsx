@@ -1,40 +1,46 @@
-﻿import { getCategories } from '@/services/categories.service';
-import { getFeaturedShops } from '@/services/shops.service';
-import CategoryGrid from '@/components/home/CategoryGrid';
-import ShopCard from '@/components/shops/ShopCard';
+﻿import { getFeaturedShops } from '@/services/shops.service';
+import AIRecommendationsSection from '@/components/home/AIRecommendationsSection';
+import StorefrontAutoRefresh from '@/components/home/StorefrontAutoRefresh';
+import ComerciosGuairaSection from '@/components/ui/ComerciosGuairaSection';
+
+// Catálogo público: se regenera en segundo plano cada 30 s (Next 15+ ya no cachea las consultas solo).
+export const revalidate = 30;
 
 export default async function Home() {
-  const categories = await getCategories();
   const shops = await getFeaturedShops();
 
   return (
     <main className="bg-white text-slate-900 min-h-screen">
-      {/* Hero Section */}
-      <section className="bg-[#0b0f19] text-white py-16 md:py-20 border-b border-slate-800">
+      <StorefrontAutoRefresh />
+      {/* 1. HERO SECTION */}
+      <section className="zone-hero text-white py-16 md:py-20 border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div>
-            <span className="text-blue-500 font-bold text-xs uppercase tracking-widest block mb-3">
+            <span className="text-primary-500 font-bold text-xs uppercase tracking-widest block mb-3">
               DIRECTORIO COMERCIAL DEL GUAIRÁ
             </span>
             <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight mb-6">
               Comercio Local.<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-primary-400">
                 Más Cerca Tuyo.
               </span>
             </h1>
             <p className="text-slate-400 text-sm mb-8 max-w-lg leading-relaxed">
-              Descubre tiendas, restaurantes, servicios profesionales y artesanías en Villarrica y todo el Departamento del Guairá.
+              Descubre tiendas, restaurantes, servicios profesionales y emprendimientos en Villarrica y todo el Departamento del Guairá.
             </p>
-            <a
-              href="#comercios-destacados"
-              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm px-6 py-3 rounded-xl shadow-lg shadow-blue-500/25 transition-all"
-            >
-              Explorar Locales →
-            </a>
+            <div className="flex flex-wrap gap-4">
+              <a
+                href="/tiendas"
+                className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-semibold text-sm px-6 py-3 rounded-xl shadow-lg shadow-primary-500/25 transition-all"
+              >
+                Explorar Productos →
+              </a>
+            </div>
           </div>
+          
           <div className="flex justify-center">
-            <div className="w-full max-w-md h-64 bg-gradient-to-tr from-blue-900/40 to-slate-800/80 rounded-3xl border border-slate-700/60 flex items-center justify-center p-8 shadow-2xl">
-              <div className="text-center">
+            <div className="zone-hero-card w-full max-w-md h-64 bg-gradient-to-tr from-primary-900/40 to-slate-800/80 rounded-3xl border border-slate-700/60 flex items-center justify-center p-8 shadow-2xl relative overflow-hidden">
+              <div className="text-center z-10">
                 <span className="text-5xl mb-2 block">🏪</span>
                 <p className="text-xl font-bold text-white">Impulsando el Guairá</p>
                 <p className="text-xs text-slate-400 mt-1">Conectando comercios con la comunidad</p>
@@ -44,39 +50,36 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Categorías Principales de Supabase */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <h2 className="text-xl font-bold text-slate-900">Categorías Populares</h2>
-        <CategoryGrid categories={categories} />
+      {/* 2. ICON BANNERS */}
+      <section className="border-b border-slate-100 bg-slate-50/50 py-6">
+        <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-4 px-4 text-center sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8">
+          <div className="h-full w-full p-3">
+            <p className="font-bold text-xs text-slate-900">Locales Verificados</p>
+            <p className="text-[11px] text-slate-500">Información confiable y directa</p>
+          </div>
+          <div className="h-full w-full p-3">
+            <p className="font-bold text-xs text-slate-900">Directorio Actualizado</p>
+            <p className="text-[11px] text-slate-500">Contactos y ubicación precisa</p>
+          </div>
+          <div className="h-full w-full p-3">
+            <p className="font-bold text-xs text-slate-900">Apoyo al Comercio</p>
+            <p className="text-[11px] text-slate-500">Fomento de la economía regional</p>
+          </div>
+          <div className="h-full w-full p-3">
+            <p className="font-bold text-xs text-slate-900">Acceso 24/7</p>
+            <p className="text-[11px] text-slate-500">Consulta desde cualquier dispositivo</p>
+          </div>
+        </div>
       </section>
 
-      {/* Comercios Destacados de Supabase */}
-      <section id="comercios-destacados" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mb-12">
-        <h2 className="text-2xl font-black text-slate-900 mb-6">Comercios Destacados</h2>
-        {shops.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {shops.map((shop) => (
-              <ShopCard
-                key={shop.id}
-                id={shop.id}
-                nombreComercio={shop.nombre_comercio}
-                descripcion={shop.descripcion}
-                categoriaPrincipal={shop.categoria_principal}
-                logoUrl={shop.logo_url}
-                verificada={shop.verificada}
-              />
-            ))}
-          </div>
-        ) : (
-          /* Muestra de respaldo si aún no han registrado comercios en Supabase */
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <ShopCard id="1" nombreComercio="Ao Po'i Villarrica" descripcion="Textiles e indumentaria artesanal." categoriaPrincipal="Ao Po'i" verificada={true} />
-            <ShopCard id="2" nombreComercio="Gastronomía Guairá" descripcion="Los mejores platos tradicionales de la zona." categoriaPrincipal="Gastronomía" verificada={true} />
-            <ShopCard id="3" nombreComercio="Bodega Independencia" description="Vinos artesanales e insumos." categoriaPrincipal="Vinos y Bodegas" />
-            <ShopCard id="4" nombreComercio="Artesanías Yataity" description="Productos hechos a mano en telares tradicionales." categoriaPrincipal="Artesanías" verificada={true} />
-          </div>
-        )}
+      {/* 3. SECCIÓN DINÁMICA DE COMERCIOS */}
+      <section id="comercios-destacados" className="py-2">
+        <ComerciosGuairaSection tiendas={shops} />
       </section>
+
+      {/* 4. RECOMENDACIONES DE PRODUCTOS */}
+      <AIRecommendationsSection />
+
     </main>
   );
 }

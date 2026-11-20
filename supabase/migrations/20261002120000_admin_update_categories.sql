@@ -1,0 +1,7 @@
+CREATE POLICY admin_update_categorias
+ON public.categorias
+AS PERMISSIVE
+FOR UPDATE
+TO authenticated
+USING (public.es_administrador_actual())
+WITH CHECK (public.es_administrador_actual());

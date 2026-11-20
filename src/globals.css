@@ -1,3 +1,512 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ===========================================================================
+   Tema dinámico (ver src/lib/appearance.ts)
+   Valores por defecto = tema "Rosa boutique". La personalización del usuario
+   reemplaza estas variables en <html> (style) y fija data-hero-tone,
+   data-footer-tone y data-header-style.
+   =========================================================================== */
+:root {
+  --c-primary-50: 253 242 248;
+  --c-primary-100: 252 231 243;
+  --c-primary-200: 251 207 232;
+  --c-primary-300: 249 168 212;
+  --c-primary-400: 244 114 182;
+  --c-primary-500: 236 72 153;
+  --c-primary-600: 219 39 119;
+  --c-primary-700: 190 24 93;
+  --c-primary-800: 157 23 77;
+  --c-primary-900: 131 24 67;
+  --c-primary-950: 80 7 36;
+  --c-accent-50: 255 241 242;
+  --c-accent-100: 255 228 230;
+  --c-accent-200: 254 205 211;
+  --c-accent-300: 253 164 175;
+  --c-accent-400: 251 113 133;
+  --c-accent-500: 244 63 94;
+  --c-accent-600: 225 29 72;
+  --c-accent-700: 190 18 60;
+  --c-accent-800: 159 18 57;
+  --c-accent-900: 136 19 55;
+  --c-accent-950: 76 5 25;
+  --c-slate-50: 250 247 250;
+  --c-slate-100: 246 240 247;
+  --c-slate-200: 238 231 240;
+  --c-slate-300: 221 210 224;
+  --c-slate-400: 161 153 168;
+  --c-slate-500: 123 112 130;
+  --c-slate-600: 107 98 114;
+  --c-slate-700: 61 50 69;
+  --c-slate-800: 45 36 51;
+  --c-slate-900: 31 23 36;
+  --c-slate-950: 13 10 16;
+  --zone-hero: 13 10 16;
+  --zone-footer: 13 10 16;
+  --zone-page: 250 247 250;
+  --radius-scale: 1;
+  --font-scale: 100%;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: var(--font-scale, 100%);
+}
+
+body {
+  min-height: 100vh;
+  text-rendering: optimizeLegibility;
+}
+
+/* Fondo de página */
+.bg-page {
+  background: radial-gradient(circle at top, rgb(var(--c-primary-50)) 0%, rgb(var(--zone-page)) 35%, rgb(var(--c-slate-100)) 100%);
+}
+
+main {
+  width: 100%;
+  min-width: 0;
+}
+
+/* --- Zona: encabezado (barra superior) ------------------------------------ */
+.zone-header {
+  background-color: rgb(255 255 255 / 0.95);
+}
+html[data-header-style='tinte'] .zone-header {
+  background-color: rgb(var(--c-primary-50) / 0.95);
+}
+html[data-header-style='vidrio'] .zone-header {
+  background-color: rgb(255 255 255 / 0.65);
+}
+
+/* Cápsula del menú (Inicio / Explorar / Categorías) y buscador del encabezado.
+   Siempre contrasta con el fondo del encabezado, en cualquier tema, estilo y modo. */
+.header-pill {
+  background-color: rgb(var(--c-slate-50) / 0.9);
+  border-color: rgb(var(--c-slate-200));
+  color: rgb(var(--c-slate-800));
+}
+html[data-header-style='tinte'] .header-pill {
+  background-color: rgb(255 255 255 / 0.75);
+  border-color: rgb(var(--c-primary-200));
+}
+html[data-header-style='vidrio'] .header-pill {
+  background-color: rgb(255 255 255 / 0.85);
+}
+.header-link {
+  color: rgb(var(--c-slate-800));
+}
+.header-link:hover {
+  background-color: #fff;
+  color: rgb(var(--c-primary-700));
+  box-shadow: 0 1px 2px rgb(var(--c-slate-950) / 0.08);
+}
+.header-link[aria-current='page'] {
+  background-color: rgb(var(--c-primary-600));
+  color: #fff;
+}
+.header-muted,
+.header-input::placeholder {
+  color: rgb(var(--c-slate-500));
+}
+.header-input {
+  color: rgb(var(--c-slate-900));
+}
+.header-search:focus-within {
+  background-color: #fff;
+  border-color: rgb(var(--c-primary-300));
+}
+
+html[data-theme='dark'] .header-pill {
+  background-color: rgb(var(--c-slate-800) / 0.8) !important;
+  border-color: rgb(var(--c-slate-700)) !important;
+  color: rgb(var(--c-slate-100)) !important;
+}
+html[data-theme='dark'] .header-link {
+  color: rgb(var(--c-slate-100));
+}
+html[data-theme='dark'] .header-link:hover {
+  background-color: rgb(var(--c-slate-700));
+  color: #fff;
+}
+html[data-theme='dark'] .header-link[aria-current='page'] {
+  background-color: rgb(var(--c-primary-600));
+  color: #fff;
+}
+html[data-theme='dark'] .header-muted,
+html[data-theme='dark'] .header-input::placeholder {
+  color: rgb(var(--c-slate-400));
+}
+html[data-theme='dark'] .header-input {
+  color: rgb(var(--c-slate-50)) !important;
+}
+html[data-theme='dark'] .header-search:focus-within {
+  background-color: rgb(var(--c-slate-900)) !important;
+  border-color: rgb(var(--c-primary-400)) !important;
+}
+
+/* --- Zona: portadas (hero del inicio, cabeceras de tienda y del panel) ----- */
+.zone-hero {
+  background-color: rgb(var(--zone-hero)) !important;
+}
+/* Portada clara: los textos claros pasan a oscuros. Los botones (tienen bg-*) no se tocan. */
+html[data-hero-tone='light'] .zone-hero,
+html[data-hero-tone='light'] .zone-hero .text-white:not([class*='bg-']) {
+  color: rgb(var(--c-slate-900)) !important;
+}
+html[data-hero-tone='light'] .zone-hero :is(.text-slate-300, .text-slate-400):not([class*='bg-']) {
+  color: rgb(var(--c-slate-600)) !important;
+}
+html[data-hero-tone='light'] .zone-hero :is(.text-primary-400, .text-primary-500) {
+  color: rgb(var(--c-primary-700)) !important;
+}
+html[data-hero-tone='light'] :is(.zone-hero, .zone-hero *):is(.border-slate-700, .border-slate-800) {
+  border-color: rgb(var(--c-slate-200)) !important;
+}
+html[data-hero-tone='light'] .zone-hero .bg-slate-800 {
+  background-color: rgb(var(--c-slate-100)) !important;
+}
+html[data-hero-tone='light'] .zone-hero .bg-clip-text {
+  background-image: linear-gradient(to right, rgb(var(--c-primary-700)), rgb(var(--c-accent-700))) !important;
+}
+html[data-hero-tone='light'] .zone-hero .zone-hero-card {
+  background: rgb(255 255 255 / 0.65) !important;
+  border-color: rgb(var(--c-slate-200)) !important;
+}
+
+/* --- Zona: pie de página -------------------------------------------------- */
+.zone-footer {
+  background-color: rgb(var(--zone-footer)) !important;
+}
+html[data-footer-tone='light'] .zone-footer {
+  color: rgb(var(--c-slate-600)) !important;
+  border-color: rgb(var(--c-slate-200)) !important;
+}
+
+.page-transition {
+  animation: page-enter 280ms ease-out both;
+}
+
+.admin-motion-enter {
+  animation: admin-enter 420ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
+}
+
+.admin-hover-card {
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.admin-hover-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgb(var(--c-slate-950) / 0.08);
+}
+
+.admin-chart-bar {
+  transform-origin: bottom;
+  animation: chart-grow 520ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
+}
+
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes admin-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes chart-grow {
+  from { transform: scaleY(0.12); }
+  to { transform: scaleY(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-transition,
+  .admin-motion-enter,
+  .admin-chart-bar {
+    animation: none !important;
+  }
+
+  .admin-hover-card {
+    transition: none;
+  }
+}
+
+/* --- Panel de administración (versión clara de los paneles oscuros) ------- */
+.admin-theme {
+  --admin-ink: rgb(var(--c-slate-950));
+  --admin-muted: rgb(var(--c-slate-500));
+  --admin-border: rgb(var(--c-slate-200));
+  color: var(--admin-ink);
+}
+
+.admin-theme [class~="bg-[#0f0b12]"] {
+  background-color: rgb(var(--c-slate-50)) !important;
+}
+
+.admin-theme [class~="bg-[#1f1724]"] {
+  background-color: #fff !important;
+}
+
+.admin-theme [class*="bg-white/"] {
+  background-color: rgb(var(--c-slate-50)) !important;
+}
+
+.admin-theme [class*="border-white/"] {
+  border-color: var(--admin-border) !important;
+}
+
+.admin-theme [class~="text-white"],
+.admin-theme [class~="text-slate-100"],
+.admin-theme [class~="text-slate-200"] {
+  color: var(--admin-ink) !important;
+}
+
+.admin-theme [class~="bg-primary-600"][class~="text-white"] {
+  color: #fff !important;
+}
+
+.admin-theme [class~="text-slate-300"] {
+  color: rgb(var(--c-slate-700)) !important;
+}
+
+.admin-theme [class~="text-slate-400"],
+.admin-theme [class~="text-slate-500"] {
+  color: var(--admin-muted) !important;
+}
+
+.admin-theme [class~="text-accent-300"],
+.admin-theme [class~="text-accent-200"] {
+  color: rgb(var(--c-accent-700)) !important;
+}
+
+.admin-theme [class~="text-violet-300"],
+.admin-theme [class~="text-primary-300"] {
+  color: rgb(var(--c-primary-700)) !important;
+}
+
+.admin-theme [class~="text-emerald-300"],
+.admin-theme [class~="text-emerald-200"] {
+  color: #047857 !important;
+}
+
+.admin-theme [class~="text-amber-300"],
+.admin-theme [class~="text-amber-200"] {
+  color: #b45309 !important;
+}
+
+.admin-theme [class~="text-green-300"] {
+  color: #15803d !important;
+}
+
+.admin-theme [class~="text-rose-200"] {
+  color: #be123c !important;
+}
+
+.admin-theme [class*="bg-rose-400/10"] {
+  background-color: #fff1f2 !important;
+}
+
+.admin-theme [class*="border-rose-400/30"] {
+  border-color: #fecdd3 !important;
+}
+
+.admin-theme [class*="bg-emerald-400/10"] {
+  background-color: #ecfdf5 !important;
+}
+
+.admin-theme [class*="border-emerald-400/30"] {
+  border-color: #a7f3d0 !important;
+}
+
+.admin-theme [class*="bg-amber-300/10"] {
+  background-color: #fffbeb !important;
+}
+
+.admin-theme [class*="shadow-["] {
+  box-shadow: 0 1px 3px rgb(var(--c-slate-950) / 0.08) !important;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: rgb(var(--c-primary-500) / 0.2);
+}
+
+@layer utilities {
+  .app-message-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgb(var(--c-slate-950) / 0.45);
+    backdrop-filter: blur(3px);
+    animation: app-message-fade 0.2s ease-out;
+  }
+
+  .app-message-card {
+    width: min(100%, 28rem);
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    border-radius: calc(1.25rem * var(--radius-scale, 1));
+    border: 1px solid rgb(var(--c-slate-400) / 0.25);
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 24px 60px rgb(var(--c-slate-950) / 0.2);
+    padding: 1.1rem;
+    animation: app-message-rise 0.25s ease-out;
+  }
+
+  .app-message-icon {
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: rgb(var(--c-primary-600) / 0.12);
+    color: rgb(var(--c-primary-700));
+    font-weight: 800;
+    font-size: 0.95rem;
+    margin: 0 auto;
+  }
+
+  .app-message-content {
+    text-align: center;
+  }
+
+  .app-message-content h3 {
+    margin: 0 0 0.4rem;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: rgb(var(--c-slate-950));
+  }
+
+  .app-message-content p {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: rgb(var(--c-slate-600));
+    word-break: break-word;
+  }
+
+  .app-message-button {
+    width: 100%;
+    border: 0;
+    border-radius: calc(0.9rem * var(--radius-scale, 1));
+    background: linear-gradient(135deg, rgb(var(--c-primary-600)), rgb(var(--c-accent-600)));
+    color: #fff;
+    font-weight: 700;
+    padding: 0.8rem 1rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 8px 20px rgb(var(--c-primary-600) / 0.25);
+  }
+
+  .app-message-button-secondary {
+    width: 100%;
+    border: 1px solid rgb(var(--c-slate-400) / 0.8);
+    border-radius: calc(0.9rem * var(--radius-scale, 1));
+    background: white;
+    color: rgb(var(--c-slate-700));
+    font-weight: 700;
+    padding: 0.8rem 1rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .app-message-button:hover,
+  .app-message-button-secondary:hover {
+    transform: translateY(-1px);
+  }
+
+  @keyframes app-message-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes app-message-rise {
+    from {
+      opacity: 0;
+      transform: translateY(18px) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+}
+
+/* --- Modo oscuro (usa la escala de neutros del tema elegido) -------------- */
+html[data-theme='dark'] body {
+  background: rgb(var(--c-slate-950)) !important;
+  color: rgb(var(--c-slate-200)) !important;
+}
+
+html[data-theme='dark'] .zone-header {
+  background-color: rgb(var(--c-slate-900) / 0.95) !important;
+}
+
+html[data-theme='dark'] body [class~='bg-white'] {
+  background-color: rgb(var(--c-slate-900)) !important;
+}
+
+html[data-theme='dark'] body [class~='bg-slate-50'],
+html[data-theme='dark'] body [class~='bg-slate-100'] {
+  background-color: rgb(var(--c-slate-950)) !important;
+}
+
+html[data-theme='dark'] body [class~='text-slate-900'],
+html[data-theme='dark'] body [class~='text-slate-800'] {
+  color: rgb(var(--c-slate-100)) !important;
+}
+
+html[data-theme='dark'] body [class~='text-slate-700'],
+html[data-theme='dark'] body [class~='text-slate-600'] {
+  color: rgb(var(--c-slate-300)) !important;
+}
+
+html[data-theme='dark'] body [class~='text-slate-500'],
+html[data-theme='dark'] body [class~='text-slate-400'] {
+  color: rgb(var(--c-slate-400)) !important;
+}
+
+html[data-theme='dark'] body [class~='border-slate-100'],
+html[data-theme='dark'] body [class~='border-slate-200'],
+html[data-theme='dark'] body [class~='border-slate-300'] {
+  border-color: rgb(var(--c-slate-700)) !important;
+}
+
+/* Impresión del ticket de pedido: solo se imprime el ticket */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .print-ticket,
+  .print-ticket * {
+    visibility: visible;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .print-ticket {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 80mm;
+    max-width: 80mm;
+    border: 0;
+    box-shadow: none !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
