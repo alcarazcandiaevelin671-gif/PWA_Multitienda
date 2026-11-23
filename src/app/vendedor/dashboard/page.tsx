@@ -151,6 +151,7 @@ export default function ComercianteDashboardPage() {
         .from('productos')
         .select('*')
         .eq('tienda_id', tiendaData.id)
+        .is('eliminado_en', null) // los eliminados (baja lógica) se gestionan en /vendedor/productos
         .order('creado_en', { ascending: false });
 
       if (prodError) throw prodError;
@@ -381,16 +382,21 @@ export default function ComercianteDashboardPage() {
   };
 
   const handleEliminarProducto = async (id: string) => {
-    const confirmed = await showAppConfirm('¿Estás seguro de que deseas eliminar este producto?');
+    const confirmed = await showAppConfirm(
+      'El producto dejará de mostrarse en tu tienda. Sus pedidos y facturas se conservan, y podrás restaurarlo desde "Mis productos" → filtro "Eliminados".',
+      '¿Eliminar este producto?',
+      'Eliminar',
+    );
     if (!confirmed) return;
 
     try {
+      // La base convierte el DELETE en baja lógica (no se borra nada).
       const { error } = await supabase.from('productos').delete().eq('id', id);
 
       if (error) throw error;
 
       setProductos(productos.filter((prod) => prod.id !== id));
-      setMsgExito('Producto eliminado correctamente.');
+      setMsgExito('Producto eliminado: ya no se muestra en tu tienda (puedes restaurarlo desde Mis productos).');
     } catch (err: any) {
       setMsgError(userFacingError(err, 'No se pudo eliminar el producto. Inténtalo de nuevo.'));
     }
