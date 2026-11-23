@@ -50,7 +50,34 @@ En los logs aparece como `DELETE` con acción **BAJA LÓGICA**; la restauración
 
 Antes, un producto que ya tenía pedidos no se podía eliminar: la base lo impedía y la app mostraba un error genérico.
 
-Excepciones (borrado real): al borrar la tienda completa, o si un administrador lo pide a propósito con `SET LOCAL app.borrado_fisico = 'on';` dentro de una transacción.
+Desde la migración `20261124130000_nada_se_borra.sql` esta regla vale para **todas** las tablas (ver la sección siguiente).
+
+## Nada se borra (todas las tablas)
+
+Migración: `supabase/migrations/20261124130000_nada_se_borra.sql`.
+
+| Regla | Cómo funciona |
+|---|---|
+| Baja lógica en las 23 tablas | Cada tabla tiene `eliminado_en` y `eliminado_por`. El trigger `trg_baja_logica` convierte cualquier `DELETE` (app, API con clave secreta o SQL) en una marca de baja. La fila sigue en la base. |
+| Lo dado de baja no se ve | La política RLS restrictiva "Ocultar registros dados de baja" lo oculta en toda la app sin cambiar ninguna consulta. Los productos eliminados los siguen viendo su dueño (para restaurarlos) y los administradores. |
+| No se pueden vaciar tablas | `TRUNCATE` está bloqueado con el trigger `trg_bloquear_truncate`. |
+| Logs inalterables | Los registros de `auditorias` no se pueden modificar, borrar ni vaciar. Ya no existe la función de limpieza de logs. |
+
+Ejemplos:
+- Un cliente quita un favorito: deja de verlo, pero el registro queda dado de baja (log "BAJA LÓGICA"). Si lo vuelve a marcar, se crea uno nuevo.
+- Se elimina una categoría por SQL: queda dada de baja y oculta.
+
+Únicas excepciones (borrado físico):
+- **Eliminar una cuenta de acceso** desde Supabase (Authentication → Users), o la reversión automática de un registro de vendedor que falló: la base borra en cascada lo que dependía de esa cuenta. Si la cuenta tiene pedidos, ventas o facturas, la base no deja eliminarla.
+- Un administrador de la base que lo pida a propósito dentro de una transacción: `SET LOCAL app.borrado_fisico = 'on';`.
+
+Restaurar un registro (que no sea un producto) se hace por SQL:
+
+```sql
+UPDATE public.categorias SET eliminado_en = NULL, eliminado_por = NULL WHERE id = 3;
+```
+
+Los nombres únicos se mantienen aunque el registro esté dado de baja. Por ejemplo, no se puede crear otra categoría "Ropa" mientras exista una "Ropa" dada de baja: hay que restaurarla.
 
 ## Logs de auditoría (Administración → Logs de sistema)
 
@@ -89,10 +116,6 @@ La pantalla permite:
 
 API: `GET /api/admin/auditorias?operacion=UPDATE&tabla=productos&usuario=correo&origen=app&ip=1.2.3.4&desde=2026-11-01&hasta=2026-11-30&q=texto`.
 
-**Mantenimiento:** los logs crecen con cada cambio. Para borrar los de más de un año:
-
-```sql
-SELECT public.auditoria_limpiar(365);
-```
+Los logs se conservan siempre: no se pueden modificar ni borrar (ver "Nada se borra").
 
 Un error al registrar un log nunca bloquea la operación del usuario: solo deja una advertencia en el registro de Postgres.
