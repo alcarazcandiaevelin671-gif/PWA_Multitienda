@@ -1,11 +1,14 @@
 'use client';
 
+/**
+ * [PÁGINA] Página /perfil: datos del usuario, historial de búsquedas y accesos según su rol.
+ */
 import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
-import { getClientUser, supabase } from '@/lib/supabase';
-import { deleteProfileAvatar, updateSettingsIdentity, uploadProfileAvatar } from '@/services/settings.service';
-import type { HistorialBusqueda } from '@/types/database';
+import { getClientUser, supabase } from '@/shared/supabase/client';
+import { deleteProfileAvatar, updateSettingsIdentity, uploadProfileAvatar } from '@/frontend/services/settings.service';
+import type { HistorialBusqueda } from '@/shared/types/database';
 
 type PerfilUsuario = {
   nombre_completo: string;

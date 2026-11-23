@@ -1,5 +1,8 @@
+/**
+ * [PÁGINA] Página /categorias: listado de categorías ordenadas por interés de los usuarios.
+ */
 import Link from 'next/link';
-import { getCategories } from '@/services/categories.service';
+import { getCategories } from '@/backend/catalog/categories';
 
 const categoryIcons: Record<string, string> = {
   Agricultura: '🌾',

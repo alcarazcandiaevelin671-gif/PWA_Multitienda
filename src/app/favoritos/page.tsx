@@ -1,15 +1,19 @@
 'use client';
 
+/**
+ * [PÁGINA] Página /favoritos: tiendas y productos guardados como favoritos.
+ */
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import FavoriteToggle from '@/components/common/FavoriteToggle';
-import { getClientUser, supabase } from '@/lib/supabase';
+import FavoriteToggle from '@/frontend/components/common/FavoriteToggle';
+import PriceTag from '@/frontend/components/products/PriceTag';
+import { getClientUser, supabase } from '@/shared/supabase/client';
 
 type FavoriteRow = { id: string | null; tienda_id: string | null; producto_id: string | null };
 type StoreRow = { id: string; slug: string | null; nombre_comercio: string | null; descripcion: string | null; logo_url: string | null; portada_url: string | null };
-type ProductRow = { id: string; tienda_id: string; nombre: string | null; titulo: string | null; descripcion: string | null; precio_gs: number | null; imagen_url: string | null };
-type FavoriteCard = { kind: 'tienda' | 'producto'; targetId: string; name: string; detail: string; image: string | null; price: number | null; href: string };
+type ProductRow = { id: string; tienda_id: string; nombre: string | null; titulo: string | null; descripcion: string | null; precio_gs: number | null; precio_oferta: number | null; imagen_url: string | null };
+type FavoriteCard = { kind: 'tienda' | 'producto'; targetId: string; name: string; detail: string; image: string | null; price: number | null; offer?: number | null; href: string };
 
 export default function FavoritosPage() {
   const [userId, setUserId] = useState<string | null>(null);
@@ -54,7 +58,7 @@ export default function FavoritosPage() {
         stores = (data ?? []) as StoreRow[];
       }
       if (productIds.length) {
-        const { data } = await supabase.from('productos').select('id, tienda_id, nombre, titulo, descripcion, precio_gs, imagen_url').in('id', productIds);
+        const { data } = await supabase.from('productos').select('id, tienda_id, nombre, titulo, descripcion, precio_gs, precio_oferta, imagen_url').in('id', productIds);
         products = (data ?? []) as ProductRow[];
       }
 
@@ -92,6 +96,7 @@ export default function FavoritosPage() {
             detail: store?.nombre_comercio || product?.descripcion || 'Producto del catálogo',
             image: product?.imagen_url || null,
             price: product?.precio_gs == null ? null : Number(product.precio_gs),
+            offer: product?.precio_oferta ?? null,
             href: product && store?.slug ? `/tienda/${encodeURIComponent(store.slug)}#product-${product.id}` : '/tiendas',
           });
         }
@@ -127,7 +132,7 @@ export default function FavoritosPage() {
                 <div className="p-4">
                   <p className="text-xs font-semibold text-slate-500">{favorite.kind === 'tienda' ? 'Tienda' : favorite.detail}</p>
                   <h2 className="mt-1 truncate text-base font-bold text-slate-900">{favorite.name}</h2>
-                  {favorite.price !== null && <p className="mt-2 text-sm font-extrabold text-accent-700">{favorite.price.toLocaleString('es-PY')} Gs.</p>}
+                  {favorite.price !== null && <p className="mt-2"><PriceTag price={favorite.price} offer={favorite.offer} size="sm" className="text-accent-700" /></p>}
                   <Link href={favorite.href} className="mt-3 inline-flex text-xs font-bold text-accent-700 hover:text-accent-900">Ver {favorite.kind === 'tienda' ? 'tienda' : 'producto'} →</Link>
                 </div>
               </article>

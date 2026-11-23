@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-
-export async function GET() {
-  return NextResponse.json({ error: 'El módulo de reportes ya no está disponible.' }, { status: 410 });
-}
+/**
+ * Ruta /api/admin/reportes — Administración: módulo de reportes retirado; responde 410 (/api/admin/reportes).
+ * La lógica vive en src/backend/api/admin/reportes.ts; este archivo solo la conecta con el enrutador de Next.js.
+ */
+export { GET } from '@/backend/api/admin/reportes';

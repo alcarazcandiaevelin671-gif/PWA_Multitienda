@@ -1,7 +1,10 @@
+/**
+ * [PÁGINA] Página /categorias/[id]: comercios de una categoría. Se regenera cada 30 s.
+ */
 import Link from 'next/link';
-import ShopCard from '@/components/shops/ShopCard';
-import { getCategories } from '@/services/categories.service';
-import { getFeaturedShops } from '@/services/shops.service';
+import ShopCard from '@/frontend/components/shops/ShopCard';
+import { getCategories } from '@/backend/catalog/categories';
+import { getFeaturedShops } from '@/backend/catalog/shops';
 
 // Catálogo público: se regenera en segundo plano cada 30 s (Next 15+ ya no cachea las consultas solo).
 export const revalidate = 30;

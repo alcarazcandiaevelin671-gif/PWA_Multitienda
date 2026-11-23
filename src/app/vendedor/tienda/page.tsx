@@ -1,15 +1,19 @@
 'use client';
+
+/**
+ * [PÁGINA] Página /vendedor/tienda: perfil de la tienda (datos, contacto, ubicación en mapa, imágenes).
+ */
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
-import { updateAuthEmail } from '@/services/settings.service';
-import { userFacingError } from '@/lib/user-facing-error';
+import { supabase } from '@/shared/supabase/client';
+import { updateAuthEmail } from '@/frontend/services/settings.service';
+import { userFacingError } from '@/shared/lib/user-facing-error';
 
 // Mapa dinámico evitando SSR
-const LocationPicker = dynamic(() => import('@/components/ui/LocationPicker'), {
+const LocationPicker = dynamic(() => import('@/frontend/components/ui/LocationPicker'), {
   ssr: false,
   loading: () => (
     <div className="h-64 bg-slate-100 animate-pulse rounded-2xl flex items-center justify-center text-slate-400 text-xs font-bold border border-slate-200">

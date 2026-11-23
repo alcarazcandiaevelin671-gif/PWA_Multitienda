@@ -1,10 +1,78 @@
 'use client';
+
+/**
+ * [PÁGINA] Página /vendedor/productos: alta, edición, imágenes, ofertas y stock de productos.
+ *
+ * Ofertas: el precio de oferta debe ser menor al normal; en la tienda se ve el precio anterior tachado.
+ * Stock (opcional, vacío = sin control): la BASE DE DATOS se encarga de todo lo automático
+ *   - avisa al vendedor (notificación) cuando el stock llega al mínimo, se agota o se repone;
+ *   - oculta el producto al llegar a 0 y lo vuelve a mostrar al reponerlo;
+ *   - descuenta stock en cada compra y lo devuelve si el pedido se cancela.
+ * Ver supabase/migrations/20261123120000_ofertas_stock_auditoria.sql.
+ */
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { showAppConfirm } from '@/lib/app-message';
-import { supabase } from '@/lib/supabase';
-import { userFacingError } from '@/lib/user-facing-error';
+import { showAppConfirm } from '@/frontend/lib/app-message';
+import { supabase } from '@/shared/supabase/client';
+import { userFacingError } from '@/shared/lib/user-facing-error';
+import PriceTag from '@/frontend/components/products/PriceTag';
+
+/** Formulario vacío de alta de producto. Los números se guardan como texto mientras se escriben. */
+const EMPTY_PRODUCT = {
+  titulo: '',
+  descripcion: '',
+  precio_gs: '',
+  en_oferta: false,
+  precio_oferta: '',
+  stock: '',
+  stock_minimo: '5',
+  imagen_url: '',
+  categoria_id: '',
+  disponible: true,
+};
+
+/** Datos editables de un producto existente (precio, oferta, stock y visibilidad). */
+type EditForm = {
+  precio_gs: string;
+  en_oferta: boolean;
+  precio_oferta: string;
+  stock: string;
+  stock_minimo: string;
+  disponible: boolean;
+};
+
+/** Estado de stock de un producto para mostrar insignias y filtrar. */
+function stockState(product: { stock?: number | null; stock_minimo?: number | null }): 'sin_control' | 'agotado' | 'bajo' | 'ok' {
+  if (product.stock == null) return 'sin_control';
+  if (product.stock <= 0) return 'agotado';
+  if (product.stock <= (product.stock_minimo ?? 5)) return 'bajo';
+  return 'ok';
+}
+
+/**
+ * Valida precio, oferta y stock del formulario y devuelve los valores listos para guardar.
+ * Lanza un Error con un mensaje claro si algo no es válido.
+ */
+function parsePricingAndStock(form: { precio_gs: string; en_oferta: boolean; precio_oferta: string; stock: string; stock_minimo: string }) {
+  const precio = Number(form.precio_gs);
+  if (!Number.isFinite(precio) || precio <= 0) throw new Error('Ingresa un precio válido mayor a 0.');
+
+  let oferta: number | null = null;
+  if (form.en_oferta) {
+    oferta = Number(form.precio_oferta);
+    if (!Number.isFinite(oferta) || oferta <= 0 || oferta >= precio) {
+      throw new Error('El precio de oferta debe ser mayor a 0 y menor al precio normal.');
+    }
+  }
+
+  const stock = form.stock.trim() === '' ? null : Number(form.stock);
+  if (stock !== null && (!Number.isInteger(stock) || stock < 0)) throw new Error('El stock debe ser un número entero de 0 o más.');
+  const minimo = form.stock_minimo.trim() === '' ? 5 : Number(form.stock_minimo);
+  if (!Number.isInteger(minimo) || minimo < 0) throw new Error('El aviso de stock bajo debe ser un número entero de 0 o más.');
+
+  return { precio_gs: precio, precio_oferta: oferta, stock, stock_minimo: minimo };
+}
 
 export default function ComercianteProductosPage() {
 
@@ -25,14 +93,12 @@ export default function ComercianteProductosPage() {
   const [uploadingImg, setUploadingImg] = useState(false);
   const [mensaje, setMensaje] = useState<{ tipo: 'exito' | 'error'; texto: string } | null>(null);
 
-  const [nuevoProducto, setNuevoProducto] = useState({
-    titulo: '',
-    descripcion: '',
-    precio_gs: '',
-    imagen_url: '',
-    categoria_id: '',
-    disponible: true,
-  });
+  const [nuevoProducto, setNuevoProducto] = useState(EMPTY_PRODUCT);
+
+  // Edición rápida de un producto existente (oferta, stock, precio, visibilidad)
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<EditForm | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
 
   // Cargar tienda y sus productos desde la BD
   const cargarTiendaYProductos = useCallback(async () => {
@@ -120,9 +186,18 @@ export default function ComercianteProductosPage() {
   const filteredProducts = useMemo(() => productos.filter((product) => {
     const matchesSearch = !searchTerm.trim() || String(product.titulo || '').toLowerCase().includes(searchTerm.trim().toLowerCase());
     const matchesCategory = !categoryFilter || String(product.categoria_id ?? '') === categoryFilter;
-    const matchesAvailability = availabilityFilter === 'all' || String(Boolean(product.disponible)) === availabilityFilter;
+    const matchesAvailability = availabilityFilter === 'all'
+      || (availabilityFilter === 'oferta' ? Number(product.precio_oferta) > 0
+        : availabilityFilter === 'bajo' || availabilityFilter === 'agotado' ? stockState(product) === availabilityFilter
+          : String(Boolean(product.disponible)) === availabilityFilter);
     return matchesSearch && matchesCategory && matchesAvailability;
   }), [productos, searchTerm, categoryFilter, availabilityFilter]);
+
+  // Resumen para el aviso superior (lo mismo que la base notifica, visible al entrar)
+  const stockSummary = useMemo(() => ({
+    bajo: productos.filter((product) => stockState(product) === 'bajo'),
+    agotado: productos.filter((product) => stockState(product) === 'agotado'),
+  }), [productos]);
 
   // Subir imagen del producto
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -171,7 +246,7 @@ export default function ComercianteProductosPage() {
         tienda_id: tienda.id,
         titulo: nuevoProducto.titulo,
         descripcion: nuevoProducto.descripcion,
-        precio_gs: Number(nuevoProducto.precio_gs) || 0,
+        ...parsePricingAndStock(nuevoProducto),
         imagen_url: nuevoProducto.imagen_url || null,
         categoria_id: nuevoProducto.categoria_id ? Number(nuevoProducto.categoria_id) : null,
         disponible: nuevoProducto.disponible,
@@ -186,21 +261,64 @@ export default function ComercianteProductosPage() {
       if (prodErr) throw prodErr;
 
       setProductos((prev) => [prodCreado, ...prev]);
-      setNuevoProducto({
-        titulo: '',
-        descripcion: '',
-        precio_gs: '',
-        imagen_url: '',
-        categoria_id: '',
-        disponible: true,
-      });
+      setNuevoProducto(EMPTY_PRODUCT);
 
-      setMensaje({ tipo: 'exito', texto: '¡Producto publicado con éxito en tu tienda!' });
+      setMensaje({
+        tipo: 'exito',
+        texto: prodCreado.oculto_por_stock
+          ? 'Producto guardado. Está oculto porque su stock es 0: se mostrará solo cuando cargues unidades.'
+          : '¡Producto publicado con éxito en tu tienda!',
+      });
     } catch (err: any) {
       console.error('Error al guardar producto:', err);
       setMensaje({ tipo: 'error', texto: userFacingError(err, 'No se pudo guardar el producto. Inténtalo de nuevo.') });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Abrir / cerrar el panel de edición de un producto
+  const startEdit = (product: any) => {
+    setEditingId(product.id);
+    setEditForm({
+      precio_gs: String(product.precio_gs ?? ''),
+      en_oferta: Number(product.precio_oferta) > 0,
+      precio_oferta: product.precio_oferta ? String(product.precio_oferta) : '',
+      stock: product.stock == null ? '' : String(product.stock),
+      stock_minimo: String(product.stock_minimo ?? 5),
+      disponible: Boolean(product.disponible),
+    });
+  };
+  const cancelEdit = () => { setEditingId(null); setEditForm(null); };
+
+  // Guardar cambios. La base aplica las reglas automáticas (ocultar/mostrar y avisar por stock).
+  const handleGuardarEdicion = async (product: any) => {
+    if (!editForm) return;
+    try {
+      setSavingEdit(true);
+      setMensaje(null);
+      const values = parsePricingAndStock(editForm);
+      const { data, error } = await supabase
+        .from('productos')
+        .update({ ...values, disponible: editForm.disponible })
+        .eq('id', product.id)
+        .select()
+        .single();
+      if (error) throw error;
+
+      setProductos((prev) => prev.map((item) => (item.id === product.id ? data : item)));
+      cancelEdit();
+
+      // Explicar lo que hizo la base automáticamente
+      let texto = 'Producto actualizado.';
+      if (data.oculto_por_stock) texto = 'Producto actualizado. Se ocultó de la tienda porque se quedó sin stock; vuelve a aparecer al reponerlo.';
+      else if (product.oculto_por_stock && data.disponible) texto = '¡Stock repuesto! El producto vuelve a mostrarse en tu tienda.';
+      else if (stockState(data) === 'bajo') texto = `Producto actualizado. Atención: quedan solo ${data.stock} unidades.`;
+      setMensaje({ tipo: 'exito', texto });
+    } catch (err: any) {
+      setMensaje({ tipo: 'error', texto: userFacingError(err, 'No se pudo actualizar el producto. Inténtalo de nuevo.') });
+    } finally {
+      setSavingEdit(false);
     }
   };
 
@@ -340,6 +458,25 @@ export default function ComercianteProductosPage() {
           </div>
         )}
 
+        {/* Aviso de stock: lo mismo que llega en las notificaciones, visible al entrar */}
+        {(stockSummary.bajo.length > 0 || stockSummary.agotado.length > 0) && (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900">
+            <p className="font-extrabold">⚠️ Revisa tu stock</p>
+            {stockSummary.agotado.length > 0 && (
+              <p className="mt-1">
+                <strong>Agotados (ocultos en la tienda):</strong> {stockSummary.agotado.map((product) => product.titulo).join(', ')}.{' '}
+                <button type="button" onClick={() => setAvailabilityFilter('agotado')} className="font-bold underline">Ver</button>
+              </p>
+            )}
+            {stockSummary.bajo.length > 0 && (
+              <p className="mt-1">
+                <strong>Quedan pocas unidades:</strong> {stockSummary.bajo.map((product) => `${product.titulo} (${product.stock})`).join(', ')}.{' '}
+                <button type="button" onClick={() => setAvailabilityFilter('bajo')} className="font-bold underline">Ver</button>
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Formulario de Carga de Producto */}
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
           <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider mb-6">
@@ -424,6 +561,71 @@ export default function ComercianteProductosPage() {
               </div>
             </div>
 
+            {/* Oferta y stock */}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="rounded-2xl border border-rose-300 bg-slate-50 p-4">
+                <label className="flex cursor-pointer items-center gap-2 text-xs font-bold text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={nuevoProducto.en_oferta}
+                    onChange={(e) => setNuevoProducto({ ...nuevoProducto, en_oferta: e.target.checked })}
+                    className="h-4 w-4 rounded border-slate-300 text-rose-600 focus:ring-rose-500"
+                  />
+                  🏷️ Poner en oferta
+                </label>
+                {nuevoProducto.en_oferta && (
+                  <div className="mt-3">
+                    <label className="mb-1 block text-[11px] font-bold text-slate-600">Precio de oferta (Gs.) *</label>
+                    <input
+                      type="number"
+                      min="1"
+                      required
+                      value={nuevoProducto.precio_oferta}
+                      onChange={(e) => setNuevoProducto({ ...nuevoProducto, precio_oferta: e.target.value })}
+                      placeholder="Menor al precio normal"
+                      className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs focus:ring-2 focus:ring-rose-500"
+                    />
+                    {Number(nuevoProducto.precio_gs) > 0 && Number(nuevoProducto.precio_oferta) > 0 && (
+                      <div className="mt-2 rounded-xl bg-white p-3">
+                        <p className="mb-1 text-[10px] font-bold uppercase text-slate-400">Así lo verán tus clientes</p>
+                        <PriceTag price={nuevoProducto.precio_gs} offer={nuevoProducto.precio_oferta} />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs font-bold text-slate-700">📦 Stock</p>
+                <div className="mt-2 grid grid-cols-2 gap-3">
+                  <label className="text-[11px] font-bold text-slate-600">Unidades
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={nuevoProducto.stock}
+                      onChange={(e) => setNuevoProducto({ ...nuevoProducto, stock: e.target.value })}
+                      placeholder="Sin control"
+                      className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs focus:ring-2 focus:ring-primary-600"
+                    />
+                  </label>
+                  <label className="text-[11px] font-bold text-slate-600">Avisarme con
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={nuevoProducto.stock_minimo}
+                      onChange={(e) => setNuevoProducto({ ...nuevoProducto, stock_minimo: e.target.value })}
+                      className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs focus:ring-2 focus:ring-primary-600"
+                    />
+                  </label>
+                </div>
+                <p className="mt-2 text-[10px] leading-4 text-slate-500">
+                  Vacío = no se controla stock. Te avisamos cuando queden pocas unidades; al llegar a 0 el producto se oculta solo y vuelve a aparecer cuando lo repongas.
+                </p>
+              </div>
+            </div>
+
             {/* Checkbox Disponibilidad */}
             <div className="flex items-center gap-2">
               <input
@@ -461,6 +663,7 @@ export default function ComercianteProductosPage() {
           <label className="text-xs font-semibold text-slate-600">Disponibilidad
             <select value={availabilityFilter} onChange={(event) => setAvailabilityFilter(event.target.value)} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm">
               <option value="all">Toda disponibilidad</option><option value="true">Disponible</option><option value="false">No disponible</option>
+              <option value="oferta">En oferta</option><option value="bajo">Stock bajo</option><option value="agotado">Sin stock</option>
             </select>
           </label>
         </section>
@@ -481,8 +684,9 @@ export default function ComercianteProductosPage() {
               {filteredProducts.map((prod) => (
                 <div
                   key={prod.id}
-                  className="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 bg-slate-50 hover:border-slate-200 transition-all"
+                  className={`rounded-2xl border bg-slate-50 p-4 transition-all hover:border-slate-200 ${editingId === prod.id ? 'border-primary-300 sm:col-span-2' : 'border-slate-100'}`}
                 >
+                <div className="flex items-center gap-4">
                   <div className="relative w-16 h-16 rounded-xl bg-white border border-slate-200 overflow-hidden flex-shrink-0">
                     {prod.imagen_url ? (
                       <Image src={prod.imagen_url} alt={prod.titulo || 'Producto'} fill className="object-cover" />
@@ -496,23 +700,88 @@ export default function ComercianteProductosPage() {
                   <div className="flex-1 min-w-0">
                     <h3 className="text-xs font-bold text-slate-900 truncate">{prod.titulo}</h3>
                     {categories.find((category) => String(category.id) === String(prod.categoria_id)) && <p className="mt-0.5 truncate text-[10px] text-slate-500">{categories.find((category) => String(category.id) === String(prod.categoria_id))?.nombre}</p>}
-                    <p className="text-xs font-black text-primary-600 mt-0.5">
-                      {Number(prod.precio_gs).toLocaleString('es-PY')} Gs.
-                    </p>
-                    <span className={`inline-block text-[9px] font-extrabold px-2 py-0.5 rounded-full mt-1 ${
-                      prod.disponible ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
-                    }`}>
-                      {prod.disponible ? 'Disponible' : 'Agotado / No disponible'}
-                    </span>
+                    <div className="mt-0.5">
+                      <PriceTag price={prod.precio_gs} offer={prod.precio_oferta} size="sm" />
+                    </div>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      <span className={`inline-block rounded-full px-2 py-0.5 text-[9px] font-extrabold ${
+                        prod.disponible ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                      }`}>
+                        {prod.disponible ? 'Visible' : prod.oculto_por_stock ? 'Oculto: sin stock' : 'Oculto'}
+                      </span>
+                      {stockState(prod) === 'agotado' && <span className="rounded-full bg-rose-600 px-2 py-0.5 text-[9px] font-extrabold text-white">Stock 0</span>}
+                      {stockState(prod) === 'bajo' && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-extrabold text-amber-800">⚠️ Quedan {prod.stock}</span>}
+                      {stockState(prod) === 'ok' && <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[9px] font-extrabold text-slate-700">Stock: {prod.stock}</span>}
+                    </div>
                   </div>
 
-                  <button
-                    onClick={() => handleEliminarProducto(prod.id)}
-                    className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer text-xs"
-                    title="Eliminar producto"
-                  >
-                    🗑️
-                  </button>
+                  <div className="flex flex-col gap-1">
+                    <button
+                      onClick={() => (editingId === prod.id ? cancelEdit() : startEdit(prod))}
+                      className="cursor-pointer rounded-xl p-2 text-xs text-primary-600 transition-colors hover:bg-primary-50"
+                      title="Editar precio, oferta y stock"
+                      aria-label={`Editar ${prod.titulo}`}
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      onClick={() => handleEliminarProducto(prod.id)}
+                      className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer text-xs"
+                      title="Eliminar producto"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                </div>
+
+                {/* Panel de edición: precio, oferta, stock y visibilidad */}
+                {editingId === prod.id && editForm && (
+                  <div className="mt-4 grid gap-3 border-t border-slate-200 pt-4 sm:grid-cols-2">
+                    <label className="text-[11px] font-bold text-slate-600">Precio normal (Gs.)
+                      <input type="number" min="1" value={editForm.precio_gs} onChange={(e) => setEditForm({ ...editForm, precio_gs: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs" />
+                    </label>
+                    <div className="text-[11px] font-bold text-slate-600">
+                      <label className="flex cursor-pointer items-center gap-2">
+                        <input type="checkbox" checked={editForm.en_oferta} onChange={(e) => setEditForm({ ...editForm, en_oferta: e.target.checked })} className="h-4 w-4 rounded text-rose-600" />
+                        🏷️ En oferta
+                      </label>
+                      {editForm.en_oferta && (
+                        <input type="number" min="1" value={editForm.precio_oferta} onChange={(e) => setEditForm({ ...editForm, precio_oferta: e.target.value })} placeholder="Precio de oferta" aria-label="Precio de oferta" className="mt-1 w-full rounded-xl border border-rose-200 bg-white px-3 py-2.5 text-xs" />
+                      )}
+                    </div>
+                    <label className="text-[11px] font-bold text-slate-600">Stock (vacío = sin control)
+                      <div className="mt-1 flex gap-1">
+                        <input type="number" min="0" step="1" value={editForm.stock} onChange={(e) => setEditForm({ ...editForm, stock: e.target.value })} placeholder="Sin control" className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs" />
+                        {[5, 10].map((amount) => (
+                          <button key={amount} type="button" onClick={() => setEditForm({ ...editForm, stock: String((Number(editForm.stock) || 0) + amount) })} className="whitespace-nowrap rounded-xl bg-emerald-100 px-2 text-[10px] font-extrabold text-emerald-800 hover:bg-emerald-200" title={`Reponer ${amount} unidades`}>
+                            +{amount}
+                          </button>
+                        ))}
+                      </div>
+                    </label>
+                    <label className="text-[11px] font-bold text-slate-600">Avisarme cuando queden
+                      <input type="number" min="0" step="1" value={editForm.stock_minimo} onChange={(e) => setEditForm({ ...editForm, stock_minimo: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs" />
+                    </label>
+                    <label className="flex cursor-pointer items-center gap-2 text-[11px] font-bold text-slate-600 sm:col-span-2">
+                      <input type="checkbox" checked={editForm.disponible} onChange={(e) => setEditForm({ ...editForm, disponible: e.target.checked })} className="h-4 w-4 rounded text-primary-600" />
+                      Mostrar en la tienda {editForm.stock.trim() === '0' && <span className="font-semibold text-rose-600">(con stock 0 se oculta igual)</span>}
+                    </label>
+                    {editForm.en_oferta && Number(editForm.precio_oferta) > 0 && (
+                      <div className="rounded-xl bg-white p-3 sm:col-span-2">
+                        <p className="mb-1 text-[10px] font-bold uppercase text-slate-400">Vista previa</p>
+                        <PriceTag price={editForm.precio_gs} offer={editForm.precio_oferta} />
+                      </div>
+                    )}
+                    <div className="flex gap-2 sm:col-span-2">
+                      <button type="button" disabled={savingEdit} onClick={() => void handleGuardarEdicion(prod)} className="flex-1 cursor-pointer rounded-xl bg-primary-600 py-2.5 text-xs font-extrabold text-white hover:bg-primary-700 disabled:opacity-50">
+                        {savingEdit ? 'Guardando...' : '💾 Guardar cambios'}
+                      </button>
+                      <button type="button" onClick={cancelEdit} className="cursor-pointer rounded-xl bg-slate-200 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-300">
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                )}
                 </div>
               ))}
             </div>

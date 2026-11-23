@@ -1,12 +1,15 @@
 'use client';
 
+/**
+ * [PÁGINA] Página /notificaciones: bandeja de notificaciones con filtros, paginación y tiempo real.
+ */
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { getClientUser, supabase } from '@/lib/supabase';
-import { markAllMyNotificationsAsRead, markNotificationAsRead } from '@/services/notifications.service';
-import { userFacingError } from '@/lib/user-facing-error';
-import type { Notificacion } from '@/types/database';
+import { getClientUser, supabase } from '@/shared/supabase/client';
+import { markAllMyNotificationsAsRead, markNotificationAsRead } from '@/frontend/services/notifications.service';
+import { userFacingError } from '@/shared/lib/user-facing-error';
+import type { Notificacion } from '@/shared/types/database';
 
 const PAGE_SIZE = 25;
 

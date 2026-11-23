@@ -1,7 +1,10 @@
-﻿import { getFeaturedShops } from '@/services/shops.service';
-import AIRecommendationsSection from '@/components/home/AIRecommendationsSection';
-import StorefrontAutoRefresh from '@/components/home/StorefrontAutoRefresh';
-import ComerciosGuairaSection from '@/components/ui/ComerciosGuairaSection';
+/**
+ * [PÁGINA] Página / (inicio): portada, comercios destacados y recomendaciones. Se regenera cada 30 s (catálogo público).
+ */
+import { getFeaturedShops } from '@/backend/catalog/shops';
+import AIRecommendationsSection from '@/frontend/components/home/AIRecommendationsSection';
+import StorefrontAutoRefresh from '@/frontend/components/home/StorefrontAutoRefresh';
+import ComerciosGuairaSection from '@/frontend/components/ui/ComerciosGuairaSection';
 
 // Catálogo público: se regenera en segundo plano cada 30 s (Next 15+ ya no cachea las consultas solo).
 export const revalidate = 30;

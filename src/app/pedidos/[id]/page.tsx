@@ -1,13 +1,16 @@
 'use client';
 
+/**
+ * [PÁGINA] Página /pedidos/[id] (cliente): detalle, historial de estados y ticket del pedido (PDF, imprimir, WhatsApp).
+ */
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { getMyOrder } from '@/services/orders.service';
-import type { PedidoConTienda } from '@/services/orders.service';
-import type { PedidoDetalle, PedidoEstadoHistorial } from '@/types/database';
-import { userFacingError } from '@/lib/user-facing-error';
-import OrderTicket from '@/components/orders/OrderTicket';
+import { getMyOrder } from '@/frontend/services/orders.service';
+import type { PedidoConTienda } from '@/frontend/services/orders.service';
+import type { PedidoDetalle, PedidoEstadoHistorial } from '@/shared/types/database';
+import { userFacingError } from '@/shared/lib/user-facing-error';
+import OrderTicket from '@/frontend/components/orders/OrderTicket';
 
 type OrderDetails = {
   pedido: PedidoConTienda;

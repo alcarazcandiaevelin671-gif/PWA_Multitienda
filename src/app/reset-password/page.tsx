@@ -1,9 +1,12 @@
 'use client';
 
+/**
+ * [PÁGINA] Página /reset-password: solicitar el correo para restablecer la contraseña.
+ */
 import Link from 'next/link';
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import { userFacingError } from '@/lib/user-facing-error';
+import { supabase } from '@/shared/supabase/client';
+import { userFacingError } from '@/shared/lib/user-facing-error';
 
 export default function ResetPasswordPage() {
   const [email, setEmail] = useState('');

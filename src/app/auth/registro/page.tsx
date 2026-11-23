@@ -1,12 +1,15 @@
 'use client';
 
+/**
+ * [PÁGINA] Página /auth/registro: registro de comerciantes (cuenta + tienda pendiente de aprobación, con mapa).
+ */
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
-import { userFacingError } from '@/lib/user-facing-error';
+import { supabase } from '@/shared/supabase/client';
+import { userFacingError } from '@/shared/lib/user-facing-error';
 
-const LocationPicker = dynamic(() => import('@/components/ui/LocationPicker'), {
+const LocationPicker = dynamic(() => import('@/frontend/components/ui/LocationPicker'), {
   ssr: false,
   loading: () => (
     <div className="flex h-64 items-center justify-center rounded-2xl border border-slate-200 bg-slate-100 text-xs font-bold text-slate-400">

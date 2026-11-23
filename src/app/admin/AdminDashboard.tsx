@@ -1,5 +1,8 @@
 'use client';
 
+/**
+ * [FRONTEND] Tablero de administración: métricas, gráficos y accesos rápidos (lo usa /admin).
+ */
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 

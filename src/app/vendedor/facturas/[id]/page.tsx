@@ -1,11 +1,14 @@
 'use client';
 
+/**
+ * [PÁGINA] Página /vendedor/facturas/[id]: detalle de factura y descarga en PDF.
+ */
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { getMyStoreInvoiceById } from '@/services/invoices.service';
-import type { FacturaDetalle, FacturaInterna, Pedido, Venta } from '@/types/database';
-import { userFacingError } from '@/lib/user-facing-error';
+import { getMyStoreInvoiceById } from '@/frontend/services/invoices.service';
+import type { FacturaDetalle, FacturaInterna, Pedido, Venta } from '@/shared/types/database';
+import { userFacingError } from '@/shared/lib/user-facing-error';
 
 type InvoiceDetails = {
   invoice: FacturaInterna;

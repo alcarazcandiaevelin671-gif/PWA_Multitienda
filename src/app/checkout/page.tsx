@@ -1,15 +1,20 @@
 'use client';
 
+/**
+ * [PÁGINA] Página /checkout: confirmar el pedido (dirección, distrito, pago). Sin conexión, guarda el pedido en la cola offline.
+ */
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { useCart } from '@/context/CartContext';
-import { supabase } from '@/lib/supabase';
-import { createOrder, getMyOrder } from '@/services/orders.service';
-import type { CheckoutConfirmation, CheckoutInput } from '@/types/database';
-import { userFacingError } from '@/lib/user-facing-error';
-import OrderTicket from '@/components/orders/OrderTicket';
-import type { OrderTicketData } from '@/lib/order-ticket';
-import { isNetworkError, queueOrder } from '@/lib/offline-orders';
+import { useCart } from '@/frontend/context/CartContext';
+import { supabase } from '@/shared/supabase/client';
+import { createOrder, getMyOrder } from '@/frontend/services/orders.service';
+import type { CheckoutConfirmation, CheckoutInput } from '@/shared/types/database';
+import { userFacingError } from '@/shared/lib/user-facing-error';
+import OrderTicket from '@/frontend/components/orders/OrderTicket';
+import type { OrderTicketData } from '@/frontend/lib/order-ticket';
+import { isNetworkError, queueOrder } from '@/frontend/lib/offline-orders';
+import PriceTag from '@/frontend/components/products/PriceTag';
+import { getPricing } from '@/shared/lib/product-pricing';
 
 type CheckoutProduct = {
   id: string;
@@ -20,15 +25,15 @@ type CheckoutProduct = {
   precio_gs: number;
   precio_oferta: number | null;
   disponible: boolean;
+  /** Unidades disponibles; `null` = sin control de stock. */
+  stock: number | null;
 };
 
 type CheckoutShop = { id: string; nombre_comercio: string };
 type CheckoutDistrict = { id: number; nombre: string };
 
 function priceFor(product: CheckoutProduct): number {
-  const base = Number(product.precio_gs);
-  const offer = Number(product.precio_oferta);
-  return Number.isFinite(offer) && offer > 0 && offer < base ? offer : base;
+  return getPricing(product.precio_gs, product.precio_oferta).price;
 }
 
 export default function CheckoutPage() {
@@ -79,7 +84,7 @@ export default function CheckoutPage() {
       const [productsResult, shopResult, districtsResult] = await Promise.all([
         supabase
           .from('productos')
-          .select('id, tienda_id, titulo, nombre, descripcion, precio_gs, precio_oferta, disponible')
+          .select('id, tienda_id, titulo, nombre, descripcion, precio_gs, precio_oferta, disponible, stock')
           .in('id', productIds),
         supabase
           .from('tiendas')
@@ -105,6 +110,7 @@ export default function CheckoutPage() {
           precio_gs: Number(product.precio_gs ?? product.precio ?? 0),
           precio_oferta: product.precio_oferta ?? null,
           disponible: true,
+          stock: null,
         })));
         setShop((shopResult.data as CheckoutShop | null) ?? { id: shopIds[0], nombre_comercio: 'Tienda' });
         setDistricts((districtsResult.data || []) as CheckoutDistrict[]);
@@ -120,6 +126,9 @@ export default function CheckoutPage() {
           setError('Uno o más productos ya no están disponibles. Actualiza el carrito antes de confirmar.');
         } else if (rows.some((product) => !product.disponible || product.tienda_id !== shopIds[0])) {
           setError('Un producto dejó de estar disponible o ya no pertenece a esta tienda.');
+        } else if (rows.some((product) => product.stock != null && (items.find((item) => item.product.id === product.id)?.cantidad ?? 0) > product.stock)) {
+          const short = rows.find((product) => product.stock != null && (items.find((item) => item.product.id === product.id)?.cantidad ?? 0) > product.stock);
+          setError(`No hay stock suficiente de "${short?.titulo}": quedan ${short?.stock} unidades. Ajusta la cantidad en el carrito.`);
         } else if (!shopResult.data) {
           setError('La tienda asociada al carrito ya no está disponible.');
         }
@@ -310,7 +319,9 @@ export default function CheckoutPage() {
                       <div>
                         <p className="font-bold text-slate-900">{name}</p>
                         <p className="mt-1 text-sm text-slate-500">Cantidad: {cantidad}</p>
+                        {current && <div className="mt-1"><PriceTag price={current.precio_gs} offer={current.precio_oferta} size="sm" className="text-slate-600" /></div>}
                         {current && !current.disponible && <p className="text-xs font-semibold text-rose-700">No disponible</p>}
+                        {current?.stock != null && cantidad > current.stock && <p className="text-xs font-semibold text-rose-700">Solo quedan {current.stock} unidades</p>}
                       </div>
                       <p className="whitespace-nowrap text-sm font-bold text-slate-800">Gs. {(unit * cantidad).toLocaleString('es-PY')}</p>
                     </div>

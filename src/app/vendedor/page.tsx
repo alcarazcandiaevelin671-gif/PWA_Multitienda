@@ -1,9 +1,12 @@
 'use client';
 
+/**
+ * [PÁGINA] Página /vendedor: inicio del panel del comerciante.
+ */
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { getVendorDashboardData, type VendorDashboardData } from '@/services/vendor-dashboard.service';
-import { userFacingError } from '@/lib/user-facing-error';
+import { getVendorDashboardData, type VendorDashboardData } from '@/frontend/services/vendor-dashboard.service';
+import { userFacingError } from '@/shared/lib/user-facing-error';
 
 const currency = (value: number) => `Gs. ${Math.round(value).toLocaleString('es-PY')}`;
 

@@ -1,14 +1,17 @@
-﻿import '../globals.css';
+/**
+ * [PÁGINA] Layout raíz de toda la app: fuente, script de apariencia (antes del primer pintado), carrito, barra superior, pie, mensajes, PWA y panel "Personalizar".
+ */
+import '@/frontend/styles/globals.css';
 import { Plus_Jakarta_Sans } from 'next/font/google';
-import { CartProvider } from '@/context/CartContext';
-import Navbar from '@/components/common/Navbar';
-import Footer from '@/components/common/Footer';
-import RealtimeNotificationListener from '@/components/common/RealtimeNotificationListener';
-import AppMessageLayer from '@/components/ui/AppMessageLayer';
-import ThemePreferenceSync from '@/components/configuracion/ThemePreferenceSync';
-import PwaProvider from '@/components/pwa/PwaProvider';
-import AppearanceDrawer from '@/components/apariencia/AppearanceDrawer';
-import { APPEARANCE_BOOT_SCRIPT } from '@/lib/appearance';
+import { CartProvider } from '@/frontend/context/CartContext';
+import Navbar from '@/frontend/components/common/Navbar';
+import Footer from '@/frontend/components/common/Footer';
+import RealtimeNotificationListener from '@/frontend/components/common/RealtimeNotificationListener';
+import AppMessageLayer from '@/frontend/components/ui/AppMessageLayer';
+import ThemePreferenceSync from '@/frontend/components/configuracion/ThemePreferenceSync';
+import PwaProvider from '@/frontend/components/pwa/PwaProvider';
+import AppearanceDrawer from '@/frontend/components/apariencia/AppearanceDrawer';
+import { APPEARANCE_BOOT_SCRIPT } from '@/shared/lib/appearance';
 import type { Metadata, Viewport } from 'next';
 
 const jakarta = Plus_Jakarta_Sans({

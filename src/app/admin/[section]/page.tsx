@@ -1,3 +1,6 @@
+/**
+ * [PÁGINA] Página /admin/[section]: secciones antiguas; redirige a /admin.
+ */
 import { notFound, redirect } from 'next/navigation';
 import AdminRecordsPage from '../AdminRecordsPage';
 

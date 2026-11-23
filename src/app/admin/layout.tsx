@@ -1,5 +1,8 @@
 'use client';
 
+/**
+ * [PÁGINA] Layout del panel /admin: navegación lateral de administración (acceso protegido por el proxy: rol admin + MFA).
+ */
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 

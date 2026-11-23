@@ -1,5 +1,8 @@
-import ProductDirectory from '@/components/products/ProductDirectory';
-import { getFeaturedProducts, getProductDistricts } from '@/services/products.service';
+/**
+ * [PÁGINA] Página /tiendas (Explorar productos): catálogo de productos con filtros por distrito y cercanía. Se regenera cada 30 s.
+ */
+import ProductDirectory from '@/frontend/components/products/ProductDirectory';
+import { getFeaturedProducts, getProductDistricts } from '@/backend/catalog/products';
 
 // Catálogo público: se regenera en segundo plano cada 30 s (Next 15+ ya no cachea las consultas solo).
 export const revalidate = 30;
