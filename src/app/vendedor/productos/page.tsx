@@ -183,7 +183,14 @@ export default function ComercianteProductosPage() {
     }
   };
 
+  // Productos eliminados (baja lógica): siguen en la base para no romper pedidos/facturas,
+  // pero solo se ven con el filtro "Eliminados", desde donde se pueden restaurar.
+  const activeProducts = useMemo(() => productos.filter((product) => !product.eliminado_en), [productos]);
+  const deletedCount = productos.length - activeProducts.length;
+
   const filteredProducts = useMemo(() => productos.filter((product) => {
+    if (availabilityFilter === 'eliminados') return Boolean(product.eliminado_en);
+    if (product.eliminado_en) return false;
     const matchesSearch = !searchTerm.trim() || String(product.titulo || '').toLowerCase().includes(searchTerm.trim().toLowerCase());
     const matchesCategory = !categoryFilter || String(product.categoria_id ?? '') === categoryFilter;
     const matchesAvailability = availabilityFilter === 'all'
@@ -195,9 +202,9 @@ export default function ComercianteProductosPage() {
 
   // Resumen para el aviso superior (lo mismo que la base notifica, visible al entrar)
   const stockSummary = useMemo(() => ({
-    bajo: productos.filter((product) => stockState(product) === 'bajo'),
-    agotado: productos.filter((product) => stockState(product) === 'agotado'),
-  }), [productos]);
+    bajo: activeProducts.filter((product) => stockState(product) === 'bajo'),
+    agotado: activeProducts.filter((product) => stockState(product) === 'agotado'),
+  }), [activeProducts]);
 
   // Subir imagen del producto
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -322,19 +329,43 @@ export default function ComercianteProductosPage() {
     }
   };
 
-  // Eliminar producto
+  // Eliminar producto = BAJA LÓGICA. La base convierte el DELETE en "eliminado_en = ahora" y lo oculta
+  // (trigger trg_productos_baja_logica): nada se borra, los pedidos y facturas siguen intactos.
   const handleEliminarProducto = async (id: string) => {
-    const confirmed = await showAppConfirm('¿Estás seguro de que deseas eliminar este producto?');
+    const confirmed = await showAppConfirm(
+      'El producto dejará de mostrarse en tu tienda. Sus pedidos y facturas se conservan, y podrás restaurarlo desde el filtro "Eliminados".',
+      '¿Eliminar este producto?',
+      'Eliminar',
+    );
     if (!confirmed) return;
 
     try {
       const { error } = await supabase.from('productos').delete().eq('id', id);
       if (error) throw error;
 
-      setProductos((prev) => prev.filter((p) => p.id !== id));
-      setMensaje({ tipo: 'exito', texto: 'Producto eliminado correctamente.' });
+      // Leer el estado real que dejó la base (eliminado_en, disponible)
+      const { data, error: readError } = await supabase.from('productos').select('*').eq('id', id).maybeSingle();
+      if (readError) throw readError;
+      setProductos((prev) => (data ? prev.map((p) => (p.id === id ? data : p)) : prev.filter((p) => p.id !== id)));
+      if (editingId === id) cancelEdit();
+      setMensaje({ tipo: 'exito', texto: 'Producto eliminado: ya no se muestra en tu tienda. Puedes restaurarlo desde el filtro "Eliminados".' });
     } catch (err: any) {
       setMensaje({ tipo: 'error', texto: userFacingError(err, 'No se pudo eliminar el producto. Inténtalo de nuevo.') });
+    }
+  };
+
+  // Restaurar un producto eliminado (vuelve visible si tiene stock o no controla stock)
+  const handleRestaurarProducto = async (id: string) => {
+    try {
+      const { data, error } = await supabase.from('productos').update({ eliminado_en: null }).eq('id', id).select().single();
+      if (error) throw error;
+      setProductos((prev) => prev.map((p) => (p.id === id ? data : p)));
+      setMensaje({
+        tipo: 'exito',
+        texto: data.disponible ? 'Producto restaurado: ya se muestra otra vez en tu tienda.' : 'Producto restaurado. Sigue oculto porque su stock es 0: repón unidades para mostrarlo.',
+      });
+    } catch (err: any) {
+      setMensaje({ tipo: 'error', texto: userFacingError(err, 'No se pudo restaurar el producto. Inténtalo de nuevo.') });
     }
   };
 
@@ -664,6 +695,7 @@ export default function ComercianteProductosPage() {
             <select value={availabilityFilter} onChange={(event) => setAvailabilityFilter(event.target.value)} className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm">
               <option value="all">Toda disponibilidad</option><option value="true">Disponible</option><option value="false">No disponible</option>
               <option value="oferta">En oferta</option><option value="bajo">Stock bajo</option><option value="agotado">Sin stock</option>
+              <option value="eliminados">Eliminados ({deletedCount})</option>
             </select>
           </label>
         </section>
@@ -671,13 +703,13 @@ export default function ComercianteProductosPage() {
         {/* Listado de Productos Registrados */}
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4">
           <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider">
-            📋 Productos de {tienda.nombre_comercio} ({filteredProducts.length} de {productos.length})
+            📋 Productos de {tienda.nombre_comercio} ({filteredProducts.length} de {availabilityFilter === 'eliminados' ? deletedCount : activeProducts.length}{availabilityFilter === 'eliminados' ? ' eliminados' : ''})
           </h2>
 
           {filteredProducts.length === 0 ? (
             <div className="text-center py-8 text-slate-400">
-              <p className="text-xs font-bold">{productos.length === 0 ? 'Aún no has registrado ningún producto.' : 'No hay productos con estos filtros.'}</p>
-              <p className="text-[11px] mt-1">{productos.length === 0 ? 'Completa el formulario de arriba para empezar.' : 'Prueba cambiando la búsqueda o los filtros.'}</p>
+              <p className="text-xs font-bold">{availabilityFilter === 'eliminados' ? 'No tienes productos eliminados.' : activeProducts.length === 0 ? 'Aún no has registrado ningún producto.' : 'No hay productos con estos filtros.'}</p>
+              <p className="text-[11px] mt-1">{availabilityFilter === 'eliminados' ? 'Los productos que elimines aparecerán aquí para restaurarlos.' : activeProducts.length === 0 ? 'Completa el formulario de arriba para empezar.' : 'Prueba cambiando la búsqueda o los filtros.'}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -715,6 +747,19 @@ export default function ComercianteProductosPage() {
                     </div>
                   </div>
 
+                  {prod.eliminado_en ? (
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[9px] font-extrabold text-slate-700">
+                        Eliminado el {new Date(prod.eliminado_en).toLocaleDateString('es-PY')}
+                      </span>
+                      <button
+                        onClick={() => void handleRestaurarProducto(prod.id)}
+                        className="cursor-pointer rounded-xl bg-emerald-600 px-3 py-2 text-[11px] font-extrabold text-white hover:bg-emerald-700"
+                      >
+                        ↩️ Restaurar
+                      </button>
+                    </div>
+                  ) : (
                   <div className="flex flex-col gap-1">
                     <button
                       onClick={() => (editingId === prod.id ? cancelEdit() : startEdit(prod))}
@@ -732,6 +777,7 @@ export default function ComercianteProductosPage() {
                       🗑️
                     </button>
                   </div>
+                  )}
                 </div>
 
                 {/* Panel de edición: precio, oferta, stock y visibilidad */}

@@ -35,6 +35,23 @@ Si el vendedor oculta un producto a mano, la reposición de stock no lo vuelve a
 
 En la vitrina aparece "🔥 ¡Últimas N unidades!" cuando el stock llega al mínimo. El carrito no deja pedir más unidades de las que hay.
 
+## Eliminar productos (baja lógica)
+
+Migración: `supabase/migrations/20261124120000_productos_baja_logica.sql`.
+
+Los productos **nunca se borran de la base**. El trigger `trg_productos_baja_logica` convierte cualquier `DELETE` sobre `productos` en una baja lógica:
+
+- se marca `eliminado_en` (cuándo) y `eliminado_por` (quién);
+- el producto se oculta y no vuelve a mostrarse aunque se reponga stock;
+- sus pedidos, ventas, facturas y tickets siguen intactos;
+- el vendedor lo ve en **Mis productos → filtro "Eliminados"** y puede **restaurarlo**.
+
+En los logs aparece como `DELETE` con acción **BAJA LÓGICA**; la restauración, como `UPDATE` / **RESTAURACIÓN**.
+
+Antes, un producto que ya tenía pedidos no se podía eliminar: la base lo impedía y la app mostraba un error genérico.
+
+Excepciones (borrado real): al borrar la tienda completa, o si un administrador lo pide a propósito con `SET LOCAL app.borrado_fisico = 'on';` dentro de una transacción.
+
 ## Logs de auditoría (Administración → Logs de sistema)
 
 Cada cambio queda registrado en `auditorias` por triggers de la base:

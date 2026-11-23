@@ -121,7 +121,7 @@ export async function getVendorDashboardData(selectedStoreId?: string): Promise<
   }
 
   const [productsResult, availableProductsResult, ordersResult, sales, invoicesResult] = await Promise.all([
-    supabase.from('productos').select('id', { count: 'exact', head: true }).in('tienda_id', storeIds),
+    supabase.from('productos').select('id', { count: 'exact', head: true }).in('tienda_id', storeIds).is('eliminado_en', null),
     supabase.from('productos').select('id', { count: 'exact', head: true }).in('tienda_id', storeIds).eq('disponible', true),
     supabase.rpc('obtener_pedidos_mis_tiendas'),
     fetchAllStoreSales(storeIds),

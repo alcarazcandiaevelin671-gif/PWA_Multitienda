@@ -21,6 +21,8 @@ export interface Product {
   stock_minimo?: number | null;
   /** `true` si la base lo ocultó automáticamente al quedar sin stock. */
   oculto_por_stock?: boolean;
+  /** Baja lógica: fecha en que el vendedor lo eliminó (NULL = activo). Nunca se borra de la base. */
+  eliminado_en?: string | null;
   created_at?: string;
   creado_en?: string;
 }

@@ -58,7 +58,7 @@ export default function FavoritosPage() {
         stores = (data ?? []) as StoreRow[];
       }
       if (productIds.length) {
-        const { data } = await supabase.from('productos').select('id, tienda_id, nombre, titulo, descripcion, precio_gs, precio_oferta, imagen_url').in('id', productIds);
+        const { data } = await supabase.from('productos').select('id, tienda_id, nombre, titulo, descripcion, precio_gs, precio_oferta, imagen_url').in('id', productIds).is('eliminado_en', null);
         products = (data ?? []) as ProductRow[];
       }
 
