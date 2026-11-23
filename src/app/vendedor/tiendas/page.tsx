@@ -1,9 +1,12 @@
 'use client';
 
+/**
+ * [PÁGINA] Página /vendedor/tiendas: tiendas del comerciante y su estado de aprobación.
+ */
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { getVendorStores, type VendorStoreDetail } from '@/services/vendor-dashboard.service';
-import { userFacingError } from '@/lib/user-facing-error';
+import { getVendorStores, type VendorStoreDetail } from '@/frontend/services/vendor-dashboard.service';
+import { userFacingError } from '@/shared/lib/user-facing-error';
 
 const storeStatus = (value: string) => value.replaceAll('_', ' ');
 

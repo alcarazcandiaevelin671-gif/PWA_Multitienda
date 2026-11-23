@@ -1,9 +1,12 @@
-﻿'use client';
+'use client';
 
+/**
+ * [PÁGINA] Página /auth/login: inicio de sesión con correo/contraseña o Google; administradores y usuarios con MFA pasan a /auth/mfa.
+ */
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
-import { userFacingError } from '@/lib/user-facing-error';
+import { supabase } from '@/shared/supabase/client';
+import { userFacingError } from '@/shared/lib/user-facing-error';
 
 const normalizeRole = (value: unknown): 'admin' | 'comerciante' | 'cliente' => {
   const normalized = String(value ?? 'cliente').trim().toLowerCase();

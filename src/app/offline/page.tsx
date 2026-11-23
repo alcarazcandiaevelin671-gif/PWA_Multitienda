@@ -1,3 +1,6 @@
+/**
+ * [PÁGINA] Página /offline: la muestra el service worker al abrir sin conexión una página nunca visitada.
+ */
 import Link from 'next/link';
 
 export const metadata = { title: 'Sin conexión · Portal Guairá' };

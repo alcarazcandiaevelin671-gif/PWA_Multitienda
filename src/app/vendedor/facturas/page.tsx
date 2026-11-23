@@ -1,10 +1,13 @@
 'use client';
 
+/**
+ * [PÁGINA] Página /vendedor/facturas: facturas emitidas por la tienda.
+ */
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { getMyStoreInvoices } from '@/services/invoices.service';
-import type { FacturaInterna } from '@/types/database';
-import { userFacingError } from '@/lib/user-facing-error';
+import { getMyStoreInvoices } from '@/frontend/services/invoices.service';
+import type { FacturaInterna } from '@/shared/types/database';
+import { userFacingError } from '@/shared/lib/user-facing-error';
 
 export default function VendorInvoicesPage() {
   const [invoices, setInvoices] = useState<FacturaInterna[]>([]);

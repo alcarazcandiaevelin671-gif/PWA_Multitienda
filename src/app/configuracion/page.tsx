@@ -1,15 +1,18 @@
 'use client';
 
+/**
+ * [PÁGINA] Página /configuracion: identidad, seguridad (contraseña, MFA), notificaciones, privacidad, preferencias y apariencia.
+ */
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import ConfiguracionLayout, { type ConfigSection } from '@/components/configuracion/ConfiguracionLayout';
-import IdentidadSection from '@/components/configuracion/IdentidadSection';
-import PrivacidadSection from '@/components/configuracion/PrivacidadSection';
-import PreferenciasSection from '@/components/configuracion/PreferenciasSection';
-import NotificacionesSection from '@/components/configuracion/NotificacionesSection';
-import SeguridadSection from '@/components/configuracion/SeguridadSection';
-import { getSettingsProfile, type SettingsProfile } from '@/services/settings.service';
-import { userFacingError } from '@/lib/user-facing-error';
+import ConfiguracionLayout, { type ConfigSection } from '@/frontend/components/configuracion/ConfiguracionLayout';
+import IdentidadSection from '@/frontend/components/configuracion/IdentidadSection';
+import PrivacidadSection from '@/frontend/components/configuracion/PrivacidadSection';
+import PreferenciasSection from '@/frontend/components/configuracion/PreferenciasSection';
+import NotificacionesSection from '@/frontend/components/configuracion/NotificacionesSection';
+import SeguridadSection from '@/frontend/components/configuracion/SeguridadSection';
+import { getSettingsProfile, type SettingsProfile } from '@/frontend/services/settings.service';
+import { userFacingError } from '@/shared/lib/user-facing-error';
 
 const roleLabel = (role: string | null) => {
   const normalized = String(role ?? '').toLowerCase();

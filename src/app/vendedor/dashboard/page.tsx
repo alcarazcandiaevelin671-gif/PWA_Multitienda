@@ -1,14 +1,18 @@
 'use client';
 
+/**
+ * [PÁGINA] Página /vendedor/dashboard: resumen del negocio, logo/portada de la tienda y productos destacados.
+ */
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { showAppConfirm } from '@/lib/app-message';
-import { getClientUser, supabase } from '@/lib/supabase';
-import { userFacingError } from '@/lib/user-facing-error';
+import { showAppConfirm } from '@/frontend/lib/app-message';
+import { getClientUser, supabase } from '@/shared/supabase/client';
+import { userFacingError } from '@/shared/lib/user-facing-error';
+import PriceTag from '@/frontend/components/products/PriceTag';
 
-const LocationPicker = dynamic(() => import('@/components/ui/LocationPicker'), { ssr: false });
+const LocationPicker = dynamic(() => import('@/frontend/components/ui/LocationPicker'), { ssr: false });
 
 // Helper para convertir nombres a slugs limpios
 const crearSlug = (texto: string) => {
@@ -46,6 +50,8 @@ interface Producto {
   nombre?: string | null;
   descripcion: string | null;
   precio_gs: number;
+  precio_oferta?: number | null;
+  stock?: number | null;
   imagen_url: string | null;
   disponible: boolean;
   categoria_id?: string | null;
@@ -296,13 +302,19 @@ export default function ComercianteDashboardPage() {
         prodImagenUrl = publicUrlData.publicUrl;
       }
 
+      const precio = Number(prodForm.precio);
+      const oferta = prodForm.precio_oferta ? Number(prodForm.precio_oferta) : null;
+      if (oferta !== null && (oferta <= 0 || oferta >= precio)) {
+        throw new Error('El precio de oferta debe ser mayor a 0 y menor al precio normal.');
+      }
+
       const productData = {
         titulo: prodForm.nombre,
         nombre: prodForm.nombre,
         descripcion: prodForm.descripcion || null,
         categoria_id: prodForm.categoria_id || null,
-        precio_gs: Number(prodForm.precio),
-        precio_oferta: prodForm.precio_oferta ? Number(prodForm.precio_oferta) : null,
+        precio_gs: precio,
+        precio_oferta: oferta,
         imagen_url: prodImagenUrl,
       };
       let nuevoProd: Producto | null = null;
@@ -348,7 +360,7 @@ export default function ComercianteDashboardPage() {
       nombre: producto.titulo || producto.nombre || '',
       descripcion: producto.descripcion || '',
       precio: String(producto.precio_gs || ''),
-      precio_oferta: '',
+      precio_oferta: producto.precio_oferta ? String(producto.precio_oferta) : '',
       categoria_id: producto.categoria_id || '',
     });
     setActiveTab('productos');
@@ -652,9 +664,14 @@ export default function ComercianteDashboardPage() {
                       </div>
                       <div>
                         <h3 className="font-bold text-slate-900 text-sm">{prod.titulo || prod.nombre}</h3>
-                        <p className="font-bold text-primary-600 text-sm mt-0.5">
-                          Gs. {Number(prod.precio_gs).toLocaleString('es-PY')}
-                        </p>
+                        <div className="mt-0.5">
+                          <PriceTag price={prod.precio_gs} offer={prod.precio_oferta} size="sm" />
+                        </div>
+                        {prod.stock != null && (
+                          <p className={`text-[10px] font-bold mt-0.5 ${prod.stock === 0 ? 'text-rose-600' : 'text-slate-500'}`}>
+                            {prod.stock === 0 ? 'Sin stock (oculto)' : `Stock: ${prod.stock}`}
+                          </p>
+                        )}
                         {prod.descripcion && (
                           <p className="text-xs text-slate-500 line-clamp-1 mt-0.5">{prod.descripcion}</p>
                         )}

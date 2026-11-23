@@ -1,12 +1,15 @@
 'use client';
 
+/**
+ * [PÁGINA] Página /vendedor/pedidos/[id]: detalle del pedido y cambio de estado (confirmar, preparar, listo, completado).
+ */
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
-import { showAppConfirm, showAppMessage } from '@/lib/app-message';
-import { userFacingError } from '@/lib/user-facing-error';
-import { getOrderStateLabel, getStoreOrderById, ORDER_STATUS_FLOW, updateVendorOrderStatus } from '@/services/orders.service';
-import type { PedidoDetalle, PedidoEstadoHistorial } from '@/types/database';
+import { showAppConfirm, showAppMessage } from '@/frontend/lib/app-message';
+import { userFacingError } from '@/shared/lib/user-facing-error';
+import { getOrderStateLabel, getStoreOrderById, ORDER_STATUS_FLOW, updateVendorOrderStatus } from '@/frontend/services/orders.service';
+import type { PedidoDetalle, PedidoEstadoHistorial } from '@/shared/types/database';
 
 export default function VendorOrderDetailPage() {
   const params = useParams<{ id: string }>();

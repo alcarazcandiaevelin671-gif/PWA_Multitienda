@@ -1,10 +1,13 @@
 'use client';
 
+/**
+ * [PÁGINA] Página /facturas (cliente): facturas internas del usuario.
+ */
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { getMyInvoices } from '@/services/invoices.service';
-import type { FacturaInterna } from '@/types/database';
-import { userFacingError } from '@/lib/user-facing-error';
+import { getMyInvoices } from '@/frontend/services/invoices.service';
+import type { FacturaInterna } from '@/shared/types/database';
+import { userFacingError } from '@/shared/lib/user-facing-error';
 
 export default function FacturasPage() {
   const [invoices, setInvoices] = useState<FacturaInterna[]>([]);

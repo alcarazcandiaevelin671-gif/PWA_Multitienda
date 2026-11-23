@@ -13,9 +13,11 @@ const radius = (rem) => `calc(${rem}rem * var(--radius-scale, 1))`;
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  // Archivos donde Tailwind busca clases: rutas (app) y todo el frontend/compartido.
   content: [
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/frontend/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/shared/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {

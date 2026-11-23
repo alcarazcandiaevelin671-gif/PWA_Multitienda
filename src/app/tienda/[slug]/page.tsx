@@ -1,51 +1,24 @@
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+/**
+ * Página /tienda/[slug] — vitrina pública de un comercio: portada, datos de contacto y catálogo
+ * con carrito. Componente de servidor: los datos llegan de backend/catalog/storefront.ts.
+ * Las tiendas que no están "activa" se muestran, pero sin carrito (no aceptan pedidos).
+ */
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import StorefrontCart from '@/components/cart/StorefrontCart';
+import StorefrontCart from '@/frontend/components/cart/StorefrontCart';
+import { getStorefront } from '@/backend/catalog/storefront';
 
 interface Props {
   params: Promise<{ slug: string }>;
 }
 
 export default async function TiendaPerfilPage(props: Props) {
-  const params = await props.params;
-  const { slug } = params;
-  const cookieStore = await cookies();
+  const { slug } = await props.params;
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-      },
-    }
-  );
-
-  // Una sola ronda a Supabase: la tienda con sus productos disponibles (consulta anidada)
-  // y las categorías en paralelo. Antes eran 3 consultas en serie (~0.3 s cada una).
-  const [tiendaResult, categoriasResult] = await Promise.all([
-    supabase
-      .from('tiendas')
-      .select('*, productos(*)')
-      .eq('slug', slug)
-      .eq('productos.disponible', true)
-      .order('creado_en', { referencedTable: 'productos', ascending: false })
-      .maybeSingle(),
-    supabase.from('categorias').select('id, nombre'),
-  ]);
-
-  const tienda = tiendaResult.data;
-  if (tiendaResult.error || !tienda) {
-    notFound();
-  }
-
-  const productos = tienda.productos;
-  const categorias = categoriasResult.data;
+  const storefront = await getStorefront(slug);
+  if (!storefront) notFound();
+  const { tienda, productos, categorias } = storefront;
 
   const cleanWhatsapp = tienda.whatsapp ? tienda.whatsapp.replace(/\D/g, '') : '';
   // Solo las tiendas activas aceptan pedidos (la base de datos también lo exige en el checkout).

@@ -1,10 +1,13 @@
 'use client';
 
+/**
+ * [PÁGINA] Página /auth/mfa: verificación en dos pasos (TOTP). Configura el código con QR la primera vez y lo pide en cada ingreso.
+ */
 /* eslint-disable @next/next/no-img-element -- el QR es un SVG en data URL generado por Supabase */
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { supabase } from '@/lib/supabase';
-import { userFacingError } from '@/lib/user-facing-error';
+import { supabase } from '@/shared/supabase/client';
+import { userFacingError } from '@/shared/lib/user-facing-error';
 
 type Step = 'cargando' | 'configurar' | 'verificar' | 'error';
 

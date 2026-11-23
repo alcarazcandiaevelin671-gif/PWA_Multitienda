@@ -1,10 +1,13 @@
 'use client';
 
+/**
+ * [PÁGINA] Página /vendedor/ventas: ventas registradas.
+ */
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { getMyStoreSales, getMyStoreSalesStats } from '@/services/sales.service';
-import type { Venta } from '@/types/database';
-import { userFacingError } from '@/lib/user-facing-error';
+import { getMyStoreSales, getMyStoreSalesStats } from '@/frontend/services/sales.service';
+import type { Venta } from '@/shared/types/database';
+import { userFacingError } from '@/shared/lib/user-facing-error';
 
 export default function VendorSalesPage() {
   const [sales, setSales] = useState<Venta[]>([]);

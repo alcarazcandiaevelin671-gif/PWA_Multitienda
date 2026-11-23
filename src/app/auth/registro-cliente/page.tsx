@@ -1,9 +1,12 @@
 'use client';
 
+/**
+ * [PÁGINA] Página /auth/registro-cliente: registro de clientes (compatible con verificación de correo).
+ */
 import { useState } from 'react';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
-import { userFacingError } from '@/lib/user-facing-error';
+import { supabase } from '@/shared/supabase/client';
+import { userFacingError } from '@/shared/lib/user-facing-error';
 
 export default function RegistroClientePage() {
   const [formData, setFormData] = useState({

@@ -1,11 +1,14 @@
 'use client';
 
+/**
+ * [PÁGINA] Página /facturas/[id] (cliente): detalle de una factura.
+ */
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { getInvoiceById } from '@/services/invoices.service';
-import type { FacturaDetalle, FacturaInterna } from '@/types/database';
-import { userFacingError } from '@/lib/user-facing-error';
+import { getInvoiceById } from '@/frontend/services/invoices.service';
+import type { FacturaDetalle, FacturaInterna } from '@/shared/types/database';
+import { userFacingError } from '@/shared/lib/user-facing-error';
 
 export default function FacturaDetailPage() {
   const params = useParams<{ id: string }>();

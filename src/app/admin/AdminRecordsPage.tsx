@@ -1,8 +1,11 @@
 'use client';
 
+/**
+ * [FRONTEND] Listado genérico de administración (usuarios, comercios, categorías, productos…) con búsqueda, filtros y acciones.
+ */
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { showAppConfirm } from '@/lib/app-message';
+import { showAppConfirm } from '@/frontend/lib/app-message';
 
 type RecordRow = Record<string, unknown>;
 
@@ -12,7 +15,7 @@ const sections: Record<string, { resource: string; title: string; description: s
   categorias: { resource: 'categorias', title: 'Categorías', description: 'Categorías disponibles en el catálogo.' },
   departamentos: { resource: 'departamentos', title: 'Departamentos', description: 'Departamentos registrados.' },
   distritos: { resource: 'distritos', title: 'Distritos', description: 'Distritos y departamento relacionado.' },
-  auditorias: { resource: 'auditorias', title: 'Logs de sistema', description: 'Acciones administrativas registradas.' },
+  auditorias: { resource: 'auditorias', title: 'Logs de sistema', description: 'Todo lo que pasa en la base: altas (INSERT), cambios (UPDATE), borrados (DELETE), vaciados (TRUNCATE) y cambios de estructura (CREATE/ALTER/DROP), con quién, cuándo, desde qué IP y cómo estaba antes y después.' },
   notificaciones: { resource: 'notificaciones', title: 'Notificaciones', description: 'Mensajes enviados, destinatarios y estado de lectura.' },
 };
 
@@ -22,7 +25,7 @@ const columns: Record<string, Array<[string, string]>> = {
   categorias: [['nombre', 'Categoría'], ['descripcion', 'Descripción'], ['activo', 'Estado'], ['creado_en', 'Registro']],
   departamentos: [['nombre', 'Departamento'], ['codigo', 'Código'], ['activo', 'Estado'], ['creado_en', 'Registro']],
   distritos: [['nombre', 'Distrito'], ['departamento_id', 'Departamento'], ['activo', 'Estado'], ['creado_en', 'Registro']],
-  auditorias: [['accion', 'Acción'], ['tabla_afectada', 'Tabla'], ['registro_legible', 'Registro'], ['administrador', 'Administrador'], ['fecha_hora', 'Fecha']],
+  auditorias: [['operacion', 'Tipo'], ['accion', 'Acción'], ['tabla_afectada', 'Tabla'], ['registro_legible', 'Registro'], ['administrador', 'Quién'], ['ip', 'IP'], ['fecha_hora', 'Fecha y hora']],
   notificaciones: [['titulo', 'Notificación'], ['destinatario', 'Destinatario'], ['tipo', 'Tipo'], ['mensaje', 'Mensaje'], ['leida', 'Estado'], ['created_at', 'Fecha y hora']],
 };
 
@@ -35,7 +38,9 @@ function formatValue(value: unknown, field: string) {
   if (['creado_en', 'created_at', 'fecha', 'fecha_hora'].includes(field)) {
     const date = new Date(String(value));
     if (Number.isNaN(date.getTime())) return String(value);
-    return field === 'fecha_hora' || field === 'created_at'
+    // En los logs importan los segundos
+    if (field === 'fecha_hora') return date.toLocaleString('es-PY', { dateStyle: 'short', timeStyle: 'medium' });
+    return field === 'created_at'
       ? date.toLocaleString('es-PY', { dateStyle: 'short', timeStyle: 'short' })
       : date.toLocaleDateString('es-PY');
   }
@@ -52,13 +57,60 @@ const auditActionBadges: Record<string, { label: string; className: string }> = 
   DESACTIVACION_CUENTA: { label: 'Desactivación de cuenta', className: 'border-amber-300/30 bg-amber-300/10 text-amber-200' },
 };
 
+/**
+ * Tipos de operación de los logs (columna `auditorias.operacion`, la llenan los triggers de la base).
+ * El orden es el de los botones de filtro.
+ */
+const auditOperations: Array<{ value: string; label: string; help: string; className: string }> = [
+  { value: 'INSERT', label: 'INSERT', help: 'Altas: registros creados', className: 'border-emerald-300/30 bg-emerald-300/10 text-emerald-200' },
+  { value: 'UPDATE', label: 'UPDATE', help: 'Modificaciones de registros', className: 'border-sky-300/30 bg-sky-300/10 text-sky-200' },
+  { value: 'DELETE', label: 'DELETE', help: 'Registros borrados', className: 'border-rose-300/30 bg-rose-300/10 text-rose-200' },
+  { value: 'TRUNCATE', label: 'TRUNCATE', help: 'Tablas vaciadas completas', className: 'border-orange-300/30 bg-orange-300/10 text-orange-200' },
+  { value: 'DDL', label: 'DDL', help: 'Estructura: CREATE, ALTER, DROP', className: 'border-violet-300/30 bg-violet-300/10 text-violet-200' },
+  { value: 'APP', label: 'APP', help: 'Acciones registradas por la aplicación', className: 'border-amber-300/30 bg-amber-300/10 text-amber-200' },
+];
+const auditOperationByValue = new Map(auditOperations.map((operation) => [operation.value, operation]));
+
+/** Tablas con trigger de auditoría (para el filtro por tabla). */
+const auditTables = ['categorias', 'departamentos', 'distritos', 'factura_detalles', 'facturas', 'favoritos', 'historial_busquedas', 'interacciones_clics', 'notificaciones', 'pedido_detalles', 'pedido_estado_historial', 'pedidos', 'planes_suscripcion', 'producto_tags', 'productos', 'recomendaciones_ia', 'suscripciones', 'tags_ia', 'tiendas', 'usuario_configuracion', 'usuarios', 'venta_detalles', 'ventas'];
+
+const auditOriginLabels: Record<string, string> = {
+  app: 'Navegador (app)',
+  servidor: 'Servidor de la app',
+  sql: 'SQL directo / sistema',
+};
+
+/** Filtros de los logs; vacío = sin filtrar. */
+const EMPTY_AUDIT_FILTERS = { operacion: '', tabla: '', usuario: '', origen: '', ip: '', desde: '', hasta: '' };
+type AuditFilters = typeof EMPTY_AUDIT_FILTERS;
+
 const notificationTypeLabels: Record<string, string> = {
   promocion: 'Promoción',
   comercio_aprobado: 'Comercio aprobado',
+  stock_bajo: 'Stock bajo',
+  stock_agotado: 'Sin stock',
+  stock_repuesto: 'Stock repuesto',
   comercio_rechazado: 'Comercio rechazado',
 };
 
 function renderRecordValue(section: string, record: RecordRow, key: string) {
+  if (section === 'auditorias' && key === 'operacion') {
+    const operation = auditOperationByValue.get(String(record.operacion ?? ''));
+    return operation
+      ? <span title={operation.help} className={`inline-flex rounded-md border px-2 py-0.5 font-mono text-[11px] font-bold ${operation.className}`}>{operation.label}</span>
+      : <span className="text-slate-500">—</span>;
+  }
+
+  // Acciones de estructura (CREATE TABLE, ALTER TABLE…) y de filas se muestran tal cual
+  if (section === 'auditorias' && key === 'accion' && ['DDL', 'TRUNCATE', 'INSERT', 'UPDATE', 'DELETE'].includes(String(record.operacion))) {
+    return <span className="block truncate font-mono text-xs text-slate-200" title={String(record.accion ?? '')}>{String(record.accion ?? '—')}</span>;
+  }
+
+  if (section === 'auditorias' && key === 'ip') {
+    const ip = String(record.ip_cliente || record.ip || '');
+    return ip ? <span className="font-mono text-xs text-slate-300" title={record.ip_cliente ? `IP del visitante (vía servidor). IP de conexión: ${String(record.ip ?? '—')}` : 'IP de conexión'}>{ip}</span> : <span className="text-slate-500">—</span>;
+  }
+
   if (section === 'auditorias' && key === 'accion') {
     const action = String(record.accion ?? '').toUpperCase();
     const badge = auditActionBadges[action] ?? {
@@ -118,6 +170,71 @@ function formatAuditValue(value: unknown) {
   return String(value);
 }
 
+/**
+ * Detalle completo de un log: qué se hizo, quién, cuándo y desde dónde.
+ * Debajo se muestra la comparación antes/después (AuditChanges).
+ */
+function AuditDetail({ record }: { record: RecordRow }) {
+  const changed = Array.isArray(record.campos_modificados) ? (record.campos_modificados as string[]) : [];
+  const Item = ({ label, children, wide = false }: { label: string; children: React.ReactNode; wide?: boolean }) => (
+    <div className={`min-w-0 border-b border-white/[0.06] pb-3 ${wide ? 'sm:col-span-2' : ''}`}>
+      <dt className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{label}</dt>
+      <dd className="mt-1 break-words text-sm text-slate-200">{children}</dd>
+    </div>
+  );
+  const text = (value: unknown) => (value === null || value === undefined || value === '' ? '—' : String(value));
+
+  return (
+    <div className="mt-5 space-y-6">
+      <section>
+        <h4 className="mb-3 text-sm font-bold text-white">Qué se hizo</h4>
+        <dl className="grid gap-x-5 gap-y-3 sm:grid-cols-2">
+          <Item label="Tipo de operación">{renderRecordValue('auditorias', record, 'operacion')}</Item>
+          <Item label="Acción">{renderRecordValue('auditorias', record, 'accion')}</Item>
+          <Item label="Tabla">{text(record.tabla_afectada)}{record.esquema ? <span className="text-slate-500"> ({String(record.esquema)})</span> : null}</Item>
+          <Item label="Registro">{text(record.registro_legible)}</Item>
+          <Item label="ID del registro"><span className="font-mono text-xs">{text(record.registro_id)}</span></Item>
+          <Item label="Objeto">{text(record.objeto)}</Item>
+          {changed.length > 0 && (
+            <Item label="Campos modificados" wide>
+              <span className="flex flex-wrap gap-1">{changed.map((field) => <span key={field} className="rounded bg-sky-300/10 px-1.5 py-0.5 font-mono text-[11px] text-sky-200">{field}</span>)}</span>
+            </Item>
+          )}
+        </dl>
+      </section>
+
+      <section>
+        <h4 className="mb-3 text-sm font-bold text-white">Quién y cuándo</h4>
+        <dl className="grid gap-x-5 gap-y-3 sm:grid-cols-2">
+          <Item label="Usuario">{text(record.administrador)}</Item>
+          <Item label="Correo">{text(record.usuario_email)}</Item>
+          <Item label="Rol en la app">{text(record.usuario_rol)}</Item>
+          <Item label="Rol en la base"><span className="font-mono text-xs">{text(record.rol_bd)}</span></Item>
+          <Item label="Origen">{auditOriginLabels[String(record.origen)] ?? text(record.origen)}</Item>
+          <Item label="Fecha y hora">{formatValue(record.fecha_hora, 'fecha_hora')}</Item>
+        </dl>
+      </section>
+
+      <section>
+        <h4 className="mb-3 text-sm font-bold text-white">Desde dónde</h4>
+        <dl className="grid gap-x-5 gap-y-3 sm:grid-cols-2">
+          <Item label="IP del visitante"><span className="font-mono text-xs">{text(record.ip_cliente || record.ip)}</span></Item>
+          <Item label="IP de conexión"><span className="font-mono text-xs">{text(record.ip)}</span></Item>
+          <Item label="Método / ruta"><span className="font-mono text-xs">{text([record.metodo_http, record.ruta].filter(Boolean).join(' ') || null)}</span></Item>
+          <Item label="Navegador / dispositivo" wide><span className="text-xs text-slate-300">{text(record.user_agent)}</span></Item>
+        </dl>
+      </section>
+
+      {typeof record.comando_sql === 'string' && record.comando_sql && (
+        <section>
+          <h4 className="mb-3 text-sm font-bold text-white">Comando ejecutado</h4>
+          <pre className="max-h-60 overflow-auto whitespace-pre-wrap break-words rounded-lg border border-white/10 bg-black/30 p-3 font-mono text-xs text-violet-200">{record.comando_sql}</pre>
+        </section>
+      )}
+    </div>
+  );
+}
+
 function AuditChanges({ record }: { record: RecordRow }) {
   const before = record.datos_anteriores && typeof record.datos_anteriores === 'object' && !Array.isArray(record.datos_anteriores)
     ? record.datos_anteriores as Record<string, unknown>
@@ -132,7 +249,9 @@ function AuditChanges({ record }: { record: RecordRow }) {
 
   return (
     <section className="mt-6">
-      <h4 className="mb-3 text-sm font-bold text-white">Comparación de cambios</h4>
+      <h4 className="mb-3 text-sm font-bold text-white">
+        {record.operacion === 'INSERT' ? 'Datos con los que se creó' : record.operacion === 'DELETE' ? 'Datos que tenía antes de borrarse' : 'Cómo estaba antes y cómo quedó'}
+      </h4>
       {fields.length ? (
         <div className="overflow-x-auto rounded-lg border border-white/10">
           <table className="w-full min-w-[560px] text-left text-sm">
@@ -218,6 +337,9 @@ export default function AdminRecordsPage({ section }: { section: string }) {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [role, setRole] = useState('');
+  // Filtros propios de los logs y total por tipo de operación (para los botones)
+  const [auditFilters, setAuditFilters] = useState<AuditFilters>(EMPTY_AUDIT_FILTERS);
+  const [operationCounts, setOperationCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -240,6 +362,9 @@ export default function AdminRecordsPage({ section }: { section: string }) {
       if (search.trim()) params.set('q', search.trim());
       if (status) params.set('status', status);
       if (role) params.set('role', role);
+      if (viewSection === 'auditorias') {
+        Object.entries(auditFilters).forEach(([key, value]) => { if (value.trim()) params.set(key, value.trim()); });
+      }
 
       try {
         const response = await fetch(`/api/admin/${config.resource}?${params}`, { cache: 'no-store', signal: controller.signal });
@@ -247,6 +372,7 @@ export default function AdminRecordsPage({ section }: { section: string }) {
         if (!response.ok) throw new Error(result.error || 'No se pudieron cargar los datos.');
         setRecords(result.records ?? []);
         setTotal(result.total ?? 0);
+        if (result.operationCounts) setOperationCounts(result.operationCounts);
       } catch (cause) {
         if (cause instanceof Error && cause.name === 'AbortError') return;
         setRecords([]);
@@ -258,7 +384,7 @@ export default function AdminRecordsPage({ section }: { section: string }) {
     }, 250);
 
     return () => { window.clearTimeout(timer); controller.abort(); };
-  }, [config, page, search, status, role, section, refreshKey]);
+  }, [config, page, search, status, role, section, refreshKey, viewSection, auditFilters]);
 
   useEffect(() => {
     if (!selectedRecord) return;
@@ -272,6 +398,8 @@ export default function AdminRecordsPage({ section }: { section: string }) {
   if (!config) return <p className="rounded-lg border border-white/10 p-5 text-sm text-slate-300">Sección no encontrada.</p>;
 
   const setFilter = (setter: (value: string) => void) => (value: string) => { setter(value); setPage(1); };
+  const setAuditFilter = (key: keyof AuditFilters, value: string) => { setAuditFilters((current) => ({ ...current, [key]: value })); setPage(1); };
+  const activeAuditFilters = Object.values(auditFilters).filter((value) => value.trim()).length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const fields = columns[viewSection] ?? [];
   const approveShop = async (record: RecordRow, askConfirmation = true) => {
@@ -398,14 +526,53 @@ export default function AdminRecordsPage({ section }: { section: string }) {
   return (
     <div>
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-        <div><p className="text-xs font-bold uppercase tracking-[0.18em] text-accent-300">Administración</p><h2 className="mt-1 text-2xl font-extrabold text-white">{config.title}</h2><p className="mt-1 text-sm text-slate-400">{config.description}</p></div>
+        <div><p className="text-xs font-bold uppercase tracking-[0.18em] text-accent-300">Administración</p><h2 className="mt-1 text-2xl font-extrabold text-slate-900">{config.title}</h2><p className="mt-1 text-sm text-slate-400">{config.description}</p></div>
         <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-slate-300">{loading ? 'Consultando…' : `${total.toLocaleString('es-PY')} registros`}</span>
       </div>
 
       <div className="mb-4 flex flex-wrap gap-2 rounded-xl border border-white/10 bg-[#1f1724] p-3">
-        <label className="min-w-56 flex-1"><span className="sr-only">Buscar</span><input type="search" value={search} onChange={(event) => setFilter(setSearch)(event.target.value)} placeholder={viewSection === 'auditorias' ? 'Buscar correo, tabla o acción…' : viewSection === 'notificaciones' ? 'Buscar título, mensaje o tipo…' : 'Buscar registros…'} className="w-full rounded-lg border border-white/10 bg-[#0f0b12] px-3 py-2 text-sm text-white outline-none placeholder:text-slate-500 focus:border-accent-400" /></label>
+        <label className="min-w-56 flex-1"><span className="sr-only">Buscar</span><input type="search" value={search} onChange={(event) => setFilter(setSearch)(event.target.value)} placeholder={viewSection === 'auditorias' ? 'Buscar texto: acción, tabla, correo, objeto o IP…' : viewSection === 'notificaciones' ? 'Buscar título, mensaje o tipo…' : 'Buscar registros…'} className="w-full rounded-lg border border-white/10 bg-[#0f0b12] px-3 py-2 text-sm text-white outline-none placeholder:text-slate-500 focus:border-accent-400" /></label>
         {section === 'usuarios' && <select aria-label="Filtrar por rol" value={role} onChange={(event) => setFilter(setRole)(event.target.value)} className="rounded-lg border border-white/10 bg-[#0f0b12] px-3 py-2 text-sm text-slate-200"><option value="">Todos los roles</option><option value="cliente">Cliente</option><option value="comerciante">Comerciante</option><option value="admin">Administrador</option></select>}
         {section === 'comercios' && <select aria-label="Filtrar por estado" value={status} onChange={(event) => setFilter(setStatus)(event.target.value)} className="rounded-lg border border-white/10 bg-[#0f0b12] px-3 py-2 text-sm text-slate-200"><option value="">Todos los estados</option><option value="pendiente">Pendiente</option><option value="activa">Activa</option><option value="suspendida">Suspendida</option><option value="rechazada">Rechazada</option></select>}
+
+        {/* Filtros de logs: tipo de operación (botones con total), tabla, usuario, origen, IP y fechas */}
+        {viewSection === 'auditorias' && (
+          <div className="w-full space-y-3">
+            <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar por tipo de operación">
+              <button type="button" onClick={() => setAuditFilter('operacion', '')} aria-pressed={!auditFilters.operacion} className={`rounded-lg border px-3 py-1.5 text-xs font-bold ${!auditFilters.operacion ? 'border-accent-400 bg-accent-400/15 text-white' : 'border-white/10 text-slate-300 hover:bg-white/5'}`}>
+                Todos
+              </button>
+              {auditOperations.map((operation) => {
+                const active = auditFilters.operacion === operation.value;
+                return (
+                  <button key={operation.value} type="button" title={operation.help} aria-pressed={active} onClick={() => setAuditFilter('operacion', active ? '' : operation.value)} className={`rounded-lg border px-3 py-1.5 font-mono text-xs font-bold transition ${active ? `${operation.className} ring-1 ring-current` : 'border-white/10 text-slate-300 hover:bg-white/5'}`}>
+                    {operation.label}
+                    <span className="ml-1.5 font-sans font-semibold opacity-70">{(operationCounts[operation.value] ?? 0).toLocaleString('es-PY')}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              <select aria-label="Filtrar por tabla" value={auditFilters.tabla} onChange={(event) => setAuditFilter('tabla', event.target.value)} className="rounded-lg border border-white/10 bg-[#0f0b12] px-3 py-2 text-sm text-slate-200">
+                <option value="">Todas las tablas</option>
+                {auditTables.map((table) => <option key={table} value={table}>{table}</option>)}
+              </select>
+              <input type="search" aria-label="Filtrar por correo del usuario" value={auditFilters.usuario} onChange={(event) => setAuditFilter('usuario', event.target.value)} placeholder="Correo del usuario" className="rounded-lg border border-white/10 bg-[#0f0b12] px-3 py-2 text-sm text-white placeholder:text-slate-500" />
+              <select aria-label="Filtrar por origen" value={auditFilters.origen} onChange={(event) => setAuditFilter('origen', event.target.value)} className="rounded-lg border border-white/10 bg-[#0f0b12] px-3 py-2 text-sm text-slate-200">
+                <option value="">Todo origen</option>
+                {Object.entries(auditOriginLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+              </select>
+              <input type="search" aria-label="Filtrar por IP" value={auditFilters.ip} onChange={(event) => setAuditFilter('ip', event.target.value)} placeholder="IP" className="rounded-lg border border-white/10 bg-[#0f0b12] px-3 py-2 font-mono text-sm text-white placeholder:font-sans placeholder:text-slate-500" />
+              <label className="flex min-w-0 items-center gap-2 text-xs text-slate-400">Desde<input type="date" value={auditFilters.desde} onChange={(event) => setAuditFilter('desde', event.target.value)} className="w-full rounded-lg border border-white/10 bg-[#0f0b12] px-2 py-2 text-sm text-slate-200 [color-scheme:dark]" /></label>
+              <label className="flex min-w-0 items-center gap-2 text-xs text-slate-400">Hasta<input type="date" value={auditFilters.hasta} onChange={(event) => setAuditFilter('hasta', event.target.value)} className="w-full rounded-lg border border-white/10 bg-[#0f0b12] px-2 py-2 text-sm text-slate-200 [color-scheme:dark]" /></label>
+            </div>
+            {activeAuditFilters > 0 && (
+              <button type="button" onClick={() => { setAuditFilters(EMPTY_AUDIT_FILTERS); setPage(1); }} className="text-xs font-semibold text-accent-300 hover:underline">
+                Quitar {activeAuditFilters === 1 ? 'el filtro' : `los ${activeAuditFilters} filtros`}
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {notice && <div role="status" className="mb-4 rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-200">{notice}</div>}
@@ -442,14 +609,7 @@ export default function AdminRecordsPage({ section }: { section: string }) {
               </div>
               <button type="button" autoFocus onClick={() => setSelectedRecord(null)} aria-label="Cerrar detalle" className="rounded-md border border-white/10 px-3 py-1 text-lg text-slate-300 hover:bg-white/5">×</button>
             </div>
-            {viewSection === 'comercios' ? <CommerceInspection record={selectedRecord} /> : viewSection === 'notificaciones' ? <NotificationInspection record={selectedRecord} /> : viewSection === 'auditorias' ? <dl className="mt-5 grid gap-x-5 gap-y-4 sm:grid-cols-2">
-              {columns.auditorias.map(([key, label]) => (
-                <div key={key} className="min-w-0 border-b border-white/[0.06] pb-3">
-                  <dt className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{label}</dt>
-                  <dd className="mt-1 break-words text-sm text-slate-200">{renderRecordValue(viewSection, selectedRecord, key)}</dd>
-                </div>
-              ))}
-            </dl> : <dl className="mt-5 grid gap-x-5 gap-y-4 sm:grid-cols-2">
+            {viewSection === 'comercios' ? <CommerceInspection record={selectedRecord} /> : viewSection === 'notificaciones' ? <NotificationInspection record={selectedRecord} /> : viewSection === 'auditorias' ? <AuditDetail record={selectedRecord} /> : <dl className="mt-5 grid gap-x-5 gap-y-4 sm:grid-cols-2">
               {Object.entries(selectedRecord)
                 .map(([key, value]) => (
                   <div key={key} className="min-w-0 border-b border-white/[0.06] pb-3">

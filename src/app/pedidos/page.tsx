@@ -1,10 +1,13 @@
 'use client';
 
+/**
+ * [PÁGINA] Página /pedidos (cliente): historial de pedidos, filtros y pedidos guardados sin conexión.
+ */
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { getMyOrders, getOrderStateLabel, type PedidoConTienda } from '@/services/orders.service';
-import { userFacingError } from '@/lib/user-facing-error';
-import QueuedOrdersPanel from '@/components/orders/QueuedOrdersPanel';
+import { getMyOrders, getOrderStateLabel, type PedidoConTienda } from '@/frontend/services/orders.service';
+import { userFacingError } from '@/shared/lib/user-facing-error';
+import QueuedOrdersPanel from '@/frontend/components/orders/QueuedOrdersPanel';
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<PedidoConTienda[]>([]);

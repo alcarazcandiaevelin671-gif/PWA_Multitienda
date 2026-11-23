@@ -1,0 +1,63 @@
+'use client';
+
+/**
+ * [FRONTEND] Capa que muestra los mensajes y confirmaciones globales (showAppMessage / showAppConfirm).
+ */
+import { useEffect, useState } from 'react';
+import { AppMessage, closeAppMessage, subscribeAppMessage } from '@/frontend/lib/app-message';
+
+export default function AppMessageLayer() {
+  const [message, setMessage] = useState<AppMessage | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = subscribeAppMessage((next) => setMessage(next));
+
+    return () => {
+      unsubscribe();
+      closeAppMessage();
+    };
+  }, []);
+
+  if (!message) return null;
+
+  const isConfirm = Boolean(message.onConfirm || message.onCancel);
+
+  return (
+    <div className="app-message-backdrop" role="dialog" aria-modal="true" aria-live="assertive">
+      <div className="app-message-card">
+        <div className="app-message-icon">{isConfirm ? '?' : 'i'}</div>
+        <div className="app-message-content">
+          <h3>{message.title}</h3>
+          <p>{message.text}</p>
+        </div>
+
+        {isConfirm ? (
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                message.onCancel?.();
+              }}
+              className="app-message-button-secondary"
+            >
+              {message.cancelText || 'Cancelar'}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                message.onConfirm?.();
+              }}
+              className="app-message-button"
+            >
+              {message.confirmText || 'Aceptar'}
+            </button>
+          </div>
+        ) : (
+          <button type="button" onClick={() => closeAppMessage()} className="app-message-button">
+            Aceptar
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}

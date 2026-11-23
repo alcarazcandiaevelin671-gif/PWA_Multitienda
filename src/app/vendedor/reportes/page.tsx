@@ -1,9 +1,12 @@
 'use client';
 
+/**
+ * [PÁGINA] Página /vendedor/reportes: reportes de ventas y pedidos con exportación a PDF.
+ */
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { getVendorReportData, type VendorReportData } from '@/services/vendor-reports.service';
-import { userFacingError } from '@/lib/user-facing-error';
+import { getVendorReportData, type VendorReportData } from '@/frontend/services/vendor-reports.service';
+import { userFacingError } from '@/shared/lib/user-facing-error';
 
 type Period = 'today' | 'last-7-days' | 'this-month' | 'last-month' | 'custom';
 type ReportKind = 'ventas' | 'pedidos' | 'productos' | 'tiendas';

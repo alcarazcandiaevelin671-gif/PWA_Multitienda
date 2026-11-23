@@ -1,9 +1,12 @@
 'use client';
 
+/**
+ * [PÁGINA] Página /vendedor/pedidos: pedidos recibidos por las tiendas del comerciante.
+ */
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { getMyStoreOrders, getOrderStateLabel, type PedidoConTienda } from '@/services/orders.service';
-import { userFacingError } from '@/lib/user-facing-error';
+import { getMyStoreOrders, getOrderStateLabel, type PedidoConTienda } from '@/frontend/services/orders.service';
+import { userFacingError } from '@/shared/lib/user-facing-error';
 
 export default function VendorOrdersPage() {
   const [orders, setOrders] = useState<PedidoConTienda[]>([]);
