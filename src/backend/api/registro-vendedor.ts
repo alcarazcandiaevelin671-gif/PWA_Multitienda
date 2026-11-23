@@ -161,6 +161,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Ya existe una cuenta con ese correo o no se pudo crear.' }, { status: 409 });
   }
 
+  // Revierte un registro que falló a mitad de camino. Los DELETE de tiendas/usuarios se convierten en
+  // baja lógica (en la base nada se borra); si después se elimina la cuenta de acceso a medio crear,
+  // la base quita en cascada esas filas. Es la única excepción documentada en
+  // supabase/migrations/20261124130000_nada_se_borra.sql.
   const rollbackRegistration = async () => {
     const { error: storeCleanupError } = await adminClient.from('tiendas').delete().eq('usuario_id', authUser.id);
     const { error: userCleanupError } = await adminClient.from('usuarios').delete().eq('id', authUser.id);
