@@ -26,14 +26,15 @@ export async function getProductDistricts(): Promise<ProductDistrict[]> {
 }
 
 /**
- * Últimos 60 productos disponibles con los datos de su tienda (una sola consulta anidada).
+ * Últimos 60 productos disponibles de comercios activos con los datos de su tienda (una sola consulta anidada).
  * Ante un error devuelve una lista vacía para que la página se muestre igual.
  */
 export async function getFeaturedProducts(): Promise<FeaturedProduct[]> {
   const { data, error } = await supabase
     .from('productos')
-    .select('id, tienda_id, titulo, descripcion, precio_gs, precio_oferta, stock, stock_minimo, imagen_url, categoria_id, creado_en, tienda:tiendas(nombre_comercio, slug, latitud, longitud, distrito_id)')
+    .select('id, tienda_id, titulo, descripcion, precio_gs, precio_oferta, stock, stock_minimo, imagen_url, categoria_id, creado_en, tienda:tiendas!inner(nombre_comercio, slug, latitud, longitud, distrito_id)')
     .eq('disponible', true)
+    .eq('tienda.estado', 'activa') // sin productos de comercios suspendidos, pendientes o rechazados
     .order('creado_en', { ascending: false })
     .limit(60);
 

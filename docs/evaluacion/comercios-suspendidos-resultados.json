@@ -1,0 +1,65 @@
+{
+  "fecha": "2026-11-24T16:56:06.083Z",
+  "pruebas": [
+    {
+      "id": "S00",
+      "requisito": "Control: existen productos disponibles de un comercio no activo",
+      "resultado": "Cumple",
+      "detalle": "Pizza de queso (comercio-2, suspendida); Teclado gamer (comercio-2, suspendida); Auricular (comercio-2, suspendida)"
+    },
+    {
+      "id": "S01",
+      "requisito": "El catálogo muestra solo productos de comercios activos",
+      "resultado": "Cumple",
+      "detalle": "11 productos mostrados, 11 de comercios activos"
+    },
+    {
+      "id": "S02-pizza",
+      "requisito": "El buscador (\"pizza\") muestra solo productos de comercios activos",
+      "resultado": "Cumple",
+      "detalle": "3 resultados; 3 de comercios activos, 1 ocultos"
+    },
+    {
+      "id": "S02-teclado",
+      "requisito": "El buscador (\"teclado\") muestra solo productos de comercios activos",
+      "resultado": "Cumple",
+      "detalle": "0 resultados; 0 de comercios activos, 1 ocultos"
+    },
+    {
+      "id": "S02-auricular",
+      "requisito": "El buscador (\"auricular\") muestra solo productos de comercios activos",
+      "resultado": "Cumple",
+      "detalle": "1 resultados; 1 de comercios activos, 1 ocultos"
+    },
+    {
+      "id": "S03",
+      "requisito": "El enlace directo de un producto oculto no lo muestra",
+      "resultado": "Cumple",
+      "detalle": "HTTP 404, /productos/<id>"
+    },
+    {
+      "id": "S04",
+      "requisito": "La vitrina del comercio suspendido avisa su estado y no lista productos",
+      "resultado": "Cumple",
+      "detalle": "aviso visible, sin productos"
+    },
+    {
+      "id": "S05",
+      "requisito": "La consulta de favoritos excluye los productos de comercios no activos",
+      "resultado": "Cumple",
+      "detalle": "11 de 14"
+    },
+    {
+      "id": "S06",
+      "requisito": "Control: un comercio activo sigue mostrando sus productos",
+      "resultado": "Cumple",
+      "detalle": "3 productos"
+    },
+    {
+      "id": "S07",
+      "requisito": "Sin conexión: el catálogo guardado tampoco muestra productos de comercios no activos",
+      "resultado": "Cumple",
+      "detalle": "11 productos"
+    }
+  ]
+}

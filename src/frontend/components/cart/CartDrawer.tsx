@@ -1,18 +1,20 @@
 'use client';
 
 /**
- * [FRONTEND] Carrito lateral de la tienda: datos de entrega y pago; registra el pedido (o lo guarda sin conexión) y lleva al ticket para WhatsApp.
+ * [FRONTEND] Carrito lateral MULTITIENDA: productos agrupados por comercio, sugerencias complementarias
+ * (IA), datos de entrega y pago. Registra un pedido por comercio (o los guarda sin conexión) y lleva al
+ * ticket (un comercio) o a /pedidos/enviar (varios) para mandar cada pedido por WhatsApp.
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useCart } from '@/frontend/context/CartContext';
 import { Shop } from '@/shared/types/shop';
 import { supabase } from '@/shared/supabase/client';
 import { showAppMessage } from '@/frontend/lib/app-message';
-import { getEffectiveProductPrice, getMaxQuantity } from '@/shared/lib/product-pricing';
+import { getMaxQuantity } from '@/shared/lib/product-pricing';
 import PriceTag from '@/frontend/components/products/PriceTag';
 import { userFacingError } from '@/shared/lib/user-facing-error';
-import { createOrder } from '@/frontend/services/orders.service';
-import { isNetworkError, queueOrder } from '@/frontend/lib/offline-orders';
+import { afterCheckoutPath, submitOrdersByShop } from '@/frontend/lib/multi-store-checkout';
+import { fetchComplementaryProducts, type AIRecommendation } from '@/frontend/lib/recommendations-client';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -23,7 +25,7 @@ interface CartDrawerProps {
 }
 
 export default function CartDrawer({ isOpen, onClose, currentShop }: CartDrawerProps) {
-  const { items, removeItem, updateQuantity, totalAmount, clearCart } = useCart();
+  const { items, addItem, removeItem, updateQuantity, totalAmount, shopGroups } = useCart();
   const [paymentMethod, setPaymentMethod] = useState('Efectivo');
   const [customerName, setCustomerName] = useState('');
   const [customerAddress, setCustomerAddress] = useState('');
@@ -32,6 +34,18 @@ export default function CartDrawer({ isOpen, onClose, currentShop }: CartDrawerP
   const [cardCvc, setCardCvc] = useState('');
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success'>('idle');
   const [deliveryEstimate, setDeliveryEstimate] = useState('30 a 45 minutos');
+
+  // Productos complementarios (filtrado colaborativo: "otros clientes también llevaron")
+  const [complements, setComplements] = useState<AIRecommendation[]>([]);
+  const cartKey = items.map(({ product }) => product.id).sort().join(',');
+  useEffect(() => {
+    if (!isOpen || !cartKey) { setComplements([]); return; }
+    let active = true;
+    fetchComplementaryProducts(cartKey.split(','), 3)
+      .then((list) => { if (active) setComplements(list); })
+      .catch(() => { if (active) setComplements([]); });
+    return () => { active = false; };
+  }, [isOpen, cartKey]);
 
   if (!isOpen) return null;
 
@@ -59,7 +73,9 @@ export default function CartDrawer({ isOpen, onClose, currentShop }: CartDrawerP
   });
 
   const handleSendOrder = async () => {
-    if (!currentShop?.whatsapp && !currentShop?.telefono) {
+    // Si el carrito es solo de la tienda que se está viendo, se avisa antes si no tiene WhatsApp.
+    // Con varios comercios, la página /pedidos/enviar avisa por cada uno.
+    if (shopGroups.length === 1 && currentShop?.id === shopGroups[0].tienda_id && !currentShop?.whatsapp && !currentShop?.telefono) {
       showAppMessage('El comercio no tiene configurado un número de WhatsApp.', 'Compra no disponible', 'error');
       return;
     }
@@ -86,71 +102,67 @@ export default function CartDrawer({ isOpen, onClose, currentShop }: CartDrawerP
       return;
     }
 
-    const orderInput = {
-      tienda_id: currentShop.id || items[0].product.tienda_id,
-      items: items.map(({ product, cantidad }) => ({ producto_id: product.id, cantidad })),
+    // Multitienda: un pedido por comercio, con los mismos datos de entrega y pago.
+    setPaymentStatus('processing');
+    const result = await submitOrdersByShop(shopGroups, {
       metodo_pago: (paymentMethod === 'Efectivo' ? 'efectivo' : 'transferencia') as 'efectivo' | 'transferencia',
       direccion_entrega: customerAddress.trim(),
       notas: `Pedido enviado por WhatsApp. Cliente: ${customerName.trim()}. Pago: ${selectedPaymentMethod}.`,
-    };
-    const saveOffline = () => {
-      queueOrder({
-        origen: 'whatsapp',
-        input: orderInput,
-        resumen: {
-          tienda: currentShop.nombre,
-          total: totalAmount,
-          items: items.map(({ product, cantidad }) => ({
-            nombre: product.nombre ?? product.titulo ?? 'Producto',
-            cantidad,
-            precio: getEffectiveProductPrice(product),
-          })),
-        },
-      });
+    }, 'whatsapp');
+
+    // Quitar del carrito lo que ya se registró o quedó en la cola; dejar lo que falló.
+    items
+      .filter(({ product }) => result.doneShopIds.includes(product.tienda_id))
+      .forEach(({ product }) => removeItem(product.id));
+
+    if (result.failed.length > 0) {
       setPaymentStatus('idle');
-      clearCart();
+      showAppMessage(
+        result.failed.map((failure) => `${failure.tienda}: ${userFacingError(failure.error, 'No se pudo registrar el pedido.')}`).join('\n'),
+        result.created.length ? 'Algunos pedidos no se enviaron' : 'Pedido no enviado',
+        'error',
+      );
+      if (result.created.length === 0) return;
+    }
+
+    if (result.created.length === 0 && result.queuedOffline.length > 0) {
+      setPaymentStatus('idle');
       onClose();
       showAppMessage(
-        'Estás sin conexión. Tu pedido quedó guardado en este dispositivo y se enviará solo cuando vuelva internet. Después podrás mandar el ticket por WhatsApp desde "Mis pedidos".',
+        `Estás sin conexión. ${result.queuedOffline.length === 1 ? 'Tu pedido quedó guardado' : `Tus ${result.queuedOffline.length} pedidos (uno por comercio) quedaron guardados`} en este dispositivo y se enviarán solos cuando vuelva internet. Después podrás mandar cada ticket por WhatsApp desde "Mis pedidos".`,
         'Pedido guardado sin conexión',
         'success',
       );
-    };
-
-    if (!navigator.onLine) {
-      saveOffline();
       return;
     }
 
-    setPaymentStatus('processing');
-    try {
-      // Registrar el pedido para generar el ticket (mismo proceso que el checkout).
-      const { pedido } = await createOrder(orderInput);
+    if (shopGroups.length === 1) setDeliveryEstimate(await obtenerEstimacionEntrega());
+    if (paymentMethod === 'en_linea') await new Promise((resolve) => window.setTimeout(resolve, 1200));
 
-      const estimate = await obtenerEstimacionEntrega();
-      setDeliveryEstimate(estimate);
-      if (paymentMethod === 'en_linea') {
-        await new Promise((resolve) => window.setTimeout(resolve, 1200));
-      }
+    // El envío por WhatsApp (imagen del ticket + enlaces de productos) se hace desde el ticket:
+    // compartir una imagen requiere un clic del cliente. Con varios comercios, /pedidos/enviar
+    // muestra un ticket y un botón de WhatsApp por cada uno.
+    setPaymentStatus('success');
+    onClose();
+    const path = afterCheckoutPath(result.created);
+    if (path) window.location.assign(path);
+  };
 
-      // El envío por WhatsApp (imagen del ticket + enlaces de productos) se hace desde la página
-      // del ticket: compartir una imagen requiere un clic del cliente sobre ese botón.
-      setPaymentStatus('success');
-      clearCart();
-      onClose();
-      window.location.assign(`/pedidos/${pedido.id}?origen=whatsapp#ticket`);
-    } catch (orderError) {
-      if (isNetworkError(orderError)) {
-        saveOffline(); // se cortó la conexión durante el envío
-        return;
-      }
-      setPaymentStatus('idle');
-      showAppMessage(
-        userFacingError(orderError, 'No se pudo registrar el pedido. Inténtalo de nuevo.'),
-        'Pedido no enviado',
-        'error',
-      );
-    }
+  const addComplement = (item: AIRecommendation) => {
+    addItem({
+      id: item.id,
+      tienda_id: item.tienda_id,
+      nombre: item.nombre,
+      precio: item.precio,
+      precio_gs: item.precio,
+      precio_oferta: item.precio_oferta ?? null,
+      imagen_url: item.imagen_url ?? undefined,
+      activo: true,
+      stock: null,
+      stock_minimo: null,
+      tienda_nombre: item.tienda_nombre,
+      tienda_slug: item.tienda_slug,
+    });
   };
 
   return (
@@ -161,7 +173,9 @@ export default function CartDrawer({ isOpen, onClose, currentShop }: CartDrawerP
         <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-emerald-700 text-white">
           <div>
             <h2 className="font-bold text-lg">Tu Carrito de Compras</h2>
-            {currentShop && <p className="text-xs text-emerald-200">{currentShop.nombre}</p>}
+            {shopGroups.length > 1
+              ? <p className="text-xs text-emerald-200">{shopGroups.length} comercios · un pedido y un WhatsApp por cada uno</p>
+              : shopGroups[0] && <p className="text-xs text-emerald-200">{shopGroups[0].tienda_nombre}</p>}
           </div>
           <button onClick={onClose} className="p-2 hover:bg-emerald-600 rounded-lg text-xl font-bold">
             ✕
@@ -177,8 +191,13 @@ export default function CartDrawer({ isOpen, onClose, currentShop }: CartDrawerP
               <p className="text-xs text-gray-400 mt-1">Explora las tiendas de Guairá y añade tus productos preferidos.</p>
             </div>
           ) : (
-            items.map(({ product, cantidad }) => {
-              const precioUnitario = getEffectiveProductPrice(product);
+            shopGroups.map((group) => (
+            <section key={group.tienda_id} aria-label={`Productos de ${group.tienda_nombre}`} className="space-y-3">
+              <div className="flex items-center justify-between border-b border-gray-200 pb-1">
+                <h3 className="text-xs font-black uppercase tracking-wide text-gray-600">🏪 {group.tienda_nombre}</h3>
+                <span className="text-xs font-bold text-emerald-700">Gs. {group.subtotal.toLocaleString('es-PY')}</span>
+              </div>
+            {group.items.map(({ product, cantidad }) => {
               const nombreProducto = product.nombre ?? product.titulo ?? 'Producto';
               return (
                 <div key={product.id} className="flex items-center gap-4 bg-gray-50 p-3 rounded-xl border border-gray-100">
@@ -220,7 +239,28 @@ export default function CartDrawer({ isOpen, onClose, currentShop }: CartDrawerP
                   </button>
                 </div>
               );
-            })
+            })}
+            </section>
+            ))
+          )}
+
+          {complements.length > 0 && (
+            <section aria-label="Productos complementarios" className="rounded-xl border border-dashed border-emerald-400 bg-slate-50 p-3">
+              <h3 className="text-xs font-black uppercase tracking-wide text-emerald-800">✨ Completa tu compra</h3>
+              <ul className="mt-2 space-y-2">
+                {complements.map((item) => (
+                  <li key={item.id} className="flex items-center justify-between gap-2 text-xs">
+                    <span className="min-w-0">
+                      <span className="block truncate font-bold text-gray-800">{item.nombre}</span>
+                      <span className="block truncate text-gray-500">{item.tienda_nombre} · {item.motivo}</span>
+                    </span>
+                    <button type="button" onClick={() => addComplement(item)} className="shrink-0 rounded-lg bg-emerald-600 px-2.5 py-1.5 font-bold text-white hover:bg-emerald-700">
+                      + Gs. {(item.precio_oferta && item.precio_oferta < item.precio ? item.precio_oferta : item.precio).toLocaleString('es-PY')}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
           )}
         </div>
 

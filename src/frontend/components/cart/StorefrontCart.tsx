@@ -34,6 +34,7 @@ interface StorefrontCartProps {
   shop: {
     id: string;
     nombre: string;
+    slug?: string | null;
     whatsapp?: string | null;
     telefono?: string | null;
   };
@@ -91,6 +92,8 @@ export default function StorefrontCart({ products, categories = [], shop }: Stor
       stock_minimo: product.stock_minimo ?? null,
       imagen_url: product.imagen_url || undefined,
       activo: true,
+      tienda_nombre: shop.nombre,
+      tienda_slug: shop.slug ?? null,
     };
     addItem(item);
     void supabase.rpc('registrar_interaccion_producto', {

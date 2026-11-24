@@ -1,12 +1,15 @@
 'use client';
 
 /**
- * [FRONTEND] Estado global del carrito (guardado en el dispositivo): una tienda por vez, totales y enlace de WhatsApp.
+ * [FRONTEND] Estado global del carrito MULTITIENDA (guardado en el dispositivo).
+ *
+ * El cliente puede juntar productos de varios comercios. `shopGroups` los agrupa por tienda:
+ * al confirmar se crea un pedido por comercio y se envía un mensaje de WhatsApp a cada uno
+ * (ver frontend/lib/multi-store-checkout.ts y la página /pedidos/enviar).
  */
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Product } from '@/shared/types/product';
-import { CartItem } from '@/shared/types/cart';
-import { showAppConfirm } from '@/frontend/lib/app-message';
+import { CartItem, CartShopGroup } from '@/shared/types/cart';
 import { getEffectiveProductPrice, getMaxQuantity } from '@/shared/lib/product-pricing';
 import { shortOrderNumber } from '@/frontend/lib/order-ticket';
 
@@ -18,6 +21,8 @@ interface CartContextType {
   clearCart: () => void;
   totalAmount: number;
   totalItems: number;
+  /** Productos agrupados por comercio (un pedido por grupo). */
+  shopGroups: CartShopGroup[];
   generateWhatsAppLink: (
     merchantPhone: string,
     merchantName: string,
@@ -59,16 +64,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
   const addItem = (product: Product, cantidad: number = 1) => {
     setItems((prevItems) => {
-      // Validar si es de la misma tienda
-      if (prevItems.length > 0 && prevItems[0].product.tienda_id !== product.tienda_id) {
-        void showAppConfirm('Tu carrito contiene productos de otra tienda. ¿Deseas vaciar el carrito para agregar productos de esta nueva tienda?').then((confirmed) => {
-          if (confirmed) {
-            setItems([{ product, cantidad }]);
-          }
-        });
-        return prevItems;
-      }
-
+      // Multitienda: se aceptan productos de cualquier comercio (se agrupan al confirmar).
       // Nunca más unidades de las que hay en stock (la base también lo valida al confirmar).
       const max = getMaxQuantity(product.stock);
       if (max <= 0) return prevItems;
@@ -114,6 +110,23 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   );
 
   const totalItems = items.reduce((sum, item) => sum + item.cantidad, 0);
+
+  const shopGroups: CartShopGroup[] = [];
+  for (const item of items) {
+    let group = shopGroups.find((entry) => entry.tienda_id === item.product.tienda_id);
+    if (!group) {
+      group = {
+        tienda_id: item.product.tienda_id,
+        tienda_nombre: item.product.tienda_nombre || 'Comercio',
+        tienda_slug: item.product.tienda_slug ?? null,
+        items: [],
+        subtotal: 0,
+      };
+      shopGroups.push(group);
+    }
+    group.items.push(item);
+    group.subtotal += getEffectiveProductPrice(item.product) * item.cantidad;
+  }
 
   /**
    * Estructura la orden según Ley N.° 4017/10 de Mensajes de Datos
@@ -186,6 +199,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         clearCart,
         totalAmount,
         totalItems,
+        shopGroups,
         generateWhatsAppLink,
       }}
     >

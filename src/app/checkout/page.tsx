@@ -7,12 +7,13 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useCart } from '@/frontend/context/CartContext';
 import { supabase } from '@/shared/supabase/client';
-import { createOrder, getMyOrder } from '@/frontend/services/orders.service';
+import { getMyOrder } from '@/frontend/services/orders.service';
 import type { CheckoutConfirmation, CheckoutInput } from '@/shared/types/database';
+import { afterCheckoutPath, submitOrdersByShop } from '@/frontend/lib/multi-store-checkout';
 import { userFacingError } from '@/shared/lib/user-facing-error';
 import OrderTicket from '@/frontend/components/orders/OrderTicket';
 import type { OrderTicketData } from '@/frontend/lib/order-ticket';
-import { isNetworkError, queueOrder } from '@/frontend/lib/offline-orders';
+
 import PriceTag from '@/frontend/components/products/PriceTag';
 import { getPricing } from '@/shared/lib/product-pricing';
 
@@ -37,10 +38,11 @@ function priceFor(product: CheckoutProduct): number {
 }
 
 export default function CheckoutPage() {
-  const { items, clearCart } = useCart();
+  const { items, removeItem, shopGroups } = useCart();
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
   const [products, setProducts] = useState<CheckoutProduct[]>([]);
-  const [shop, setShop] = useState<CheckoutShop | null>(null);
+  /** Comercios del carrito (multitienda: se crea un pedido por cada uno). */
+  const [shops, setShops] = useState<CheckoutShop[]>([]);
   const [districts, setDistricts] = useState<CheckoutDistrict[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -74,11 +76,6 @@ export default function CheckoutPage() {
       }
 
       const shopIds = Array.from(new Set(items.map(({ product }) => product.tienda_id)));
-      if (shopIds.length !== 1) {
-        setError('El carrito contiene productos de más de una tienda. Finaliza un pedido por tienda.');
-        setLoading(false);
-        return;
-      }
 
       const productIds = items.map(({ product }) => product.id);
       const [productsResult, shopResult, districtsResult] = await Promise.all([
@@ -89,8 +86,8 @@ export default function CheckoutPage() {
         supabase
           .from('tiendas')
           .select('id, nombre_comercio')
-          .eq('id', shopIds[0])
-          .maybeSingle(),
+          .in('id', shopIds)
+          .eq('estado', 'activa'),
         supabase.from('distritos').select('id, nombre').eq('activo', true).order('nombre'),
       ]);
 
@@ -112,25 +109,29 @@ export default function CheckoutPage() {
           disponible: true,
           stock: null,
         })));
-        setShop((shopResult.data as CheckoutShop | null) ?? { id: shopIds[0], nombre_comercio: 'Tienda' });
+        setShops(shopIds.map((id) => ({
+          id,
+          nombre_comercio: items.find(({ product }) => product.tienda_id === id)?.product.tienda_nombre || 'Tienda',
+        })));
         setDistricts((districtsResult.data || []) as CheckoutDistrict[]);
       } else if (loadError) {
         setError(userFacingError(loadError, 'No se pudo cargar la información del pedido. Inténtalo de nuevo.'));
       } else {
         setProducts((productsResult.data || []) as CheckoutProduct[]);
-        setShop((shopResult.data || null) as CheckoutShop | null);
+        const loadedShops = (shopResult.data || []) as CheckoutShop[];
+        setShops(loadedShops);
         setDistricts((districtsResult.data || []) as CheckoutDistrict[]);
 
         const rows = productsResult.data || [];
         if (rows.length !== productIds.length) {
           setError('Uno o más productos ya no están disponibles. Actualiza el carrito antes de confirmar.');
-        } else if (rows.some((product) => !product.disponible || product.tienda_id !== shopIds[0])) {
+        } else if (rows.some((product) => !product.disponible || product.tienda_id !== items.find((item) => item.product.id === product.id)?.product.tienda_id)) {
           setError('Un producto dejó de estar disponible o ya no pertenece a esta tienda.');
         } else if (rows.some((product) => product.stock != null && (items.find((item) => item.product.id === product.id)?.cantidad ?? 0) > product.stock)) {
           const short = rows.find((product) => product.stock != null && (items.find((item) => item.product.id === product.id)?.cantidad ?? 0) > product.stock);
           setError(`No hay stock suficiente de "${short?.titulo}": quedan ${short?.stock} unidades. Ajusta la cantidad en el carrito.`);
-        } else if (!shopResult.data) {
-          setError('La tienda asociada al carrito ya no está disponible.');
+        } else if (loadedShops.length !== shopIds.length) {
+          setError('Uno de los comercios del carrito ya no está disponible. Quita sus productos para continuar.');
         }
       }
 
@@ -176,57 +177,47 @@ export default function CheckoutPage() {
     setError(null);
     setSubmitting(true);
 
-    const orderInput: CheckoutInput = {
-      tienda_id: shop?.id ?? '',
-      items: items.map(({ product, cantidad }) => ({ producto_id: product.id, cantidad })),
-      metodo_pago: paymentMethod,
-      direccion_entrega: address,
-      distrito_id: districtId ? Number(districtId) : null,
-      latitud: location?.latitud ?? null,
-      longitud: location?.longitud ?? null,
-      notas: notes,
-    };
-    const saveOffline = () => {
-      queueOrder({
-        origen: 'checkout',
-        input: orderInput,
-        resumen: {
-          tienda: shop?.nombre_comercio ?? 'Tienda',
-          total,
-          items: lineItems.map(({ product, cantidad, effectivePrice }) => ({
-            nombre: product.nombre || product.titulo,
-            cantidad,
-            precio: effectivePrice,
-          })),
-        },
-      });
-      clearCart();
-      setQueuedOffline(true);
-    };
-
     try {
-      if (!shop || productsUnavailable || lineItems.length !== items.length) {
+      if (shops.length === 0 || productsUnavailable || lineItems.length !== items.length) {
         throw new Error('Actualiza el carrito: hay productos que no pueden incluirse en el pedido.');
       }
 
-      if (!navigator.onLine) {
-        saveOffline();
+      // Multitienda: un pedido por comercio con los mismos datos de entrega y pago.
+      const shopNames = new Map(shops.map((item) => [item.id, item.nombre_comercio]));
+      const groups = shopGroups.map((group) => ({ ...group, tienda_nombre: shopNames.get(group.tienda_id) ?? group.tienda_nombre }));
+      const result = await submitOrdersByShop(groups, {
+        metodo_pago: paymentMethod,
+        direccion_entrega: address,
+        distrito_id: districtId ? Number(districtId) : null,
+        latitud: location?.latitud ?? null,
+        longitud: location?.longitud ?? null,
+        notas: notes,
+      }, 'checkout');
+
+      items
+        .filter(({ product }) => result.doneShopIds.includes(product.tienda_id))
+        .forEach(({ product }) => removeItem(product.id));
+
+      if (result.failed.length > 0) {
+        setError(result.failed.map((failure) => `${failure.tienda}: ${userFacingError(failure.error, 'No se pudo registrar el pedido.')}`).join(' · '));
+        if (result.created.length === 0 && result.queuedOffline.length === 0) return;
+      }
+
+      if (result.created.length === 0) {
+        setQueuedOffline(true);
         return;
       }
 
-      const result = await createOrder(orderInput);
+      if (result.created.length > 1 || result.queuedOffline.length > 0) {
+        // Varios comercios: un ticket y un WhatsApp por cada uno
+        window.location.assign(afterCheckoutPath(result.created) ?? '/pedidos');
+        return;
+      }
 
-      setCreatedOrder(result.pedido);
-      clearCart();
-      // El ticket es complementario: si falla su carga, la confirmación sigue visible.
-      void getMyOrder(result.pedido.id)
-        .then((order) => { if (order) setTicket({ pedido: order.pedido, detalles: order.detalles }); })
-        .catch(() => undefined);
+      const order = await getMyOrder(result.created[0].id).catch(() => null);
+      setCreatedOrder(order?.pedido ?? { id: result.created[0].id, numero_pedido: result.created[0].numero_pedido } as CheckoutConfirmation['pedido']);
+      if (order) setTicket({ pedido: order.pedido, detalles: order.detalles });
     } catch (submitError) {
-      if (shop && isNetworkError(submitError)) {
-        saveOffline(); // se cortó la conexión durante el envío
-        return;
-      }
       setError(userFacingError(submitError, 'No se pudo confirmar el pedido. Inténtalo de nuevo.'));
     } finally {
       setSubmitting(false);
@@ -308,9 +299,19 @@ export default function CheckoutPage() {
           <div className="space-y-8">
             <section>
               <h2 className="mb-4 text-lg font-bold text-slate-900">Productos</h2>
-              {shop && <p className="mb-3 text-sm text-slate-600">Tienda: <strong>{shop.nombre_comercio}</strong></p>}
+              {shopGroups.length > 1 && (
+                <p className="mb-3 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800">
+                  Tu carrito tiene productos de {shopGroups.length} comercios: se creará un pedido para cada uno y podrás enviar cada pedido por WhatsApp a su comercio.
+                </p>
+              )}
+              {shopGroups.map((group) => (
+              <div key={group.tienda_id} className="mb-5">
+              <p className="mb-2 flex items-center justify-between text-sm text-slate-600">
+                <span>Comercio: <strong>{shops.find((item) => item.id === group.tienda_id)?.nombre_comercio ?? group.tienda_nombre}</strong></span>
+                <span className="font-bold text-slate-800">Gs. {group.items.reduce((sum, { product, cantidad }) => sum + (productById.get(product.id) ? priceFor(productById.get(product.id)!) : 0) * cantidad, 0).toLocaleString('es-PY')}</span>
+              </p>
               <div className="divide-y divide-slate-200 border-y border-slate-200">
-                {items.map(({ product, cantidad }) => {
+                {group.items.map(({ product, cantidad }) => {
                   const current = productById.get(product.id);
                   const name = current?.nombre || current?.titulo || product.nombre;
                   const unit = current ? priceFor(current) : 0;
@@ -328,6 +329,8 @@ export default function CheckoutPage() {
                   );
                 })}
               </div>
+              </div>
+              ))}
             </section>
 
             <section className="space-y-4">
@@ -369,7 +372,7 @@ export default function CheckoutPage() {
               <div className="flex justify-between border-t border-slate-200 pt-4 text-base font-black"><span>Total</span><span>Gs. {total.toLocaleString('es-PY')}</span></div>
             </div>
             <p className="mt-4 text-xs text-slate-500">El servidor volverá a validar disponibilidad y precios antes de registrar el pedido.</p>
-            <button type="submit" disabled={submitting || loading || productsUnavailable || !shop} className="mt-5 w-full rounded-lg bg-emerald-700 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-slate-400">
+            <button type="submit" disabled={submitting || loading || productsUnavailable || shops.length === 0} className="mt-5 w-full rounded-lg bg-emerald-700 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-slate-400">
               {submitting ? 'Confirmando...' : offlineMode ? 'Guardar pedido (sin conexión)' : 'Confirmar pedido'}
             </button>
             {offlineMode && (

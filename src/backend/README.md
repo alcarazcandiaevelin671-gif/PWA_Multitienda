@@ -8,7 +8,8 @@ importa, **Next.js detiene el build**. Aquí viven la lógica sensible y los sec
 | `api/` | Lógica de cada endpoint. `src/app/api/<ruta>/route.ts` solo reexporta el archivo correspondiente |
 | `auth/` | `server-auth.ts` (firma de sesión verificada localmente, cookie de rol firmada) y guardias: `require-admin`, `require-merchant`, `require-active-user` |
 | `security/` | `proxy.ts` (CSRF, rutas protegidas, rol, MFA) y `rate-limit.ts` (límite de peticiones) |
-| `catalog/` | Datos del catálogo público para páginas que se generan en el servidor (tiendas, productos, categorías, vitrina) |
+| `catalog/` | Datos del catálogo público para páginas que se generan en el servidor (tiendas, productos, categorías, vitrina, mapa de comercios) |
+| `recommendations/` | `engine.ts`: motor de IA híbrido (TF-IDF + coseno, colaborativo ítem-ítem, popularidad, cercanía). Módulo puro, sin `server-only`, para poder evaluarlo con `scripts/ia/evaluar-recomendaciones.mjs` |
 | `supabase/` | `server-client.ts` (con la sesión del usuario, RLS aplica) y `admin-client.ts` (clave secreta: salta RLS, usar lo mínimo) |
 
 ## Endpoints
@@ -16,7 +17,7 @@ importa, **Next.js detiene el build**. Aquí viven la lógica sensible y los sec
 | Ruta pública | Archivo |
 |---|---|
 | `POST /api/checkout` | `api/checkout.ts` |
-| `GET /api/recommendations` | `api/recommendations.ts` |
+| `GET /api/recommendations?tipo=productos\|comercios\|complementarios` | `api/recommendations.ts` |
 | `POST /api/registro-vendedor` · `/api/registro-comerciante` | `api/registro-vendedor.ts` |
 | `POST/DELETE /api/auth/session` | `api/auth/session.ts` |
 | `GET /auth/callback` | `api/auth/callback.ts` |

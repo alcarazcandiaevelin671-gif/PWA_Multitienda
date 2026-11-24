@@ -1,0 +1,251 @@
+{
+  "fecha": "2026-11-24T16:25:44.970Z",
+  "base": "http://localhost:3100",
+  "corridas": 3,
+  "resultados": [
+    {
+      "modo": "movil",
+      "pagina": "inicio",
+      "ruta": "/",
+      "rendimientoCorridas": [
+        73,
+        76,
+        77
+      ],
+      "reintentos": 1,
+      "rendimiento": 76,
+      "accesibilidad": 96,
+      "buenasPracticas": 100,
+      "seo": 100,
+      "fcp": 929.357,
+      "lcp": 3476.5355,
+      "tbt": 557.3215,
+      "cls": 0,
+      "si": 2877.3361538931704,
+      "version": "12.8.2",
+      "perfil": "mobile",
+      "intentos": 1
+    },
+    {
+      "modo": "movil",
+      "pagina": "productos",
+      "ruta": "/tiendas",
+      "rendimientoCorridas": [
+        78,
+        80,
+        80
+      ],
+      "reintentos": 5,
+      "rendimiento": 80,
+      "accesibilidad": 96,
+      "buenasPracticas": 100,
+      "seo": 100,
+      "fcp": 932.5038,
+      "lcp": 3798.2557,
+      "tbt": 357.7481,
+      "cls": 0,
+      "si": 2169.269080620788,
+      "version": "12.8.2",
+      "perfil": "mobile",
+      "intentos": 2
+    },
+    {
+      "modo": "movil",
+      "pagina": "mapa",
+      "ruta": "/comercios",
+      "rendimientoCorridas": [
+        57,
+        51,
+        58
+      ],
+      "reintentos": 2,
+      "rendimiento": 57,
+      "accesibilidad": 91,
+      "buenasPracticas": 96,
+      "seo": 100,
+      "fcp": 1380.467,
+      "lcp": 6157.580499999999,
+      "tbt": 876.006600000001,
+      "cls": 0,
+      "si": 2919.1348514043502,
+      "version": "12.8.2",
+      "perfil": "mobile",
+      "intentos": 1
+    },
+    {
+      "modo": "movil",
+      "pagina": "categorias",
+      "ruta": "/categorias",
+      "rendimientoCorridas": [
+        80,
+        81,
+        80
+      ],
+      "reintentos": 3,
+      "rendimiento": 80,
+      "accesibilidad": 95,
+      "buenasPracticas": 100,
+      "seo": 100,
+      "fcp": 942.2997,
+      "lcp": 3154.4495500000003,
+      "tbt": 531.85015,
+      "cls": 0,
+      "si": 1775.9037495934338,
+      "version": "12.8.2",
+      "perfil": "mobile",
+      "intentos": 2
+    },
+    {
+      "modo": "movil",
+      "pagina": "tienda",
+      "ruta": "/tienda/vendedor-1",
+      "rendimientoCorridas": [
+        79,
+        72,
+        80
+      ],
+      "reintentos": 0,
+      "rendimiento": 79,
+      "accesibilidad": 96,
+      "buenasPracticas": 100,
+      "seo": 100,
+      "fcp": 1002.4027,
+      "lcp": 3875.2081,
+      "tbt": 343.9999999999999,
+      "cls": 0,
+      "si": 3420.719709682196,
+      "version": "12.8.2",
+      "perfil": "mobile",
+      "intentos": 1
+    },
+    {
+      "modo": "escritorio",
+      "pagina": "inicio",
+      "ruta": "/",
+      "rendimientoCorridas": [
+        98,
+        98,
+        98
+      ],
+      "reintentos": 2,
+      "rendimiento": 98,
+      "accesibilidad": 96,
+      "buenasPracticas": 100,
+      "seo": 100,
+      "fcp": 320.03965,
+      "lcp": 837.1586,
+      "tbt": 10,
+      "cls": 0,
+      "si": 1255.7046185329746,
+      "version": "12.8.2",
+      "perfil": "desktop",
+      "intentos": 2
+    },
+    {
+      "modo": "escritorio",
+      "pagina": "productos",
+      "ruta": "/tiendas",
+      "rendimientoCorridas": [
+        98,
+        98,
+        98
+      ],
+      "reintentos": 1,
+      "rendimiento": 98,
+      "accesibilidad": 96,
+      "buenasPracticas": 100,
+      "seo": 100,
+      "fcp": 291.26845000000003,
+      "lcp": 957.0738000000001,
+      "tbt": 17,
+      "cls": 0,
+      "si": 971.0669409197628,
+      "version": "12.8.2",
+      "perfil": "desktop",
+      "intentos": 1
+    },
+    {
+      "modo": "escritorio",
+      "pagina": "mapa",
+      "ruta": "/comercios",
+      "rendimientoCorridas": [
+        95,
+        95,
+        94
+      ],
+      "reintentos": 1,
+      "rendimiento": 95,
+      "accesibilidad": 91,
+      "buenasPracticas": 100,
+      "seo": 100,
+      "fcp": 382.81639999999993,
+      "lcp": 1341.0839999999998,
+      "tbt": 23.5,
+      "cls": 0.00009935776475317878,
+      "si": 1409.9477844455923,
+      "version": "12.8.2",
+      "perfil": "desktop",
+      "intentos": 2
+    },
+    {
+      "modo": "escritorio",
+      "pagina": "categorias",
+      "ruta": "/categorias",
+      "rendimientoCorridas": [
+        100,
+        100,
+        100
+      ],
+      "reintentos": 0,
+      "rendimiento": 100,
+      "accesibilidad": 95,
+      "buenasPracticas": 100,
+      "seo": 100,
+      "fcp": 286.664,
+      "lcp": 708.492,
+      "tbt": 6,
+      "cls": 0,
+      "si": 697.9285921321346,
+      "version": "12.8.2",
+      "perfil": "desktop",
+      "intentos": 1
+    },
+    {
+      "modo": "escritorio",
+      "pagina": "tienda",
+      "ruta": "/tienda/vendedor-1",
+      "rendimientoCorridas": [
+        98,
+        99,
+        99
+      ],
+      "reintentos": 0,
+      "rendimiento": 99,
+      "accesibilidad": 96,
+      "buenasPracticas": 100,
+      "seo": 100,
+      "fcp": 288.55465000000004,
+      "lcp": 780.6639500000001,
+      "tbt": 10.499999999999943,
+      "cls": 0,
+      "si": 1142.0997186752672,
+      "version": "12.8.2",
+      "perfil": "desktop",
+      "intentos": 1
+    }
+  ],
+  "promedios": {
+    "movil": {
+      "rendimiento": 74.4,
+      "accesibilidad": 94.8,
+      "buenasPracticas": 99.2,
+      "seo": 100
+    },
+    "escritorio": {
+      "rendimiento": 98,
+      "accesibilidad": 94.8,
+      "buenasPracticas": 100,
+      "seo": 100
+    }
+  }
+}
