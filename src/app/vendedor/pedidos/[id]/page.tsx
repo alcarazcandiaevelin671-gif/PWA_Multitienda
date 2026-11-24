@@ -8,6 +8,7 @@ import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { showAppConfirm, showAppMessage } from '@/frontend/lib/app-message';
 import { userFacingError } from '@/shared/lib/user-facing-error';
+import { useClientNames } from '@/frontend/lib/client-names';
 import { getOrderStateLabel, getStoreOrderById, ORDER_STATUS_FLOW, updateVendorOrderStatus } from '@/frontend/services/orders.service';
 import type { PedidoDetalle, PedidoEstadoHistorial } from '@/shared/types/database';
 
@@ -21,6 +22,7 @@ export default function VendorOrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const clientName = useClientNames();
 
   const loadOrder = useCallback(async () => {
     if (!orderId) {
@@ -155,7 +157,7 @@ export default function VendorOrderDetailPage() {
             <div className="flex justify-between border-t border-slate-200 pt-3 text-base font-black"><dt>Total</dt><dd>Gs. {Number(pedido.total).toLocaleString('es-PY')}</dd></div>
           </dl>
           <div className="mt-5 space-y-2 text-sm text-slate-600">
-            <p>Cliente: {pedido.usuario_id || 'Usuario'}</p>
+            <p>Cliente: {clientName(pedido.usuario_id)}</p>
             <p>Entrega: {pedido.direccion_entrega}</p>
             <p>Método de pago: {pedido.metodo_pago}</p>
             <p>Notas: {pedido.notas || 'Sin observaciones.'}</p>

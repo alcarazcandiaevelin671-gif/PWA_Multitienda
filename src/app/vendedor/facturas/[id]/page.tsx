@@ -8,6 +8,7 @@ import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getMyStoreInvoiceById } from '@/frontend/services/invoices.service';
 import type { FacturaDetalle, FacturaInterna, Pedido, Venta } from '@/shared/types/database';
+import { useClientNames } from '@/frontend/lib/client-names';
 import { userFacingError } from '@/shared/lib/user-facing-error';
 
 type InvoiceDetails = {
@@ -26,6 +27,7 @@ export default function VendorInvoiceDetailPage() {
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState('');
+  const clientName = useClientNames();
 
   useEffect(() => {
     let current = true;
@@ -105,7 +107,7 @@ export default function VendorInvoiceDetailPage() {
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><Link href="/comerciante/facturas" className="text-sm font-bold text-primary-700 hover:underline">← Facturas</Link><button type="button" onClick={() => void downloadPdf()} disabled={exporting} className="rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-primary-700 disabled:opacity-50">{exporting ? 'Generando PDF…' : 'Descargar PDF'}</button></div>
       <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <header className="border-b border-slate-200 bg-slate-50 p-6 sm:p-8"><p className="text-xs font-black uppercase tracking-[0.18em] text-primary-700">Comprobante interno</p><div className="mt-2 flex flex-wrap items-end justify-between gap-4"><div><h1 className="text-2xl font-black text-slate-900">Factura {invoice.numero}</h1><p className="mt-1 text-sm text-slate-600">{storeName}</p></div><span className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold capitalize text-slate-700">{invoice.estado}</span></div></header>
-                <div className="grid gap-4 border-b border-slate-100 p-6 sm:grid-cols-2 sm:p-8 lg:grid-cols-3"><div><p className="text-xs font-semibold text-slate-500">Fecha</p><p className="mt-1 text-sm font-bold text-slate-900">{new Date(invoice.fecha).toLocaleDateString('es-PY')}</p></div><div><p className="text-xs font-semibold text-slate-500">Tipo de documento</p><p className="mt-1 text-sm font-bold capitalize text-slate-900">{invoice.tipo_documento}</p></div><div><p className="text-xs font-semibold text-slate-500">Moneda</p><p className="mt-1 text-sm font-bold text-slate-900">{invoice.moneda}</p></div><div><p className="text-xs font-semibold text-slate-500">Cliente asociado</p><p className="mt-1 text-sm font-bold text-slate-900">{invoice.cliente_id ? 'Cliente registrado' : 'No especificado'}</p></div></div>
+                <div className="grid gap-4 border-b border-slate-100 p-6 sm:grid-cols-2 sm:p-8 lg:grid-cols-3"><div><p className="text-xs font-semibold text-slate-500">Fecha</p><p className="mt-1 text-sm font-bold text-slate-900">{new Date(invoice.fecha).toLocaleDateString('es-PY')}</p></div><div><p className="text-xs font-semibold text-slate-500">Tipo de documento</p><p className="mt-1 text-sm font-bold capitalize text-slate-900">{invoice.tipo_documento}</p></div><div><p className="text-xs font-semibold text-slate-500">Moneda</p><p className="mt-1 text-sm font-bold text-slate-900">{invoice.moneda}</p></div><div><p className="text-xs font-semibold text-slate-500">Cliente asociado</p><p className="mt-1 text-sm font-bold text-slate-900">{invoice.cliente_id ? clientName(invoice.cliente_id) : 'No especificado'}</p></div></div>
                 <section className="border-b border-slate-100 p-6 sm:p-8">
                   <h2 className="text-sm font-black uppercase tracking-wide text-slate-700">Documentos relacionados</h2>
                   <div className="mt-3 grid gap-3 sm:grid-cols-2">

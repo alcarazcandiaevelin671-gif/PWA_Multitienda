@@ -225,7 +225,7 @@ const role = normalizeRole(profile?.rol || 'cliente');
             accent: 'text-emerald-200',
             title: 'PANEL DE MI TIENDA - PORTAL GUAIRÁ',
             subtitle: 'Comerciante',
-            description: 'Controla tu membresía, catálogo, negocio y presencia comercial en la región.',
+            description: 'Controla tu catálogo, negocio y presencia comercial en la región.',
           }
         : {
             header: 'bg-gradient-to-r from-primary-900 via-primary-700 to-accent-600',
@@ -268,7 +268,7 @@ const role = normalizeRole(profile?.rol || 'cliente');
         ? (
           <section className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {[
-              ['Estado de la Membresía', '50.000 PYG / mes • Activo'],
+              ['Estado del plan', 'Sin costo • Activo'],
               ['Gestión del Negocio', 'Logo, portada, WhatsApp y coordenadas PostGIS'],
               ['Catálogo de Productos', 'Agregar, editar, pausar o eliminar artículos'],
             ].map(([label, text]) => (

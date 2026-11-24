@@ -625,62 +625,14 @@ export default function ComercianteTiendaPage() {
               <div className="rounded-2xl border border-primary-100 bg-primary-50/60 p-4 space-y-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h2 className="text-sm font-black text-slate-900">Plan Comerciante (Membresía)</h2>
+                    <h2 className="text-sm font-black text-slate-900">Plan Comerciante</h2>
                     <p className="mt-1 text-xs text-slate-600">Acceso al panel y publicación de tu comercio.</p>
                   </div>
-                  <span className="whitespace-nowrap text-sm font-black text-primary-700">50.000 PYG / mes</span>
-                </div>
-
-                <div className="rounded-xl bg-white p-1 border border-primary-100">
-                  <label className="cursor-pointer">
-                    <input type="radio" name="metodo_pago" value="tarjeta" defaultChecked className="peer sr-only" />
-                    <span className="block rounded-lg bg-primary-600 px-3 py-2 text-center text-xs font-bold text-white">
-                      Tarjeta
-                    </span>
-                  </label>
-                </div>
-
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Número de tarjeta *</label>
-                    <input
-                      type="text"
-                      required
-                      inputMode="numeric"
-                      pattern="[0-9 ]{13,19}"
-                      placeholder="0000 0000 0000 0000"
-                      className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-primary-600"
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1">MM/AA *</label>
-                      <input
-                        type="text"
-                        required
-                        inputMode="numeric"
-                        pattern="(0[1-9]|1[0-2])/[0-9]{2}"
-                        placeholder="MM/AA"
-                        className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-primary-600"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1">CVC *</label>
-                      <input
-                        type="text"
-                        required
-                        inputMode="numeric"
-                        pattern="[0-9]{3,4}"
-                        maxLength={4}
-                        placeholder="123"
-                        className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-primary-600"
-                      />
-                    </div>
-                  </div>
+                  <span className="whitespace-nowrap text-sm font-black text-primary-700">Sin costo</span>
                 </div>
 
                 <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] font-semibold text-amber-800">
-                  Modo Prototipo: Sin cobro real
+                  El registro y la publicación son gratuitos. No se piden datos de pago.
                 </p>
               </div>
             )}
@@ -694,7 +646,7 @@ export default function ComercianteTiendaPage() {
                 ? 'Procesando...'
                 : authMode === 'login'
                 ? '🔑 Ingresar al Panel'
-                : '🚀 Confirmar Pago y Registrarme'}
+                : '🚀 Continuar con el registro'}
             </button>
           </form>
 

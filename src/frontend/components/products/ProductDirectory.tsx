@@ -2,8 +2,11 @@
 
 /**
  * [FRONTEND] Directorio de productos de /tiendas: búsqueda, filtro por distrito y orden por cercanía (mapa opcional).
+ *
+ * Ubicación: solo con consentimiento (botón + explicación) o eligiéndola en el mapa; nunca automática.
+ * Distancias: las calcula PostGIS en la base (tiendas_cercanas); sin conexión, Haversine en el navegador.
  */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
@@ -11,6 +14,8 @@ import FavoriteToggle from '@/frontend/components/common/FavoriteToggle';
 import PriceTag from '@/frontend/components/products/PriceTag';
 import { getLowStock } from '@/shared/lib/product-pricing';
 import { haversineDistanceKm } from '@/frontend/lib/geolocation';
+import { LOCATION_PURPOSE, getStoredLocation, requestLocationWithConsent, saveLocation } from '@/frontend/lib/location-consent';
+import { fetchNearbyShops } from '@/frontend/services/shops-map.service';
 import type { FeaturedProduct, ProductDistrict } from '@/shared/types/catalog';
 
 const LocationPicker = dynamic(() => import('@/frontend/components/ui/LocationPicker'), {
@@ -32,40 +37,51 @@ export default function ProductDirectory({ products, districts }: { products: Fe
   const [districtId, setDistrictId] = useState('all');
   const [showMap, setShowMap] = useState(false);
   const [locationStatus, setLocationStatus] = useState('');
-  const manualLocationSelected = useRef(false);
+  /** Distancia (km) a cada comercio calculada por PostGIS; vacío = usar Haversine local. */
+  const [shopDistances, setShopDistances] = useState<Map<string, number>>(new Map());
 
+  // Reutiliza una ubicación ya consentida (vigente 30 min); no pide permiso sola.
   useEffect(() => {
-    let active = true;
-    if (!navigator.geolocation) {
-      setLocationStatus('Tu navegador no permite obtener ubicación automáticamente; puedes elegirla en el mapa.');
-      return () => { active = false; };
+    const stored = getStoredLocation();
+    if (stored) {
+      setLocation(stored);
+      setLocationStatus('Usando la ubicación que indicaste. Los productos cercanos aparecen primero.');
     }
-
-    setLocationStatus('Detectando tu ubicación…');
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        if (!active || manualLocationSelected.current) return;
-        setLocation({ latitude: position.coords.latitude, longitude: position.coords.longitude });
-        setLocationStatus('Ubicación detectada. Los productos cercanos aparecen primero.');
-      },
-      () => {
-        if (!active || manualLocationSelected.current) return;
-        setLocation(null);
-        setLocationStatus('No se pudo obtener tu ubicación; se mantiene el orden original. Puedes elegirla en el mapa.');
-      },
-      { enableHighAccuracy: false, timeout: 10_000, maximumAge: 300_000 },
-    );
-
-    return () => { active = false; };
   }, []);
+
+  // Distancias reales desde la base de datos (PostGIS) cuando hay ubicación
+  useEffect(() => {
+    if (!location) return;
+    let active = true;
+    fetchNearbyShops({ location, radiusKm: null, districtId: null, category: null })
+      .then((shops) => {
+        if (!active) return;
+        setShopDistances(new Map(shops.filter((shop) => shop.distancia_km != null).map((shop) => [shop.id, Number(shop.distancia_km)])));
+      })
+      .catch(() => { if (active) setShopDistances(new Map()); });
+    return () => { active = false; };
+  }, [location]);
+
+  const askForLocation = async () => {
+    setLocationStatus('Buscando tu ubicación…');
+    try {
+      setLocation(await requestLocationWithConsent());
+      setLocationStatus('Ubicación detectada. Los productos cercanos aparecen primero.');
+    } catch (error) {
+      setLocationStatus(error instanceof Error ? error.message : 'No se pudo obtener tu ubicación.');
+    }
+  };
 
   const { filteredProducts, hasProductsInSelectedArea } = useMemo(() => {
     const located = products.map((product, originalIndex) => {
       const latitude = product.tienda?.latitud;
       const longitude = product.tienda?.longitud;
-      const distanceKm = location && Number.isFinite(latitude) && Number.isFinite(longitude)
-        ? haversineDistanceKm(location.latitude, location.longitude, latitude!, longitude!)
-        : null;
+      const postgisKm = shopDistances.get(product.tienda_id);
+      const distanceKm = !location ? null
+        : postgisKm !== undefined ? postgisKm
+          : Number.isFinite(latitude) && Number.isFinite(longitude)
+            ? haversineDistanceKm(location.latitude, location.longitude, latitude!, longitude!)
+            : null;
       return { product, originalIndex, distanceKm };
     });
 
@@ -84,7 +100,7 @@ export default function ProductDirectory({ products, districts }: { products: Fe
     }
 
     return { filteredProducts: areaProducts, hasProductsInSelectedArea };
-  }, [products, location, distanceLimit, districtId]);
+  }, [products, location, distanceLimit, districtId, shopDistances]);
 
   const formatDistance = (distanceKm: number | null) => {
     if (distanceKm === null) return 'Distancia no disponible';
@@ -106,7 +122,13 @@ export default function ProductDirectory({ products, districts }: { products: Fe
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-4">
+          {!location && <p className="mb-3 text-xs leading-5 text-slate-500">{LOCATION_PURPOSE}</p>}
           <div className="flex flex-wrap items-center gap-3">
+            {!location && (
+              <button type="button" onClick={() => void askForLocation()} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-accent-700 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-accent-800">
+                <span aria-hidden="true">🛰️</span>Usar mi ubicación
+              </button>
+            )}
             <button type="button" onClick={() => setShowMap((visible) => !visible)} aria-expanded={showMap} aria-controls="product-search-location-map" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-accent-200 bg-accent-50 px-4 py-2.5 text-sm font-bold text-accent-900 transition hover:bg-accent-100">
               <span aria-hidden="true">📍</span>{showMap ? 'Ocultar mapa' : location ? 'Cambiar ubicación' : 'Elegir ubicación en mapa'}
             </button>
@@ -119,7 +141,7 @@ export default function ProductDirectory({ products, districts }: { products: Fe
             {location && <p className="text-xs text-slate-500">Ubicación: {location.latitude.toFixed(5)}, {location.longitude.toFixed(5)}</p>}
             {locationStatus && <p role="status" aria-live="polite" className="text-xs text-slate-500">{locationStatus}</p>}
           </div>
-          {showMap && <div id="product-search-location-map" className="mt-4"><LocationPicker latInicial={location?.latitude} lngInicial={location?.longitude} onLocationChange={(latitude, longitude) => { manualLocationSelected.current = true; setLocation({ latitude, longitude }); setLocationStatus('Ubicación seleccionada en el mapa.'); }} /></div>}
+          {showMap && <div id="product-search-location-map" className="mt-4"><LocationPicker latInicial={location?.latitude} lngInicial={location?.longitude} onLocationChange={(latitude, longitude) => { saveLocation({ latitude, longitude }); setLocation({ latitude, longitude }); setLocationStatus('Ubicación seleccionada en el mapa.'); }} /></div>}
         </div>
       </div>
 

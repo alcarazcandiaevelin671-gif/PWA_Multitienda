@@ -35,14 +35,15 @@ export async function searchProducts(term: string): Promise<Product[]> {
   try {
     const { data, error } = await supabase
       .from('productos')
-      .select('*')
+      .select('*, tienda:tiendas!inner(estado)')
       .eq('disponible', true)
+      .eq('tienda.estado', 'activa')
       .or(`titulo.ilike.%${searchTerm}%,descripcion.ilike.%${searchTerm}%`)
       .order('creado_en', { ascending: false }) // ✅ Eliminado .order('destacado')
       .limit(MAX_RESULTS);
 
     if (error) throw error;
-    return (data as Product[] | null) || [];
+    return (data as unknown as Product[] | null) || [];
   } catch (error) {
     console.error('Error buscando productos desde Supabase:', error);
     return [];

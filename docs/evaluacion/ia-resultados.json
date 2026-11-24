@@ -1,0 +1,379 @@
+{
+  "fecha": "2026-11-24T16:03:54.043Z",
+  "protocolo": "leave-one-out sobre un producto del último pedido NUEVO para el cliente, Top-5, excluyendo lo que ya compró o marcó como favorito",
+  "k": 5,
+  "simulado": {
+    "descripcion": "30 comercios, 120 productos en 10 rubros, 400 clientes; semilla 2026",
+    "principal": {
+      "Aleatorio": {
+        "casos": 307,
+        "aciertos": 13,
+        "ic95": [
+          0.02491098041114768,
+          0.07109161383621175
+        ],
+        "hitRate": 0.04234527687296417,
+        "precision": 0.008469055374592834,
+        "recall": 0.04234527687296417,
+        "ndcg": 0.02052799708385805,
+        "mrr": 0.013409337676438655,
+        "recomendadosDistintos": 120
+      },
+      "Popularidad": {
+        "casos": 307,
+        "aciertos": 32,
+        "ic95": [
+          0.07480582961526369,
+          0.14344552412889414
+        ],
+        "hitRate": 0.10423452768729642,
+        "precision": 0.020846905537459284,
+        "recall": 0.10423452768729642,
+        "ndcg": 0.08167836879566256,
+        "mrr": 0.07448425624321389,
+        "recomendadosDistintos": 9
+      },
+      "Contenido (TF-IDF)": {
+        "casos": 307,
+        "aciertos": 58,
+        "ic95": [
+          0.14908279121121013,
+          0.23645633868646124
+        ],
+        "hitRate": 0.18892508143322476,
+        "precision": 0.03778501628664495,
+        "recall": 0.18892508143322476,
+        "ndcg": 0.12061961699045017,
+        "mrr": 0.09809989142236696,
+        "recomendadosDistintos": 95
+      },
+      "Colaborativo (ítem-ítem)": {
+        "casos": 307,
+        "aciertos": 80,
+        "ic95": [
+          0.2146570891286042,
+          0.3124332359758864
+        ],
+        "hitRate": 0.26058631921824105,
+        "precision": 0.05211726384364821,
+        "recall": 0.26058631921824105,
+        "ndcg": 0.16630124512756056,
+        "mrr": 0.13545059717698155,
+        "recomendadosDistintos": 109
+      },
+      "Híbrido": {
+        "casos": 307,
+        "aciertos": 77,
+        "ic95": [
+          0.20560558926034767,
+          0.3021823001341222
+        ],
+        "hitRate": 0.250814332247557,
+        "precision": 0.0501628664495114,
+        "recall": 0.250814332247557,
+        "ndcg": 0.16112219300284822,
+        "mrr": 0.13132464712269273,
+        "recomendadosDistintos": 108
+      }
+    },
+    "complementarios": {
+      "Aleatorio": {
+        "casos": 245,
+        "aciertos": 11,
+        "ic95": [
+          0.025252201477064612,
+          0.07859538670754761
+        ],
+        "hitRate": 0.044897959183673466,
+        "precision": 0.008979591836734694,
+        "recall": 0.044897959183673466,
+        "ndcg": 0.027792941779922784,
+        "mrr": 0.022312925170068026,
+        "recomendadosDistintos": 120
+      },
+      "Popularidad": {
+        "casos": 245,
+        "aciertos": 45,
+        "ic95": [
+          0.14019809886985873,
+          0.236915695608235
+        ],
+        "hitRate": 0.1836734693877551,
+        "precision": 0.036734693877551024,
+        "recall": 0.1836734693877551,
+        "ndcg": 0.14132439969649793,
+        "mrr": 0.12748299319727888,
+        "recomendadosDistintos": 7
+      },
+      "Complementarios (motor)": {
+        "casos": 245,
+        "aciertos": 106,
+        "ic95": [
+          0.3721253662116672,
+          0.4952601513223787
+        ],
+        "hitRate": 0.4326530612244898,
+        "precision": 0.08653061224489796,
+        "recall": 0.4326530612244898,
+        "ndcg": 0.32590644990595835,
+        "mrr": 0.29054421768707483,
+        "recomendadosDistintos": 119
+      }
+    },
+    "arranqueEnFrio": {
+      "Aleatorio": {
+        "casos": 400,
+        "aciertos": 17,
+        "ic95": [
+          0.02670146955162519,
+          0.06700259659708263
+        ],
+        "hitRate": 0.0425,
+        "precision": 0.0085,
+        "recall": 0.0425,
+        "ndcg": 0.024360190677997218,
+        "mrr": 0.018625,
+        "recomendadosDistintos": 120
+      },
+      "Popularidad": {
+        "casos": 400,
+        "aciertos": 48,
+        "ic95": [
+          0.09171493428788872,
+          0.1555146725678686
+        ],
+        "hitRate": 0.12,
+        "precision": 0.024,
+        "recall": 0.12,
+        "ndcg": 0.07651538297688215,
+        "mrr": 0.0625833333333333,
+        "recomendadosDistintos": 7
+      },
+      "Motor en frío (popularidad + cercanía)": {
+        "casos": 400,
+        "aciertos": 45,
+        "ic95": [
+          0.0851480200886654,
+          0.14722427637608715
+        ],
+        "hitRate": 0.1125,
+        "precision": 0.0225,
+        "recall": 0.1125,
+        "ndcg": 0.07150776802899662,
+        "mrr": 0.05816666666666666,
+        "recomendadosDistintos": 26
+      }
+    },
+    "catalogo": 120,
+    "clientesSinProductoNuevo": 93,
+    "robustez": {
+      "semillas": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "hitRate": {
+        "Aleatorio": {
+          "media": 0.04717022765920005,
+          "desvio": 0.013691729831443098,
+          "minimo": 0.021341463414634148,
+          "maximo": 0.06542056074766354
+        },
+        "Popularidad": {
+          "media": 0.08083689322438439,
+          "desvio": 0.01331866609228943,
+          "minimo": 0.06542056074766354,
+          "maximo": 0.1076923076923077
+        },
+        "Contenido (TF-IDF)": {
+          "media": 0.2169826632178576,
+          "desvio": 0.020184061579184367,
+          "minimo": 0.18354430379746836,
+          "maximo": 0.25165562913907286
+        },
+        "Colaborativo (ítem-ítem)": {
+          "media": 0.275246922794437,
+          "desvio": 0.030732062215319496,
+          "minimo": 0.2111801242236025,
+          "maximo": 0.3259493670886076
+        },
+        "Híbrido": {
+          "media": 0.2932781116823054,
+          "desvio": 0.019465305470908426,
+          "minimo": 0.25949367088607594,
+          "maximo": 0.3170731707317073
+        }
+      }
+    }
+  },
+  "real": {
+    "resumen": {
+      "productos": 11,
+      "comercios": 5,
+      "clientesConPedidos": 3,
+      "pedidos": 11,
+      "pedidosConVariosProductos": 1
+    },
+    "principal": {
+      "Aleatorio": {
+        "casos": 2,
+        "aciertos": 1,
+        "ic95": [
+          0.09452865480086614,
+          0.9054713451991339
+        ],
+        "hitRate": 0.5,
+        "precision": 0.1,
+        "recall": 0.5,
+        "ndcg": 0.21533827903669653,
+        "mrr": 0.125,
+        "recomendadosDistintos": 7
+      },
+      "Popularidad": {
+        "casos": 2,
+        "aciertos": 0,
+        "ic95": [
+          0,
+          0.6576280471103807
+        ],
+        "hitRate": 0,
+        "precision": 0,
+        "recall": 0,
+        "ndcg": 0,
+        "mrr": 0,
+        "recomendadosDistintos": 6
+      },
+      "Contenido (TF-IDF)": {
+        "casos": 2,
+        "aciertos": 2,
+        "ic95": [
+          0.34237195288961925,
+          1
+        ],
+        "hitRate": 1,
+        "precision": 0.2,
+        "recall": 1,
+        "ndcg": 0.5308031558224253,
+        "mrr": 0.375,
+        "recomendadosDistintos": 6
+      },
+      "Colaborativo (ítem-ítem)": {
+        "casos": 2,
+        "aciertos": 0,
+        "ic95": [
+          0,
+          0.6576280471103807
+        ],
+        "hitRate": 0,
+        "precision": 0,
+        "recall": 0,
+        "ndcg": 0,
+        "mrr": 0,
+        "recomendadosDistintos": 0
+      },
+      "Híbrido": {
+        "casos": 2,
+        "aciertos": 1,
+        "ic95": [
+          0.09452865480086614,
+          0.9054713451991339
+        ],
+        "hitRate": 0.5,
+        "precision": 0.1,
+        "recall": 0.5,
+        "ndcg": 0.31546487678572877,
+        "mrr": 0.25,
+        "recomendadosDistintos": 8
+      }
+    },
+    "complementarios": {
+      "Aleatorio": {
+        "casos": 0,
+        "aciertos": 0,
+        "ic95": null,
+        "hitRate": 0,
+        "precision": 0,
+        "recall": 0,
+        "ndcg": 0,
+        "mrr": 0,
+        "recomendadosDistintos": 0
+      },
+      "Popularidad": {
+        "casos": 0,
+        "aciertos": 0,
+        "ic95": null,
+        "hitRate": 0,
+        "precision": 0,
+        "recall": 0,
+        "ndcg": 0,
+        "mrr": 0,
+        "recomendadosDistintos": 0
+      },
+      "Complementarios (motor)": {
+        "casos": 0,
+        "aciertos": 0,
+        "ic95": null,
+        "hitRate": 0,
+        "precision": 0,
+        "recall": 0,
+        "ndcg": 0,
+        "mrr": 0,
+        "recomendadosDistintos": 0
+      }
+    },
+    "arranqueEnFrio": {
+      "Aleatorio": {
+        "casos": 2,
+        "aciertos": 1,
+        "ic95": [
+          0.09452865480086614,
+          0.9054713451991339
+        ],
+        "hitRate": 0.5,
+        "precision": 0.1,
+        "recall": 0.5,
+        "ndcg": 0.25,
+        "mrr": 0.16666666666666666,
+        "recomendadosDistintos": 8
+      },
+      "Popularidad": {
+        "casos": 2,
+        "aciertos": 1,
+        "ic95": [
+          0.09452865480086614,
+          0.9054713451991339
+        ],
+        "hitRate": 0.5,
+        "precision": 0.1,
+        "recall": 0.5,
+        "ndcg": 0.25,
+        "mrr": 0.16666666666666666,
+        "recomendadosDistintos": 6
+      },
+      "Motor en frío (popularidad + cercanía)": {
+        "casos": 2,
+        "aciertos": 1,
+        "ic95": [
+          0.09452865480086614,
+          0.9054713451991339
+        ],
+        "hitRate": 0.5,
+        "precision": 0.1,
+        "recall": 0.5,
+        "ndcg": 0.25,
+        "mrr": 0.16666666666666666,
+        "recomendadosDistintos": 7
+      }
+    },
+    "catalogo": 11,
+    "clientesSinProductoNuevo": 0
+  },
+  "duracionMs": 132218
+}

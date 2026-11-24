@@ -17,7 +17,8 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' data: blob: ${supabaseHost ? `https://${supabaseHost}` : ''} https://*.tile.openstreetmap.org https://tile.openstreetmap.org`,
   "font-src 'self' data:",
-  `connect-src 'self' ${supabaseHost ? `https://${supabaseHost} wss://${supabaseHost}` : ''}`,
+  // Los mosaicos del mapa también en connect-src: el service worker los descarga con fetch() para la caché offline.
+  `connect-src 'self' ${supabaseHost ? `https://${supabaseHost} wss://${supabaseHost}` : ''} https://*.tile.openstreetmap.org https://tile.openstreetmap.org`,
   "worker-src 'self' blob:",
   "manifest-src 'self'",
   "frame-src 'none'",

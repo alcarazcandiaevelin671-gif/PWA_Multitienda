@@ -1,0 +1,7 @@
+nombre_comercio|postgis_km|haversine_km|dif_m|dif_pct
+Comercial Ferreteria Edu|0.022|0.022|0.2|1.086
+Tienda 1|0.022|0.022|0.2|1.086
+Vendedor 1|35.535|35.479|56.5|0.159
+Artesanías Judith|35.572|35.515|56.5|0.159
+Ferreteria Santiago Nuñez|35.642|35.586|56.3|0.158
+(5 filas)

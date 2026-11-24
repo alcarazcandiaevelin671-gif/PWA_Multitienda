@@ -1,0 +1,10 @@
+[
+  {
+    "telefono": "59597*****66",
+    "texto": "✦ *Ticket PG-20261124-5E1C1FAB* · Vendedor 1\n*Total:* Gs. 42.000 · Efectivo\n*Entrega:* Calle Prueba 123, Villarrica\n\n*Productos:*\n▸ 1 × Pizza Napolitana\n   http://localhost:3100/tienda/vendedor-1#product-3a037883-a6ac-413d-936c-08b2fe3204a9\n\nVer pedido en el panel: http://localhost:3100/vendedor/pedidos/5e1c1fab-255c-4886-978f-7c7487c650a0"
+  },
+  {
+    "telefono": "59598*****68",
+    "texto": "✦ *Ticket PG-20261124-33FB0A89* · Artesanías Judith\n*Total:* Gs. 50.000 · Efectivo\n*Entrega:* Calle Prueba 123, Villarrica\n\n*Productos:*\n▸ 1 × Amigurumi de Panda\n   http://localhost:3100/tienda/artesanias-judith#product-5109313f-a91d-4b1b-ac16-df822aadf13c\n\nVer pedido en el panel: http://localhost:3100/vendedor/pedidos/33fb0a89-a10c-4261-93d2-7ba67db24e1e"
+  }
+]

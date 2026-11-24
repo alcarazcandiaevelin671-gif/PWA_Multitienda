@@ -1,0 +1,398 @@
+{
+  "fecha": "2026-11-24T16:19:18.577Z",
+  "entorno": "next start (build de producción) en localhost:3100, Chrome headless automatizado con Puppeteer",
+  "pruebas": [
+    {
+      "id": "F01",
+      "requisito": "La página de inicio muestra productos recomendados con su motivo a un visitante sin historial",
+      "resultado": "Cumple",
+      "detalle": "8 productos, 12 motivos"
+    },
+    {
+      "id": "F02",
+      "requisito": "El enlace de producto del buscador abre el producto en su tienda",
+      "resultado": "Cumple",
+      "detalle": "/tienda/vendedor-1#product-3a037883-a6ac-413d-936c-08b2fe3204a9"
+    },
+    {
+      "id": "F03",
+      "requisito": "El buscador despliega productos que coinciden con la palabra clave (\"pizza\")",
+      "resultado": "Cumple",
+      "detalle": "Pizza de queso; Pizza grande; Pizza Fugazza; Pizza"
+    },
+    {
+      "id": "F04",
+      "requisito": "El mapa muestra un marcador por cada comercio activo",
+      "resultado": "Cumple",
+      "detalle": "5 marcadores, 5 comercios"
+    },
+    {
+      "id": "F04b",
+      "requisito": "Los mosaicos del mapa (OpenStreetMap) cargan",
+      "resultado": "Cumple",
+      "detalle": "18 mosaicos"
+    },
+    {
+      "id": "F05",
+      "requisito": "Antes de pedir la ubicación se muestra el aviso de consentimiento",
+      "resultado": "Cumple",
+      "detalle": ""
+    },
+    {
+      "id": "F06",
+      "requisito": "Con la ubicación, los comercios se ordenan por distancia (PostGIS)",
+      "resultado": "Cumple",
+      "detalle": "distancias: 0.022, 0.022, 35.5, 35.6, 35.6 km"
+    },
+    {
+      "id": "F07",
+      "requisito": "El mapa muestra la ubicación del usuario",
+      "resultado": "Cumple",
+      "detalle": ""
+    },
+    {
+      "id": "F08",
+      "requisito": "Filtro por radio (5 km) reduce los comercios y dibuja el círculo",
+      "resultado": "Cumple",
+      "detalle": "todos: 5, 5 km: 2"
+    },
+    {
+      "id": "F09",
+      "requisito": "Filtro por municipio (Villarrica)",
+      "resultado": "Cumple",
+      "detalle": "1 comercio(s)"
+    },
+    {
+      "id": "F10",
+      "requisito": "Al elegir un comercio el mapa lo centra y abre su ficha (tienda, distancia, cómo llegar)",
+      "resultado": "Cumple",
+      "detalle": "Comercial Ferreteria Edu ·  · 🏪 Otros ·  · 📍 Colonia Independencia ·  · A 22 m de ti ·  "
+    },
+    {
+      "id": "F11",
+      "requisito": "Diseño mobile-first: navegación principal visible en celular",
+      "resultado": "Cumple",
+      "detalle": ""
+    },
+    {
+      "id": "F12",
+      "requisito": "IA: recomienda productos según intereses (con motivo explicable)",
+      "resultado": "Cumple",
+      "detalle": "Pizza (Parecido a lo que te interesa); Pizza Fugazza (Parecido a lo que te interesa); Motosierra (Popular en Guairá)"
+    },
+    {
+      "id": "F13",
+      "requisito": "IA: recomienda comercios relevantes (afinidad + cercanía PostGIS)",
+      "resultado": "Cumple",
+      "detalle": "Comercial Ferreteria Edu 0.022 km (Cerca de tu ubicación); Tienda 1 0.022 km (Cerca de tu ubicación); Ferreteria Santiago Nuñez 35.642 km (Vende productos parecidos a lo que te interesa)"
+    },
+    {
+      "id": "F14",
+      "requisito": "IA: sugiere productos relacionados o complementarios para el carrito",
+      "resultado": "Cumple",
+      "detalle": "Pizza (Relacionado con lo que llevás); Pizza Napolitana (Relacionado con lo que llevás); Motosierra (Relacionado con lo que llevás)"
+    },
+    {
+      "id": "F15",
+      "requisito": "IA: usuario nuevo sin historial recibe sugerencias (arranque en frío)",
+      "resultado": "Cumple",
+      "detalle": "Motosierra (Popular en Guairá); Monitor (Cerca de tu ubicación); Pizza Napolitana (Popular en Guairá)"
+    },
+    {
+      "id": "F16",
+      "requisito": "Inicio de sesión del cliente",
+      "resultado": "Cumple",
+      "detalle": "/"
+    },
+    {
+      "id": "F16b",
+      "requisito": "El inicio del cliente muestra comercios recomendados con su motivo",
+      "resultado": "Cumple",
+      "detalle": ""
+    },
+    {
+      "id": "F17",
+      "requisito": "El carrito acepta productos de varios comercios y los agrupa por comercio",
+      "resultado": "Cumple",
+      "detalle": "Tu Carrito de Compras |  | 2 comercios · un pedido y un WhatsApp por cada uno"
+    },
+    {
+      "id": "F18",
+      "requisito": "El carrito muestra sugerencias de la IA que se pueden agregar",
+      "resultado": "Cumple",
+      "detalle": "Pizza · Vendedor 1 · Relacionado con lo que llevás · + Gs. 45.000 | Pizza Fugazza · Vendedor 1 · Relacionado con lo que llevás · + Gs. 45.000 | Motosierra · Ferreteria Santiago Nuñez · Relacionado con lo que llevás · + Gs. 7.000.000"
+    },
+    {
+      "id": "F19",
+      "requisito": "El checkout separa los productos por comercio y avisa que se crea un pedido por cada uno",
+      "resultado": "Cumple",
+      "detalle": ""
+    },
+    {
+      "id": "F20",
+      "requisito": "Al confirmar se crea un pedido por comercio (2 pedidos)",
+      "resultado": "Cumple",
+      "detalle": "2 pedidos"
+    },
+    {
+      "id": "F21",
+      "requisito": "Cada comercio tiene su ticket y su botón de WhatsApp",
+      "resultado": "Cumple",
+      "detalle": "2 botones"
+    },
+    {
+      "id": "F22",
+      "requisito": "Cada botón abre WhatsApp al número de SU comercio con el pedido estructurado",
+      "resultado": "Cumple",
+      "detalle": "cada mensaje contiene solo los productos de su comercio; números distintos"
+    },
+    {
+      "id": "F23",
+      "requisito": "Control: sin conexión real (la pestaña y el service worker no tienen red)",
+      "resultado": "Cumple",
+      "detalle": "SW antes: true, durante: false"
+    },
+    {
+      "id": "F24",
+      "requisito": "Sin conexión: el catálogo ya visitado sigue mostrando sus productos",
+      "resultado": "Cumple",
+      "detalle": "5 productos"
+    },
+    {
+      "id": "F25",
+      "requisito": "Sin conexión: una página no visitada muestra la pantalla propia \"Estás sin conexión\"",
+      "resultado": "Cumple",
+      "detalle": "título: \"Estás sin conexión\""
+    },
+    {
+      "id": "F26",
+      "requisito": "Sin conexión: un carrito de dos comercios queda en cola como dos pedidos",
+      "resultado": "Cumple",
+      "detalle": "cola: Vendedor 1 / Artesanías Judith"
+    },
+    {
+      "id": "F27",
+      "requisito": "Al reconectar, los pedidos en cola se envían solos (uno por comercio)",
+      "resultado": "Cumple",
+      "detalle": "quedan en cola: 0, enviados: 2"
+    },
+    {
+      "id": "F28",
+      "requisito": "PWA: manifiesto sin errores y service worker activo que controla la página",
+      "resultado": "Cumple",
+      "detalle": "SW activo: true, controla: true"
+    },
+    {
+      "id": "F29",
+      "requisito": "PWA: Chrome no informa errores de instalabilidad",
+      "resultado": "Cumple",
+      "detalle": "lista de errores vacía"
+    }
+  ],
+  "pedidosCreados": [
+    "5e1c1fab-255c-4886-978f-7c7487c650a0",
+    "33fb0a89-a10c-4261-93d2-7ba67db24e1e"
+  ],
+  "pedidosSincronizados": [
+    "ac888e95-6e01-4874-a9db-73f8a60a975e",
+    "e4f839c0-debd-438f-9c8b-ee39e52ad135"
+  ],
+  "erroresJs": [],
+  "api": {
+    "productos": {
+      "status": 200,
+      "n": 5,
+      "sample": [
+        {
+          "id": "743fb304-e20e-45b1-8802-78f83f69f640",
+          "nombre": "Pizza",
+          "precio": 45000,
+          "precio_oferta": null,
+          "imagen_url": "https://vibirkodivyrmhrxlihc.supabase.co/storage/v1/object/public/tiendas-media/producto_2836a38c-ec6c-48f6-bc48-eb2ca98f92c1_1790872595222.jpg",
+          "tienda_id": "65206516-baa8-42a3-a4cc-76c45b873495",
+          "tienda_slug": "vendedor-1",
+          "tienda_nombre": "Vendedor 1",
+          "distancia_km": null,
+          "similarity_score": 0.4115,
+          "motivo": "Parecido a lo que te interesa"
+        },
+        {
+          "id": "b3cfb926-50d9-403c-9025-0a36072b2e7c",
+          "nombre": "Pizza Fugazza",
+          "precio": 50000,
+          "precio_oferta": 45000,
+          "imagen_url": "https://vibirkodivyrmhrxlihc.supabase.co/storage/v1/object/public/tiendas-media/producto_2836a38c-ec6c-48f6-bc48-eb2ca98f92c1_1795447371042.jpg",
+          "tienda_id": "65206516-baa8-42a3-a4cc-76c45b873495",
+          "tienda_slug": "vendedor-1",
+          "tienda_nombre": "Vendedor 1",
+          "distancia_km": null,
+          "similarity_score": 0.3189,
+          "motivo": "Parecido a lo que te interesa"
+        },
+        {
+          "id": "6131f00d-e2e7-4bca-9e4b-0e817afb09ee",
+          "nombre": "Motosierra",
+          "precio": 7000000,
+          "precio_oferta": null,
+          "imagen_url": "https://vibirkodivyrmhrxlihc.supabase.co/storage/v1/object/public/tiendas-media/productos/prod_8c205b5a-4ac1-45cb-9d04-62d519e4f94f_1789585090073.jpg",
+          "tienda_id": "8c205b5a-4ac1-45cb-9d04-62d519e4f94f",
+          "tienda_slug": "ferreteria-santiago-nuez-6014",
+          "tienda_nombre": "Ferreteria Santiago Nuñez",
+          "distancia_km": null,
+          "similarity_score": 0.1667,
+          "motivo": "Popular en Guairá"
+        }
+      ]
+    },
+    "comercios": {
+      "status": 200,
+      "n": 4,
+      "sample": [
+        {
+          "id": "f5bdac38-5f24-4edf-8fb0-093a1a809a4e",
+          "slug": "comercial-ferreteria-edu",
+          "nombre_comercio": "Comercial Ferreteria Edu",
+          "descripcion": "Ferreteria",
+          "categoria_principal": "Otros",
+          "logo_url": "https://vibirkodivyrmhrxlihc.supabase.co/storage/v1/object/public/tiendas-media/90525ba5-0db8-421b-b516-ab9487cb5671_logo_1789595832135.jpg",
+          "portada_url": "",
+          "whatsapp": "**********",
+          "latitud": -25.7808,
+          "longitud": -56.4486,
+          "distrito_id": 2,
+          "distrito": "Colonia Independencia",
+          "distancia_km": 0.022,
+          "total_productos": 1,
+          "score": 0.3569,
+          "motivo": "Cerca de tu ubicación"
+        },
+        {
+          "id": "4402ef61-4b39-4fe3-a444-9bc1d595fdd5",
+          "slug": "tienda-1",
+          "nombre_comercio": "Tienda 1",
+          "descripcion": "Tienda general",
+          "categoria_principal": "Comercio General",
+          "logo_url": "https://vibirkodivyrmhrxlihc.supabase.co/storage/v1/object/public/tiendas-media/ef5a88d6-e6d8-42c5-97c1-8f0349e036c2_logo_1790873490876.jpg",
+          "portada_url": "https://vibirkodivyrmhrxlihc.supabase.co/storage/v1/object/public/tiendas-media/ef5a88d6-e6d8-42c5-97c1-8f0349e036c2_portada_1790873509079.jpg",
+          "whatsapp": "**********",
+          "latitud": -25.7808,
+          "longitud": -56.4486,
+          "distrito_id": 10,
+          "distrito": "José Fassardi",
+          "distancia_km": 0.022,
+          "total_productos": 1,
+          "score": 0.3569,
+          "motivo": "Cerca de tu ubicación"
+        },
+        {
+          "id": "8c205b5a-4ac1-45cb-9d04-62d519e4f94f",
+          "slug": "ferreteria-santiago-nuez-6014",
+          "nombre_comercio": "Ferreteria Santiago Nuñez",
+          "descripcion": "Ferreteria",
+          "categoria_principal": "Electrónica",
+          "logo_url": "https://vibirkodivyrmhrxlihc.supabase.co/storage/v1/object/public/tiendas-media/tiendas/logo_8c205b5a-4ac1-45cb-9d04-62d519e4f94f_1789585830922.jpg",
+          "portada_url": null,
+          "whatsapp": "**********",
+          "latitud": -25.72389884,
+          "longitud": -56.09890137,
+          "distrito_id": 2,
+          "distrito": "Colonia Independencia",
+          "distancia_km": 35.642,
+          "total_productos": 3,
+          "score": 0.1286,
+          "motivo": "Vende productos parecidos a lo que te interesa"
+        }
+      ]
+    },
+    "complementarios": {
+      "status": 200,
+      "n": 4,
+      "sample": [
+        {
+          "id": "743fb304-e20e-45b1-8802-78f83f69f640",
+          "nombre": "Pizza",
+          "precio": 45000,
+          "precio_oferta": null,
+          "imagen_url": "https://vibirkodivyrmhrxlihc.supabase.co/storage/v1/object/public/tiendas-media/producto_2836a38c-ec6c-48f6-bc48-eb2ca98f92c1_1790872595222.jpg",
+          "tienda_id": "65206516-baa8-42a3-a4cc-76c45b873495",
+          "tienda_slug": "vendedor-1",
+          "tienda_nombre": "Vendedor 1",
+          "distancia_km": null,
+          "similarity_score": 0.6663,
+          "motivo": "Relacionado con lo que llevás"
+        },
+        {
+          "id": "3a037883-a6ac-413d-936c-08b2fe3204a9",
+          "nombre": "Pizza Napolitana",
+          "precio": 48000,
+          "precio_oferta": 42000,
+          "imagen_url": "https://vibirkodivyrmhrxlihc.supabase.co/storage/v1/object/public/tiendas-media/producto_2836a38c-ec6c-48f6-bc48-eb2ca98f92c1_1795451144613.jpg",
+          "tienda_id": "65206516-baa8-42a3-a4cc-76c45b873495",
+          "tienda_slug": "vendedor-1",
+          "tienda_nombre": "Vendedor 1",
+          "distancia_km": null,
+          "similarity_score": 0.6071,
+          "motivo": "Relacionado con lo que llevás"
+        },
+        {
+          "id": "6131f00d-e2e7-4bca-9e4b-0e817afb09ee",
+          "nombre": "Motosierra",
+          "precio": 7000000,
+          "precio_oferta": null,
+          "imagen_url": "https://vibirkodivyrmhrxlihc.supabase.co/storage/v1/object/public/tiendas-media/productos/prod_8c205b5a-4ac1-45cb-9d04-62d519e4f94f_1789585090073.jpg",
+          "tienda_id": "8c205b5a-4ac1-45cb-9d04-62d519e4f94f",
+          "tienda_slug": "ferreteria-santiago-nuez-6014",
+          "tienda_nombre": "Ferreteria Santiago Nuñez",
+          "distancia_km": null,
+          "similarity_score": 0.2222,
+          "motivo": "Relacionado con lo que llevás"
+        }
+      ]
+    },
+    "frio": {
+      "status": 200,
+      "n": 5,
+      "sample": [
+        {
+          "id": "6131f00d-e2e7-4bca-9e4b-0e817afb09ee",
+          "nombre": "Motosierra",
+          "precio": 7000000,
+          "precio_oferta": null,
+          "imagen_url": "https://vibirkodivyrmhrxlihc.supabase.co/storage/v1/object/public/tiendas-media/productos/prod_8c205b5a-4ac1-45cb-9d04-62d519e4f94f_1789585090073.jpg",
+          "tienda_id": "8c205b5a-4ac1-45cb-9d04-62d519e4f94f",
+          "tienda_slug": "ferreteria-santiago-nuez-6014",
+          "tienda_nombre": "Ferreteria Santiago Nuñez",
+          "distancia_km": 35.642,
+          "similarity_score": 0.6,
+          "motivo": "Popular en Guairá"
+        },
+        {
+          "id": "a9358c5c-128f-490d-99b3-48de7bb72b6a",
+          "nombre": "Monitor",
+          "precio": 2000000,
+          "precio_oferta": null,
+          "imagen_url": "https://vibirkodivyrmhrxlihc.supabase.co/storage/v1/object/public/tiendas-media/producto_ef5a88d6-e6d8-42c5-97c1-8f0349e036c2_1790873689606.jpg",
+          "tienda_id": "4402ef61-4b39-4fe3-a444-9bc1d595fdd5",
+          "tienda_slug": "tienda-1",
+          "tienda_nombre": "Tienda 1",
+          "distancia_km": 0.022,
+          "similarity_score": 0.4997,
+          "motivo": "Cerca de tu ubicación"
+        },
+        {
+          "id": "3a037883-a6ac-413d-936c-08b2fe3204a9",
+          "nombre": "Pizza Napolitana",
+          "precio": 48000,
+          "precio_oferta": 42000,
+          "imagen_url": "https://vibirkodivyrmhrxlihc.supabase.co/storage/v1/object/public/tiendas-media/producto_2836a38c-ec6c-48f6-bc48-eb2ca98f92c1_1795451144613.jpg",
+          "tienda_id": "65206516-baa8-42a3-a4cc-76c45b873495",
+          "tienda_slug": "vendedor-1",
+          "tienda_nombre": "Vendedor 1",
+          "distancia_km": 35.535,
+          "similarity_score": 0.3,
+          "motivo": "Popular en Guairá"
+        }
+      ]
+    }
+  }
+}

@@ -122,6 +122,7 @@ export default async function TiendaPerfilPage(props: Props) {
             shop={{
               id: tienda.id,
               nombre: tienda.nombre_comercio,
+              slug: tienda.slug,
               whatsapp: tienda.whatsapp,
               telefono: tienda.telefono,
             }}

@@ -21,6 +21,9 @@ export interface Product {
   stock_minimo?: number | null;
   /** `true` si la base lo ocultó automáticamente al quedar sin stock. */
   oculto_por_stock?: boolean;
+  /** Datos de la tienda guardados en el carrito (multitienda: agrupar y enviar un pedido por comercio). */
+  tienda_nombre?: string | null;
+  tienda_slug?: string | null;
   /** Baja lógica: fecha en que el vendedor lo eliminó (NULL = activo). Nunca se borra de la base. */
   eliminado_en?: string | null;
   created_at?: string;

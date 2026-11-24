@@ -96,11 +96,11 @@ export default function FacturasPage() {
             <tbody className="divide-y divide-slate-200 bg-white">
               {filteredInvoices.map((invoice) => (
                 <tr key={invoice.id}>
-                  <td className="px-4 py-4 font-bold text-slate-900">{invoice.numero}</td>
-                  <td className="px-4 py-4 text-slate-700">{invoice.pedido_id}</td>
+                  <td className="break-all px-4 py-4 font-bold text-slate-900">{invoice.numero}</td>
+                  <td className="break-all px-4 py-4 text-slate-700">{invoice.pedido?.numero_pedido ?? invoice.pedido_id}</td>
                   <td className="px-4 py-4 text-slate-600">{new Date(invoice.fecha).toLocaleDateString('es-PY')}</td>
                   <td className="px-4 py-4 text-slate-700 capitalize">{invoice.tipo_documento}</td>
-                  <td className="px-4 py-4 font-semibold text-slate-800">Gs. {Number(invoice.total).toLocaleString('es-PY')}</td>
+                  <td className="whitespace-nowrap px-4 py-4 font-semibold text-slate-800">Gs. {Number(invoice.total).toLocaleString('es-PY')}</td>
                   <td className="px-4 py-4">
                     <span className="inline-flex rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-slate-700">
                       {invoice.estado}

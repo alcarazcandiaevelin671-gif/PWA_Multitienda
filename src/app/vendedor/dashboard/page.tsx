@@ -442,26 +442,19 @@ export default function ComercianteDashboardPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-16">
-      <div className={`py-3 px-4 text-center text-sm font-medium ${diasPrueba > 0 ? 'bg-amber-500 text-slate-950' : 'bg-red-600 text-white'}`}>
-        {diasPrueba > 0 ? (
-          <span>
-            🎁 Cuenta en <strong>Periodo de Prueba Gratis</strong>: Te quedan <strong>{diasPrueba} días</strong> de acceso completo.
-          </span>
-        ) : (
-          <span>
-            ⚠️ Tu periodo de prueba ha finalizado. Por favor ponte en contacto para renovar tu suscripción.
-          </span>
-        )}
+      <div className="bg-emerald-700 px-4 py-3 text-center text-sm font-medium text-white">
+        🎁 <strong>Plan sin costo:</strong> publicar productos y recibir pedidos es gratuito.
+        {diasPrueba > 0 && <> Período registrado: quedan <strong>{diasPrueba} días</strong>.</>}
       </div>
 
       <div className="max-w-5xl mx-auto px-4 pt-8">
         <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-emerald-700">Membresía</p>
-            <h2 className="mt-1 text-lg font-black text-slate-900">Suscripción Activa (Prototipo)</h2>
+            <p className="text-xs font-bold uppercase tracking-wider text-emerald-700">Plan</p>
+            <h2 className="mt-1 text-lg font-black text-slate-900">Plan comerciante sin costo (prototipo)</h2>
           </div>
           <p className="text-sm font-semibold text-emerald-800">
-            Próximo vencimiento: {tienda?.fecha_fin_prueba ? new Date(tienda.fecha_fin_prueba).toLocaleDateString('es-PY') : 'No definido'}
+            Período registrado hasta: {tienda?.fecha_fin_prueba ? new Date(tienda.fecha_fin_prueba).toLocaleDateString('es-PY') : 'No definido'}
           </p>
         </div>
 

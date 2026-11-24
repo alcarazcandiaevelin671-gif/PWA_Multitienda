@@ -54,18 +54,18 @@ export default function FavoritosPage() {
       let products: ProductRow[] = [];
 
       if (storeIds.length) {
-        const { data } = await supabase.from('tiendas').select('id, slug, nombre_comercio, descripcion, logo_url, portada_url').in('id', storeIds);
+        const { data } = await supabase.from('tiendas').select('id, slug, nombre_comercio, descripcion, logo_url, portada_url').in('id', storeIds).eq('estado', 'activa');
         stores = (data ?? []) as StoreRow[];
       }
       if (productIds.length) {
-        const { data } = await supabase.from('productos').select('id, tienda_id, nombre, titulo, descripcion, precio_gs, precio_oferta, imagen_url').in('id', productIds).is('eliminado_en', null);
-        products = (data ?? []) as ProductRow[];
+        const { data } = await supabase.from('productos').select('id, tienda_id, nombre, titulo, descripcion, precio_gs, precio_oferta, imagen_url, tienda:tiendas!inner(estado)').in('id', productIds).is('eliminado_en', null).eq('tienda.estado', 'activa');
+        products = (data ?? []) as unknown as ProductRow[];
       }
 
       const knownStoreIds = new Set(stores.map((store) => store.id));
       const relatedStoreIds = Array.from(new Set(products.map((product) => product.tienda_id).filter((id) => !knownStoreIds.has(id))));
       if (relatedStoreIds.length) {
-        const { data } = await supabase.from('tiendas').select('id, slug, nombre_comercio, descripcion, logo_url, portada_url').in('id', relatedStoreIds);
+        const { data } = await supabase.from('tiendas').select('id, slug, nombre_comercio, descripcion, logo_url, portada_url').in('id', relatedStoreIds).eq('estado', 'activa');
         stores = [...stores, ...((data ?? []) as StoreRow[])];
       }
 

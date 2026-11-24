@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
+import { personalizationEnabled } from '@/frontend/lib/personalization';
 import { supabase } from '@/shared/supabase/client';
 import { useCart } from '@/frontend/context/CartContext';
 import NotificationBell from '@/frontend/components/common/NotificationBell';
@@ -158,8 +159,9 @@ export default function Navbar() {
         const [textMatch, categoryMatch] = await Promise.all([
           supabase
             .from('productos')
-            .select('id, tienda_id, titulo, descripcion, precio_gs, categoria_id')
+            .select('id, tienda_id, titulo, descripcion, precio_gs, categoria_id, tienda:tiendas!inner(estado)')
             .eq('disponible', true)
+            .eq('tienda.estado', 'activa')
             .or(`titulo.ilike.%${normalized}%,descripcion.ilike.%${normalized}%`)
             .limit(8),
           supabase
@@ -176,8 +178,9 @@ export default function Navbar() {
         if (categoryIds.length > 0) {
           const { data } = await supabase
             .from('productos')
-            .select('id, tienda_id, titulo, descripcion, precio_gs, categoria_id')
+            .select('id, tienda_id, titulo, descripcion, precio_gs, categoria_id, tienda:tiendas!inner(estado)')
             .eq('disponible', true)
+            .eq('tienda.estado', 'activa')
             .in('categoria_id', categoryIds)
             .limit(8);
 
@@ -201,7 +204,7 @@ export default function Navbar() {
   const handleSelectProduct = async (product: ProductSearchResult) => {
     try {
       const confirmedSearch = searchTerm.trim().slice(0, 120);
-      if (usuario?.id && rolUsuario === 'cliente' && confirmedSearch.length >= 2) {
+      if (usuario?.id && rolUsuario === 'cliente' && confirmedSearch.length >= 2 && await personalizationEnabled(usuario.id)) {
         await supabase.rpc('registrar_historial_busqueda', {
           p_termino: confirmedSearch,
           p_categoria_id: product.categoria_id ?? null,
@@ -271,6 +274,9 @@ export default function Navbar() {
         </Link>
         <Link href="/tiendas" aria-current={isActive('/tiendas') ? 'page' : undefined} className="header-link rounded-lg px-3 py-2 transition-colors">
           Explorar Productos
+        </Link>
+        <Link href="/comercios" aria-current={isActive('/comercios') ? 'page' : undefined} className="header-link rounded-lg px-3 py-2 transition-colors">
+          Mapa de comercios
         </Link>
         <Link href="/categorias" aria-current={isActive('/categorias') ? 'page' : undefined} className="header-link rounded-lg px-3 py-2 transition-colors">
           Categorías
@@ -360,6 +366,8 @@ export default function Navbar() {
                 ['/comerciante/pedidos', 'Pedidos'],
                 ['/comerciante/ventas', 'Ventas'],
                 ['/comerciante/facturas', 'Facturas'],
+                ['/comerciante/clientes', 'Clientes'],
+                ['/comerciante/mercado', 'Sugerencias de mercado'],
                 ['/comerciante/reportes', 'Reportes'],
               ].map(([href, label]) => <Link key={href} href={href} onClick={(event) => event.currentTarget.closest('details')?.removeAttribute('open')} className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-primary-50 hover:text-primary-700">{label}</Link>)}
             </nav>
@@ -400,6 +408,19 @@ export default function Navbar() {
           </Link>
         )}
       </div>
+      {/* Navegación principal en celular (mobile-first): la de arriba solo se ve desde tabletas */}
+      <nav aria-label="Principal (móvil)" className="order-last -mx-1 flex w-full gap-1 overflow-x-auto text-xs font-bold md:hidden">
+        {[
+          ['/', 'Inicio'],
+          ['/tiendas', 'Productos'],
+          ['/comercios', 'Mapa'],
+          ['/categorias', 'Categorías'],
+        ].map(([href, label]) => (
+          <Link key={href} href={href} aria-current={isActive(href) ? 'page' : undefined} className="header-link shrink-0 rounded-lg px-3 py-2 transition-colors">
+            {label}
+          </Link>
+        ))}
+      </nav>
     </header>
   );
 }

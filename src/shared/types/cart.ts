@@ -8,7 +8,11 @@ export interface CartItem {
   cantidad: number;
 }
 
-export interface CartState {
+/** Productos del carrito de un mismo comercio: se convierten en UN pedido y UN mensaje de WhatsApp. */
+export interface CartShopGroup {
+  tienda_id: string;
+  tienda_nombre: string;
+  tienda_slug: string | null;
   items: CartItem[];
-  shopId: string | null; // Garantiza que no se mezclen productos de distintas tiendas en una misma orden
+  subtotal: number;
 }

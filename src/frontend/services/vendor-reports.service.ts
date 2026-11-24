@@ -56,8 +56,9 @@ async function loadSales(storeIds: string[], from?: string, to?: string) {
   for (let offset = 0; ; offset += PAGE_SIZE) {
     let query = supabase
       .from('ventas')
-      .select('*')
+      .select('*, pedido:pedidos!inner(estado)') // los pedidos cancelados no son ventas
       .in('tienda_id', storeIds)
+      .neq('pedido.estado', 'cancelado')
       .order('created_at', { ascending: false })
       .range(offset, offset + PAGE_SIZE - 1);
     if (fromTimestamp) query = query.gte('created_at', fromTimestamp);
