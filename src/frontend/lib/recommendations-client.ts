@@ -6,6 +6,7 @@
  */
 import { supabase } from '@/shared/supabase/client';
 import { getStoredLocation } from '@/frontend/lib/location-consent';
+import { personalizationEnabled } from '@/frontend/lib/personalization';
 
 export type RecommendationSignals = {
   favoriteIds: string[];
@@ -49,6 +50,8 @@ export type ShopRecommendation = {
 export async function getRecommendationSignals(userId: string | null): Promise<RecommendationSignals> {
   const signals: RecommendationSignals = { favoriteIds: [], purchasedIds: [], searchTerms: [], categoryIds: [], favoriteShopIds: [] };
   if (!userId) return signals;
+  // Si el usuario desactivó la personalización, recibe sugerencias generales (arranque en frío).
+  if (!(await personalizationEnabled(userId))) return signals;
 
   const [favoritesResult, historyResult, ordersResult] = await Promise.all([
     supabase.from('favoritos').select('producto_id, tienda_id').eq('usuario_id', userId).order('creado_en', { ascending: false }).limit(30),

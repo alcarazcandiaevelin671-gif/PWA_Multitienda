@@ -1,6 +1,7 @@
 /**
  * [FRONTEND] Configuración del usuario: preferencias, notificaciones, privacidad, apariencia, seguridad (MFA) y datos de la tienda.
  */
+import { resetPersonalizationCache } from '@/frontend/lib/personalization';
 import { supabase } from '@/shared/supabase/client';
 import { getCurrentUser, isMissingTableError } from '@/frontend/services/orders.service';
 import { normalizeAppearance, type Appearance } from '@/shared/lib/appearance';
@@ -361,7 +362,7 @@ export async function updateNotificationPreferences(value: NotificationPreferenc
 }
 
 export async function updatePrivacySettings(value: PrivacySettings) {
-  return updateUserSettings('privacidad', value);
+  return updateUserSettings('privacidad', value).finally(resetPersonalizationCache);
 }
 
 export async function deactivateAccount(password: string, confirmation: string) {

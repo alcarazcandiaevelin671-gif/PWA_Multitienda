@@ -11,6 +11,7 @@ import FavoriteToggle from '@/frontend/components/common/FavoriteToggle';
 import { Product } from '@/shared/types/product';
 import PriceTag from '@/frontend/components/products/PriceTag';
 import { getLowStock } from '@/shared/lib/product-pricing';
+import { personalizationEnabled } from '@/frontend/lib/personalization';
 import { supabase } from '@/shared/supabase/client';
 
 interface StorefrontProduct {
@@ -96,9 +97,10 @@ export default function StorefrontCart({ products, categories = [], shop }: Stor
       tienda_slug: shop.slug ?? null,
     };
     addItem(item);
-    void supabase.rpc('registrar_interaccion_producto', {
-      p_producto_id: product.id,
-      p_tipo: 'click',
+    void supabase.auth.getSession().then(async ({ data }) => {
+      const userId = data.session?.user.id;
+      if (!userId || !(await personalizationEnabled(userId))) return;
+      await supabase.rpc('registrar_interaccion_producto', { p_producto_id: product.id, p_tipo: 'click' });
     });
     setIsOpen(true);
   };

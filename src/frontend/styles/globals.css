@@ -496,6 +496,347 @@ html[data-theme='dark'] body [class~='border-slate-300'] {
   border-color: rgb(var(--c-slate-700)) !important;
 }
 
+/* --- Modo oscuro: legibilidad (tonos claros, textos de color, bordes y hover) ---
+ * Los componentes usan clases de Tailwind pensadas para fondo claro. Aquí se adaptan al tema oscuro sin tocar cada
+ * componente: los fondos 50/100 pasan a un tono oscuro del mismo color y los textos 600-950 a su tono claro.
+ * El tema claro no cambia. */
+
+html[data-theme='dark'] body :is([class^='bg-slate-50/'], [class*=' bg-slate-50/'], [class^='bg-slate-100/'], [class*=' bg-slate-100/'], [class~='bg-gray-50']) {
+  background-color: rgb(var(--c-slate-950) / 0.6) !important;
+}
+
+html[data-theme='dark'] body :is([class~='bg-white/80'], [class~='bg-white/95']) {
+  background-color: rgb(var(--c-slate-900) / 0.95) !important;
+}
+
+html[data-theme='dark'] body :is([class~='bg-slate-200']) {
+  background-color: rgb(var(--c-slate-800)) !important;
+}
+
+html[data-theme='dark'] body :is([class~='text-gray-900'], [class~='text-gray-800'], [class~='text-gray-700']) {
+  color: rgb(var(--c-slate-200)) !important;
+}
+
+html[data-theme='dark'] body :is([class~='text-gray-600'], [class~='text-gray-500'], [class~='text-gray-400']) {
+  color: rgb(var(--c-slate-400)) !important;
+}
+
+html[data-theme='dark'] body :is([class^='border-slate-200/'], [class*=' border-slate-200/'], [class~='border-gray-100'], [class~='border-gray-200'], [class~='border-gray-300']) {
+  border-color: rgb(var(--c-slate-700)) !important;
+}
+
+html[data-theme='dark'] body :is([class~='divide-slate-100'], [class~='divide-slate-200']) > * {
+  border-color: rgb(var(--c-slate-700)) !important;
+}
+
+html[data-theme='dark'] body :is([class~='bg-primary-50'], [class~='bg-primary-100'], [class^='bg-primary-50/'], [class*=' bg-primary-50/']) {
+  background-color: color-mix(in srgb, rgb(var(--c-primary-500)) 16%, rgb(var(--c-slate-900))) !important;
+}
+
+html[data-theme='dark'] body :is([class~='text-primary-600'], [class~='text-primary-700'], [class~='text-primary-800'], [class~='text-primary-900'], [class~='text-primary-950']) {
+  color: rgb(var(--c-primary-300)) !important;
+}
+
+html[data-theme='dark'] body :is([class~='border-primary-100'], [class~='border-primary-200'], [class~='border-primary-300']) {
+  border-color: color-mix(in srgb, rgb(var(--c-primary-500)) 45%, rgb(var(--c-slate-900))) !important;
+}
+
+html[data-theme='dark'] body :is([class~='hover:bg-primary-50']:hover, [class~='hover:bg-primary-100']:hover, [class*='hover:bg-primary-50/']:hover, [class~='hover:bg-primary-200']:hover, .group:hover [class~='group-hover:bg-primary-100']) {
+  background-color: color-mix(in srgb, rgb(var(--c-primary-500)) 26%, rgb(var(--c-slate-900))) !important;
+}
+
+html[data-theme='dark'] body :is([class*='hover:text-primary-600']:hover, [class*='hover:text-primary-700']:hover, [class*='hover:text-primary-800']:hover, [class*='hover:text-primary-900']:hover, [class*='hover:text-primary-950']:hover) {
+  color: rgb(var(--c-primary-300)) !important;
+}
+
+html[data-theme='dark'] body :is([class~='bg-accent-50'], [class~='bg-accent-100'], [class^='bg-accent-50/'], [class*=' bg-accent-50/']) {
+  background-color: color-mix(in srgb, rgb(var(--c-accent-500)) 16%, rgb(var(--c-slate-900))) !important;
+}
+
+html[data-theme='dark'] body :is([class~='text-accent-600'], [class~='text-accent-700'], [class~='text-accent-800'], [class~='text-accent-900'], [class~='text-accent-950']) {
+  color: rgb(var(--c-accent-300)) !important;
+}
+
+html[data-theme='dark'] body :is([class~='border-accent-100'], [class~='border-accent-200'], [class~='border-accent-300']) {
+  border-color: color-mix(in srgb, rgb(var(--c-accent-500)) 45%, rgb(var(--c-slate-900))) !important;
+}
+
+html[data-theme='dark'] body :is([class~='hover:bg-accent-50']:hover, [class~='hover:bg-accent-100']:hover, [class*='hover:bg-accent-50/']:hover, [class~='hover:bg-accent-200']:hover, .group:hover [class~='group-hover:bg-accent-100']) {
+  background-color: color-mix(in srgb, rgb(var(--c-accent-500)) 26%, rgb(var(--c-slate-900))) !important;
+}
+
+html[data-theme='dark'] body :is([class*='hover:text-accent-600']:hover, [class*='hover:text-accent-700']:hover, [class*='hover:text-accent-800']:hover, [class*='hover:text-accent-900']:hover, [class*='hover:text-accent-950']:hover) {
+  color: rgb(var(--c-accent-300)) !important;
+}
+
+html[data-theme='dark'] body :is([class~='bg-emerald-50'], [class~='bg-emerald-100'], [class^='bg-emerald-50/'], [class*=' bg-emerald-50/'], [class~='bg-emerald-200']) {
+  background-color: color-mix(in srgb, rgb(16 185 129) 16%, rgb(var(--c-slate-900))) !important;
+}
+
+html[data-theme='dark'] body :is([class~='text-emerald-600'], [class~='text-emerald-700'], [class~='text-emerald-800'], [class~='text-emerald-900'], [class~='text-emerald-950']) {
+  color: #6ee7b7 !important;
+}
+
+html[data-theme='dark'] body :is([class~='border-emerald-100'], [class~='border-emerald-200'], [class~='border-emerald-300']) {
+  border-color: color-mix(in srgb, rgb(16 185 129) 45%, rgb(var(--c-slate-900))) !important;
+}
+
+html[data-theme='dark'] body :is([class~='hover:bg-emerald-50']:hover, [class~='hover:bg-emerald-100']:hover, [class*='hover:bg-emerald-50/']:hover, [class~='hover:bg-emerald-200']:hover, .group:hover [class~='group-hover:bg-emerald-100']) {
+  background-color: color-mix(in srgb, rgb(16 185 129) 26%, rgb(var(--c-slate-900))) !important;
+}
+
+html[data-theme='dark'] body :is([class*='hover:text-emerald-600']:hover, [class*='hover:text-emerald-700']:hover, [class*='hover:text-emerald-800']:hover, [class*='hover:text-emerald-900']:hover, [class*='hover:text-emerald-950']:hover) {
+  color: #6ee7b7 !important;
+}
+
+html[data-theme='dark'] body :is([class~='bg-rose-50'], [class~='bg-rose-100'], [class^='bg-rose-50/'], [class*=' bg-rose-50/']) {
+  background-color: color-mix(in srgb, rgb(244 63 94) 16%, rgb(var(--c-slate-900))) !important;
+}
+
+html[data-theme='dark'] body :is([class~='text-rose-600'], [class~='text-rose-700'], [class~='text-rose-800'], [class~='text-rose-900'], [class~='text-rose-950']) {
+  color: #fda4af !important;
+}
+
+html[data-theme='dark'] body :is([class~='border-rose-100'], [class~='border-rose-200'], [class~='border-rose-300']) {
+  border-color: color-mix(in srgb, rgb(244 63 94) 45%, rgb(var(--c-slate-900))) !important;
+}
+
+html[data-theme='dark'] body :is([class~='hover:bg-rose-50']:hover, [class~='hover:bg-rose-100']:hover, [class*='hover:bg-rose-50/']:hover, [class~='hover:bg-rose-200']:hover, .group:hover [class~='group-hover:bg-rose-100']) {
+  background-color: color-mix(in srgb, rgb(244 63 94) 26%, rgb(var(--c-slate-900))) !important;
+}
+
+html[data-theme='dark'] body :is([class*='hover:text-rose-600']:hover, [class*='hover:text-rose-700']:hover, [class*='hover:text-rose-800']:hover, [class*='hover:text-rose-900']:hover, [class*='hover:text-rose-950']:hover) {
+  color: #fda4af !important;
+}
+
+html[data-theme='dark'] body :is([class~='bg-red-50'], [class~='bg-red-100'], [class^='bg-red-50/'], [class*=' bg-red-50/']) {
+  background-color: color-mix(in srgb, rgb(239 68 68) 16%, rgb(var(--c-slate-900))) !important;
+}
+
+html[data-theme='dark'] body :is([class~='text-red-600'], [class~='text-red-700'], [class~='text-red-800'], [class~='text-red-900'], [class~='text-red-950']) {
+  color: #fca5a5 !important;
+}
+
+html[data-theme='dark'] body :is([class~='border-red-100'], [class~='border-red-200'], [class~='border-red-300']) {
+  border-color: color-mix(in srgb, rgb(239 68 68) 45%, rgb(var(--c-slate-900))) !important;
+}
+
+html[data-theme='dark'] body :is([class~='hover:bg-red-50']:hover, [class~='hover:bg-red-100']:hover, [class*='hover:bg-red-50/']:hover, [class~='hover:bg-red-200']:hover, .group:hover [class~='group-hover:bg-red-100']) {
+  background-color: color-mix(in srgb, rgb(239 68 68) 26%, rgb(var(--c-slate-900))) !important;
+}
+
+html[data-theme='dark'] body :is([class*='hover:text-red-600']:hover, [class*='hover:text-red-700']:hover, [class*='hover:text-red-800']:hover, [class*='hover:text-red-900']:hover, [class*='hover:text-red-950']:hover) {
+  color: #fca5a5 !important;
+}
+
+html[data-theme='dark'] body :is([class~='bg-amber-50'], [class~='bg-amber-100'], [class^='bg-amber-50/'], [class*=' bg-amber-50/']) {
+  background-color: color-mix(in srgb, rgb(245 158 11) 16%, rgb(var(--c-slate-900))) !important;
+}
+
+html[data-theme='dark'] body :is([class~='text-amber-600'], [class~='text-amber-700'], [class~='text-amber-800'], [class~='text-amber-900'], [class~='text-amber-950']) {
+  color: #fcd34d !important;
+}
+
+html[data-theme='dark'] body :is([class~='border-amber-100'], [class~='border-amber-200'], [class~='border-amber-300']) {
+  border-color: color-mix(in srgb, rgb(245 158 11) 45%, rgb(var(--c-slate-900))) !important;
+}
+
+html[data-theme='dark'] body :is([class~='hover:bg-amber-50']:hover, [class~='hover:bg-amber-100']:hover, [class*='hover:bg-amber-50/']:hover, [class~='hover:bg-amber-200']:hover, .group:hover [class~='group-hover:bg-amber-100']) {
+  background-color: color-mix(in srgb, rgb(245 158 11) 26%, rgb(var(--c-slate-900))) !important;
+}
+
+html[data-theme='dark'] body :is([class*='hover:text-amber-600']:hover, [class*='hover:text-amber-700']:hover, [class*='hover:text-amber-800']:hover, [class*='hover:text-amber-900']:hover, [class*='hover:text-amber-950']:hover) {
+  color: #fcd34d !important;
+}
+
+html[data-theme='dark'] body :is([class~='bg-violet-50'], [class~='bg-violet-100'], [class^='bg-violet-50/'], [class*=' bg-violet-50/']) {
+  background-color: color-mix(in srgb, rgb(139 92 246) 16%, rgb(var(--c-slate-900))) !important;
+}
+
+html[data-theme='dark'] body :is([class~='text-violet-600'], [class~='text-violet-700'], [class~='text-violet-800'], [class~='text-violet-900'], [class~='text-violet-950']) {
+  color: #c4b5fd !important;
+}
+
+html[data-theme='dark'] body :is([class~='border-violet-100'], [class~='border-violet-200'], [class~='border-violet-300']) {
+  border-color: color-mix(in srgb, rgb(139 92 246) 45%, rgb(var(--c-slate-900))) !important;
+}
+
+html[data-theme='dark'] body :is([class~='hover:bg-violet-50']:hover, [class~='hover:bg-violet-100']:hover, [class*='hover:bg-violet-50/']:hover, [class~='hover:bg-violet-200']:hover, .group:hover [class~='group-hover:bg-violet-100']) {
+  background-color: color-mix(in srgb, rgb(139 92 246) 26%, rgb(var(--c-slate-900))) !important;
+}
+
+html[data-theme='dark'] body :is([class*='hover:text-violet-600']:hover, [class*='hover:text-violet-700']:hover, [class*='hover:text-violet-800']:hover, [class*='hover:text-violet-900']:hover, [class*='hover:text-violet-950']:hover) {
+  color: #c4b5fd !important;
+}
+
+html[data-theme='dark'] body :is([class~='bg-purple-50'], [class~='bg-purple-100'], [class^='bg-purple-50/'], [class*=' bg-purple-50/']) {
+  background-color: color-mix(in srgb, rgb(168 85 247) 16%, rgb(var(--c-slate-900))) !important;
+}
+
+html[data-theme='dark'] body :is([class~='text-purple-600'], [class~='text-purple-700'], [class~='text-purple-800'], [class~='text-purple-900'], [class~='text-purple-950']) {
+  color: #d8b4fe !important;
+}
+
+html[data-theme='dark'] body :is([class~='border-purple-100'], [class~='border-purple-200'], [class~='border-purple-300']) {
+  border-color: color-mix(in srgb, rgb(168 85 247) 45%, rgb(var(--c-slate-900))) !important;
+}
+
+html[data-theme='dark'] body :is([class~='hover:bg-purple-50']:hover, [class~='hover:bg-purple-100']:hover, [class*='hover:bg-purple-50/']:hover, [class~='hover:bg-purple-200']:hover, .group:hover [class~='group-hover:bg-purple-100']) {
+  background-color: color-mix(in srgb, rgb(168 85 247) 26%, rgb(var(--c-slate-900))) !important;
+}
+
+html[data-theme='dark'] body :is([class*='hover:text-purple-600']:hover, [class*='hover:text-purple-700']:hover, [class*='hover:text-purple-800']:hover, [class*='hover:text-purple-900']:hover, [class*='hover:text-purple-950']:hover) {
+  color: #d8b4fe !important;
+}
+
+html[data-theme='dark'] body :is([class~='bg-blue-50'], [class~='bg-blue-100'], [class^='bg-blue-50/'], [class*=' bg-blue-50/']) {
+  background-color: color-mix(in srgb, rgb(59 130 246) 16%, rgb(var(--c-slate-900))) !important;
+}
+
+html[data-theme='dark'] body :is([class~='text-blue-600'], [class~='text-blue-700'], [class~='text-blue-800'], [class~='text-blue-900'], [class~='text-blue-950']) {
+  color: #93c5fd !important;
+}
+
+html[data-theme='dark'] body :is([class~='border-blue-100'], [class~='border-blue-200'], [class~='border-blue-300']) {
+  border-color: color-mix(in srgb, rgb(59 130 246) 45%, rgb(var(--c-slate-900))) !important;
+}
+
+html[data-theme='dark'] body :is([class~='hover:bg-blue-50']:hover, [class~='hover:bg-blue-100']:hover, [class*='hover:bg-blue-50/']:hover, [class~='hover:bg-blue-200']:hover, .group:hover [class~='group-hover:bg-blue-100']) {
+  background-color: color-mix(in srgb, rgb(59 130 246) 26%, rgb(var(--c-slate-900))) !important;
+}
+
+html[data-theme='dark'] body :is([class*='hover:text-blue-600']:hover, [class*='hover:text-blue-700']:hover, [class*='hover:text-blue-800']:hover, [class*='hover:text-blue-900']:hover, [class*='hover:text-blue-950']:hover) {
+  color: #93c5fd !important;
+}
+
+html[data-theme='dark'] body :is([class~='hover:bg-white']:hover, [class~='hover:bg-slate-50']:hover, [class~='hover:bg-slate-100']:hover, [class~='hover:bg-slate-200']:hover, [class~='focus:bg-white']:focus) {
+  background-color: rgb(var(--c-slate-800)) !important;
+}
+
+html[data-theme='dark'] body :is([class~='hover:text-slate-700']:hover, [class~='hover:text-slate-800']:hover) {
+  color: rgb(var(--c-slate-100)) !important;
+}
+
+html[data-theme='dark'] body :is([class~='bg-gradient-to-br']:is([class~='via-white'], [class~='to-white'])) {
+  background-image: none !important;
+  background-color: rgb(var(--c-slate-900)) !important;
+}
+
+/* Botones y franjas de color: el blanco debe leerse. */
+
+html[data-theme='dark'] body :is([class~='bg-emerald-600'][class~='text-white']) {
+  background-color: #047857 !important;
+}
+
+html[data-theme='dark'] body :is([class~='text-primary-100']) {
+  color: #fff !important;
+}
+
+html[data-theme='dark'] body :is([class~='bg-[#25D366]'][class~='text-white']) {
+  color: #052e16 !important;
+}
+
+html[data-theme='dark'] body :is([class~='text-white/80']) {
+  color: #fff !important;
+}
+
+html[data-theme='dark'] body :is([class~='text-[#128C7E]']) {
+  color: #4ade80 !important;
+}
+
+html[data-theme='dark'] body :is([class~='bg-white/15']) {
+  background-color: rgb(0 0 0 / 0.25) !important;
+}
+
+/* Globos del mapa (Leaflet los dibuja blancos). */
+
+html[data-theme='dark'] body :is(.leaflet-popup-content-wrapper, .leaflet-popup-tip) {
+  background-color: rgb(var(--c-slate-900)) !important;
+  color: rgb(var(--c-slate-100)) !important;
+}
+
+html[data-theme='dark'] body .leaflet-popup-content a[class~="text-white"], html[data-theme='dark'] body .leaflet-popup-content button[class~="text-white"] {
+  color: #fff !important;
+}
+
+/* Panel de administración: versión oscura de las mismas piezas. */
+
+html[data-theme='dark'] body .admin-theme {
+  --admin-ink: rgb(var(--c-slate-50));
+  --admin-muted: rgb(var(--c-slate-400));
+  --admin-border: rgb(var(--c-slate-700));
+}
+
+html[data-theme='dark'] body .admin-theme :is([class~="bg-[#0f0b12]"]) {
+  background-color: rgb(var(--c-slate-950)) !important;
+}
+
+html[data-theme='dark'] body .admin-theme :is([class~="bg-[#1f1724]"]) {
+  background-color: rgb(var(--c-slate-900)) !important;
+}
+
+html[data-theme='dark'] body .admin-theme :is([class*="bg-white/"]) {
+  background-color: rgb(var(--c-slate-800) / 0.5) !important;
+}
+
+html[data-theme='dark'] body .admin-theme :is([class~='text-slate-300']) {
+  color: rgb(var(--c-slate-300)) !important;
+}
+
+html[data-theme='dark'] body .admin-theme :is([class~='text-slate-400'], [class~='text-slate-500']) {
+  color: var(--admin-muted) !important;
+}
+
+html[data-theme='dark'] body .admin-theme :is([class~='text-accent-300'], [class~='text-accent-200']) {
+  color: rgb(var(--c-accent-300)) !important;
+}
+
+html[data-theme='dark'] body .admin-theme :is([class~='text-primary-300']) {
+  color: rgb(var(--c-primary-300)) !important;
+}
+
+html[data-theme='dark'] body .admin-theme :is([class~='text-violet-300'], [class~='text-violet-200']) {
+  color: #c4b5fd !important;
+}
+
+html[data-theme='dark'] body .admin-theme :is([class~='text-emerald-300'], [class~='text-emerald-200']) {
+  color: #6ee7b7 !important;
+}
+
+html[data-theme='dark'] body .admin-theme :is([class~='text-amber-300'], [class~='text-amber-200']) {
+  color: #fcd34d !important;
+}
+
+html[data-theme='dark'] body .admin-theme :is([class~='text-green-300']) {
+  color: #86efac !important;
+}
+
+html[data-theme='dark'] body .admin-theme :is([class~='text-rose-200']) {
+  color: #fda4af !important;
+}
+
+html[data-theme='dark'] body .admin-theme :is([class~='text-sky-200']) {
+  color: #7dd3fc !important;
+}
+
+html[data-theme='dark'] body .admin-theme :is([class~='text-orange-200']) {
+  color: #fdba74 !important;
+}
+
+html[data-theme='dark'] body .admin-theme :is([class*="bg-rose-400/10"]) {
+  background-color: color-mix(in srgb, rgb(244 63 94) 16%, rgb(var(--c-slate-900))) !important;
+}
+
+html[data-theme='dark'] body .admin-theme :is([class*="border-rose-400/30"]) {
+  border-color: color-mix(in srgb, rgb(244 63 94) 45%, rgb(var(--c-slate-900))) !important;
+}
+
+html[data-theme='dark'] body .admin-theme :is([class*="bg-emerald-400/10"]) {
+  background-color: color-mix(in srgb, rgb(16 185 129) 16%, rgb(var(--c-slate-900))) !important;
+}
+
+/* --- fin modo oscuro: legibilidad --- */
+
 /* Impresión del ticket de pedido: solo se imprime el ticket */
 @media print {
   body * {

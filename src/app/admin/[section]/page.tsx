@@ -9,7 +9,7 @@ const availableSections = new Set([
 ]);
 const removedSections = new Set([
   'productos', 'pedidos', 'pedido_detalles', 'pedido_estado_historial',
-  'ventas', 'venta_detalles', 'facturas', 'factura_detalles', 'reportes',
+  'ventas', 'venta_detalles', 'facturas', 'factura_detalles',
 ]);
 
 export default async function AdminSectionPage(props: { params: Promise<{ section: string }> }) {

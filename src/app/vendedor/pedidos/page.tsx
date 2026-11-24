@@ -5,6 +5,7 @@
  */
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { useClientNames } from '@/frontend/lib/client-names';
 import { getMyStoreOrders, getOrderStateLabel, type PedidoConTienda } from '@/frontend/services/orders.service';
 import { userFacingError } from '@/shared/lib/user-facing-error';
 
@@ -14,6 +15,7 @@ export default function VendorOrdersPage() {
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState('todos');
   const [query, setQuery] = useState('');
+  const clientName = useClientNames();
 
   useEffect(() => {
     getMyStoreOrders()
@@ -87,10 +89,10 @@ export default function VendorOrdersPage() {
             <tbody className="divide-y divide-slate-200">
               {filteredOrders.map((order) => (
                 <tr key={order.id}>
-                  <td className="px-4 py-4 font-bold text-slate-900">{order.numero_pedido}</td>
-                  <td className="px-4 py-4 text-slate-700">{order.usuario_id || 'Cliente'}</td>
+                  <td className="break-all px-4 py-4 font-bold text-slate-900">{order.numero_pedido}</td>
+                  <td className="min-w-32 px-4 py-4 text-slate-700">{clientName(order.usuario_id)}</td>
                   <td className="px-4 py-4 text-slate-600">{new Date(order.created_at).toLocaleDateString('es-PY')}</td>
-                  <td className="px-4 py-4 font-semibold text-slate-800">Gs. {Number(order.total).toLocaleString('es-PY')}</td>
+                  <td className="whitespace-nowrap px-4 py-4 font-semibold text-slate-800">Gs. {Number(order.total).toLocaleString('es-PY')}</td>
                   <td className="px-4 py-4 capitalize text-slate-700">{order.estado_pago}</td>
                   <td className="px-4 py-4"><span className="inline-flex rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-slate-700">{getOrderStateLabel(order.estado)}</span></td>
                   <td className="px-4 py-4"><Link href={`/comerciante/pedidos/${order.id}`} className="font-bold text-primary-700 hover:underline">Gestionar</Link></td>

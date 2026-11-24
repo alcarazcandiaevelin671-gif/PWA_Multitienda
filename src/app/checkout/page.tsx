@@ -349,6 +349,7 @@ export default function CheckoutPage() {
               <button type="button" onClick={requestLocation} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
                 {location ? 'Ubicación agregada' : 'Usar ubicación actual'}
               </button>
+              <p className="text-xs text-slate-500">Opcional. Si la agregás, el punto de entrega se guarda en este pedido para que el comercio pueda encontrarte.</p>
               <label className="block text-sm font-semibold text-slate-700">
                 Método de pago
                 <select value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value as CheckoutInput['metodo_pago'])} className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 font-normal">

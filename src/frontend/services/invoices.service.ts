@@ -10,7 +10,7 @@ export async function getMyInvoices(): Promise<FacturaInterna[]> {
     const user = await getCurrentUser();
     const { data, error } = await supabase
       .from('facturas')
-      .select('*')
+      .select('*, pedido:pedidos(numero_pedido)')
       .eq('cliente_id', user.id)
       .order('fecha', { ascending: false });
 
@@ -19,7 +19,7 @@ export async function getMyInvoices(): Promise<FacturaInterna[]> {
       throw error;
     }
 
-    return (data || []) as FacturaInterna[];
+    return (data || []) as unknown as FacturaInterna[];
   } catch (error) {
     if (error instanceof Error && isMissingTableError(error)) return [];
     throw error;
@@ -44,7 +44,7 @@ export async function getMyStoreInvoices(): Promise<FacturaInterna[]> {
 
     const { data, error } = await supabase
       .from('facturas')
-      .select('*')
+      .select('*, venta:ventas(numero_venta)')
       .in('tienda_id', storeIds)
       .order('fecha', { ascending: false });
 
@@ -53,7 +53,7 @@ export async function getMyStoreInvoices(): Promise<FacturaInterna[]> {
       throw error;
     }
 
-    return (data || []) as FacturaInterna[];
+    return (data || []) as unknown as FacturaInterna[];
   } catch (error) {
     if (error instanceof Error && isMissingTableError(error)) return [];
     throw error;

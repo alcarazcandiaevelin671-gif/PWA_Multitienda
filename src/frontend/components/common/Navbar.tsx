@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
+import { personalizationEnabled } from '@/frontend/lib/personalization';
 import { supabase } from '@/shared/supabase/client';
 import { useCart } from '@/frontend/context/CartContext';
 import NotificationBell from '@/frontend/components/common/NotificationBell';
@@ -203,7 +204,7 @@ export default function Navbar() {
   const handleSelectProduct = async (product: ProductSearchResult) => {
     try {
       const confirmedSearch = searchTerm.trim().slice(0, 120);
-      if (usuario?.id && rolUsuario === 'cliente' && confirmedSearch.length >= 2) {
+      if (usuario?.id && rolUsuario === 'cliente' && confirmedSearch.length >= 2 && await personalizationEnabled(usuario.id)) {
         await supabase.rpc('registrar_historial_busqueda', {
           p_termino: confirmedSearch,
           p_categoria_id: product.categoria_id ?? null,
@@ -365,6 +366,8 @@ export default function Navbar() {
                 ['/comerciante/pedidos', 'Pedidos'],
                 ['/comerciante/ventas', 'Ventas'],
                 ['/comerciante/facturas', 'Facturas'],
+                ['/comerciante/clientes', 'Clientes'],
+                ['/comerciante/mercado', 'Sugerencias de mercado'],
                 ['/comerciante/reportes', 'Reportes'],
               ].map(([href, label]) => <Link key={href} href={href} onClick={(event) => event.currentTarget.closest('details')?.removeAttribute('open')} className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-primary-50 hover:text-primary-700">{label}</Link>)}
             </nav>

@@ -23,8 +23,9 @@ export async function getMyStoreSales(): Promise<Venta[]> {
     const storeIds = tiendas.map((tienda) => tienda.id).filter(Boolean);
     const { data, error } = await supabase
       .from('ventas')
-      .select('*')
+      .select('*, pedido:pedidos!inner(estado, numero_pedido)') // los pedidos cancelados no son ventas
       .in('tienda_id', storeIds)
+      .neq('pedido.estado', 'cancelado')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -32,7 +33,7 @@ export async function getMyStoreSales(): Promise<Venta[]> {
       throw error;
     }
 
-    return (data || []) as Venta[];
+    return (data || []) as unknown as Venta[];
   } catch (error) {
     if (error instanceof Error && isMissingTableError(error)) return [];
     throw error;

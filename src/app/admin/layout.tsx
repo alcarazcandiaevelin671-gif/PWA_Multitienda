@@ -13,6 +13,7 @@ const sections = [
   { href: '/admin/categorias', label: 'Categorías', icon: '◇' },
   { href: '/admin/departamentos', label: 'Departamentos', icon: '⌖' },
   { href: '/admin/distritos', label: 'Distritos', icon: '⌖' },
+  { href: '/admin/reportes', label: 'Reportes', icon: '▥' },
   { href: '/admin/auditorias', label: 'Logs de sistema', icon: '◷' },
   { href: '/admin/notificaciones', label: 'Notificaciones', icon: '♧' },
 ];

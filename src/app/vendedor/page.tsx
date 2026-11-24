@@ -26,6 +26,8 @@ const shortcutIcons: Record<string, string> = {
   Pedidos: '▤',
   Ventas: '↗',
   Facturas: '▧',
+  Clientes: '◎',
+  Mercado: '◇',
   Reportes: '▥',
 };
 
@@ -35,6 +37,8 @@ const shortcuts = [
   { href: '/comerciante/pedidos', label: 'Pedidos', detail: 'Revisar compras recibidas', color: 'text-amber-700', accent: 'bg-amber-50' },
   { href: '/comerciante/ventas', label: 'Ventas', detail: 'Consultar operaciones', color: 'text-accent-700', accent: 'bg-accent-50' },
   { href: '/comerciante/facturas', label: 'Facturas', detail: 'Consultar documentos', color: 'text-violet-700', accent: 'bg-violet-50' },
+  { href: '/comerciante/clientes', label: 'Clientes', detail: 'Quiénes te compran', color: 'text-primary-700', accent: 'bg-primary-50' },
+  { href: '/comerciante/mercado', label: 'Mercado', detail: 'Sugerencias y tendencias', color: 'text-emerald-700', accent: 'bg-emerald-50' },
   { href: '/comerciante/reportes', label: 'Reportes', detail: 'Filtrar y exportar datos', color: 'text-rose-700', accent: 'bg-rose-50' },
 ];
 

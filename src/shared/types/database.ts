@@ -64,6 +64,8 @@ export interface Venta {
   tienda_id: string;
   cliente_id: string | null;
   numero_venta: string;
+  /** Solo en listados que traen el pedido relacionado. */
+  pedido?: { numero_pedido: string } | null;
   subtotal: number;
   descuento: number;
   total: number;
@@ -92,6 +94,9 @@ export interface FacturaInterna {
   pedido_id: string;
   tienda_id: string;
   cliente_id: string | null;
+  /** Solo en listados que traen el documento relacionado. */
+  pedido?: { numero_pedido: string } | null;
+  venta?: { numero_venta: string } | null;
   tipo_documento: string;
   numero: string;
   estado: string;

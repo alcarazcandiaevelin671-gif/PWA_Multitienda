@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { getMyStoreSales, getMyStoreSalesStats } from '@/frontend/services/sales.service';
 import type { Venta } from '@/shared/types/database';
+import { useClientNames } from '@/frontend/lib/client-names';
 import { userFacingError } from '@/shared/lib/user-facing-error';
 
 export default function VendorSalesPage() {
@@ -14,6 +15,7 @@ export default function VendorSalesPage() {
   const [stats, setStats] = useState({ totalVentas: 0, ventasHoy: 0, ventasMes: 0, cantidadOperaciones: 0, promedioPorVenta: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const clientName = useClientNames();
 
   useEffect(() => {
     Promise.all([getMyStoreSales(), getMyStoreSalesStats()])
@@ -79,11 +81,11 @@ export default function VendorSalesPage() {
             <tbody className="divide-y divide-slate-200 bg-white">
               {sales.map((sale) => (
                 <tr key={sale.id}>
-                  <td className="px-4 py-4 font-bold text-slate-900">{sale.numero_venta}</td>
-                  <td className="px-4 py-4 text-slate-700">{sale.pedido_id}</td>
+                  <td className="break-all px-4 py-4 font-bold text-slate-900">{sale.numero_venta}</td>
+                  <td className="break-all px-4 py-4 text-slate-700">{sale.pedido?.numero_pedido ?? sale.pedido_id}</td>
                   <td className="px-4 py-4 text-slate-600">{new Date(sale.created_at).toLocaleDateString('es-PY')}</td>
-                  <td className="px-4 py-4 text-slate-700">{sale.cliente_id || 'Cliente'}</td>
-                  <td className="px-4 py-4 font-semibold text-slate-900">Gs. {Number(sale.total).toLocaleString('es-PY')}</td>
+                  <td className="min-w-32 px-4 py-4 text-slate-700">{clientName(sale.cliente_id)}</td>
+                  <td className="whitespace-nowrap px-4 py-4 font-semibold text-slate-900">Gs. {Number(sale.total).toLocaleString('es-PY')}</td>
                   <td className="px-4 py-4 capitalize text-slate-700">{sale.metodo_pago}</td>
                   <td className="px-4 py-4">
                     <span className="inline-flex rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-slate-700">
