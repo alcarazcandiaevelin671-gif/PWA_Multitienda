@@ -11,3 +11,4 @@ tsconfig.tsbuildinfo
 *.doc
 /docs/**/*.pdf
 /docs/manual/
+/docs/evaluacion/capturas/
