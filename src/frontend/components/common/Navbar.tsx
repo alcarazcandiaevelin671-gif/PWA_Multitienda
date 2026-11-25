@@ -254,15 +254,16 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 flex w-full flex-wrap items-center justify-between gap-x-5 gap-y-3 border-b border-slate-200/80 border-t-2 border-t-accent-600 zone-header px-4 py-3 shadow-sm backdrop-blur-xl sm:px-6 lg:px-8">
-      <Link href="/" className="group flex shrink-0 items-center gap-3 rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary-600">
-        <span aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-700 to-primary-700 text-white shadow-sm transition group-hover:-translate-y-0.5 group-hover:shadow-md">
+    <header className="sticky top-0 z-50 flex w-full flex-wrap items-center justify-between gap-x-2 gap-y-1 border-b border-slate-200/80 border-t-2 border-t-accent-600 zone-header px-4 pb-1 pt-2 shadow-sm backdrop-blur-xl sm:px-6 md:gap-x-5 md:gap-y-3 md:py-3 lg:px-8">
+      <Link href="/" className="group flex shrink-0 items-center gap-2 rounded-xl sm:gap-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary-600">
+        <span aria-hidden="true" className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br sm:h-10 sm:w-10 from-emerald-700 to-primary-700 text-white shadow-sm transition group-hover:-translate-y-0.5 group-hover:shadow-md">
           <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6" aria-hidden="true">
             <path d="M3 10.5 12 4l9 6.5V21h-6v-6H9v6H3V10.5Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
             <path d="M7 11h2m6 0h2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
           </svg>
         </span>
-        <span className="leading-tight">
+        {/* Con sesión iniciada, en pantallas angostas el nombre cede su lugar a los accesos (lo leen igual los lectores de pantalla). */}
+        <span className={`leading-tight ${usuario ? 'sr-only min-[480px]:not-sr-only' : ''}`}>
           <span className="block text-base font-extrabold text-slate-900 transition group-hover:text-primary-800 sm:text-lg">Portal Guairá</span>
           <span className="mt-0.5 hidden text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500 sm:block">Comercio local</span>
         </span>
@@ -283,13 +284,15 @@ export default function Navbar() {
         </Link>
       </nav>
 
-      <div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-2 sm:gap-3">
+      <div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-1 sm:gap-3">
         {usuario && rolUsuario === 'cliente' && (
           <>
-            <Link href="/checkout" aria-label={`Carrito${totalItems ? `, ${totalItems} productos` : ''}`} className="text-xs font-bold text-slate-700 hover:text-primary-700">
-              Carrito{totalItems > 0 ? ` (${totalItems})` : ''}
+            <Link href="/checkout" aria-label={`Carrito${totalItems ? `, ${totalItems} productos` : ''}`} className="relative flex h-9 min-w-9 items-center justify-center text-xs font-bold text-slate-700 hover:text-primary-700">
+              <span aria-hidden="true" className="text-lg leading-none sm:hidden">🛒</span>
+              {totalItems > 0 && <span aria-hidden="true" className="absolute -right-0.5 -top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary-600 px-1 text-[10px] font-black leading-none text-white sm:hidden">{totalItems > 99 ? '99+' : totalItems}</span>}
+              <span className="hidden sm:inline">Carrito{totalItems > 0 ? ` (${totalItems})` : ''}</span>
             </Link>
-            <Link href="/pedidos" className="text-xs font-bold text-slate-700 hover:text-primary-700">Mis pedidos</Link>
+            <Link href="/pedidos" className="hidden text-xs font-bold text-slate-700 hover:text-primary-700 md:inline">Mis pedidos</Link>
           </>
         )}
         <div className="relative hidden md:block">
@@ -337,7 +340,7 @@ export default function Navbar() {
           type="button"
           onClick={openAppearancePanel}
           title="Personalizar colores y apariencia"
-          className="flex items-center gap-1.5 rounded-xl border border-primary-200 bg-primary-50 px-3 py-2 text-xs font-bold text-primary-800 transition hover:border-primary-300 hover:bg-primary-100"
+          className="flex h-9 min-w-9 items-center justify-center gap-1.5 rounded-xl border border-primary-200 bg-primary-50 px-2 sm:px-3 text-xs font-bold text-primary-800 transition hover:border-primary-300 hover:bg-primary-100"
         >
           <span aria-hidden="true">🎨</span>
           <span className="hidden sm:inline">Personalizar</span>
@@ -349,16 +352,17 @@ export default function Navbar() {
         {rolUsuario === 'admin' && (
           <Link
             href="/admin"
-            className="flex items-center gap-1.5 rounded-xl border border-violet-200 bg-violet-50 px-3 py-2 text-xs font-bold text-violet-800 transition hover:border-violet-300 hover:bg-violet-100"
+            title="Panel Administrador"
+            className="flex h-9 min-w-9 items-center justify-center gap-1.5 rounded-xl border border-violet-200 bg-violet-50 px-2 sm:px-3 text-xs font-bold text-violet-800 transition hover:border-violet-300 hover:bg-violet-100"
           >
-            <span>👑</span> Panel Administrador
+            <span aria-hidden="true">👑</span> <span className="sm:hidden">Panel</span><span className="hidden sm:inline">Panel Administrador</span>
           </Link>
         )}
 
         {rolUsuario === 'comerciante' && (
-          <details className="relative">
-            <summary className="cursor-pointer list-none rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800 transition hover:border-emerald-300 hover:bg-emerald-100">Mi negocio <span aria-hidden="true">▾</span></summary>
-            <nav aria-label="Panel del comerciante" className="absolute right-0 top-[calc(100%+0.5rem)] z-[70] grid min-w-48 gap-1 rounded-xl border border-slate-200 bg-white p-2 shadow-xl">
+          <details className="sm:relative">
+            <summary className="flex h-9 cursor-pointer list-none items-center gap-1 whitespace-nowrap rounded-xl border border-emerald-200 bg-emerald-50 px-2 sm:px-3 text-xs font-bold text-emerald-800 transition hover:border-emerald-300 hover:bg-emerald-100"><span className="hidden min-[400px]:inline">Mi negocio</span><span className="min-[400px]:hidden">Negocio</span> <span aria-hidden="true">▾</span></summary>
+            <nav aria-label="Panel del comerciante" className="absolute right-4 top-[calc(100%+0.25rem)] z-[70] grid max-h-[75vh] min-w-48 gap-1 overflow-y-auto sm:right-0 sm:top-[calc(100%+0.5rem)] rounded-xl border border-slate-200 bg-white p-2 shadow-xl">
               {[
                 ['/comerciante', 'Panel de comerciante'],
                 ['/comerciante/tiendas', 'Mis tiendas'],
@@ -375,12 +379,12 @@ export default function Navbar() {
         )}
 
         {usuario ? (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-0.5 sm:gap-2">
             <Link
               href="/configuracion"
               aria-label="Configuración"
               title="Configuración"
-              className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 transition hover:bg-primary-50 hover:text-primary-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 sm:h-10 sm:w-10 transition hover:bg-primary-50 hover:text-primary-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
             >
               <span aria-hidden="true" className="text-xl leading-none">⚙</span>
               <span className="sr-only">Configuración</span>
@@ -388,9 +392,9 @@ export default function Navbar() {
             <Link
               href="/perfil"
               aria-label="Ir a mi perfil"
-              className="flex items-center justify-center rounded-full border border-slate-200 bg-white p-1 shadow-sm transition hover:border-primary-300 hover:shadow-md"
+              className="flex items-center justify-center rounded-full border border-slate-200 bg-white p-0.5 shadow-sm sm:p-1 transition hover:border-primary-300 hover:shadow-md"
             >
-              <span className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-primary-700 to-emerald-600 text-lg text-white shadow-sm ring-2 ring-white">
+              <span className="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-primary-700 to-emerald-600 text-base text-white shadow-sm ring-2 ring-white sm:h-10 sm:w-10 sm:text-lg">
                 <FotoPerfil src={usuario.user_metadata?.avatar_url} alt="" sizes="40px" fallback={<span aria-hidden="true">👤</span>} />
               </span>
             </Link>
@@ -405,14 +409,15 @@ export default function Navbar() {
         )}
       </div>
       {/* Navegación principal en celular (mobile-first): la de arriba solo se ve desde tabletas */}
-      <nav aria-label="Principal (móvil)" className="order-last -mx-1 flex w-full gap-1 overflow-x-auto text-xs font-bold md:hidden">
+      <nav aria-label="Principal (móvil)" className="order-last -mx-1 flex w-full gap-0.5 overflow-x-auto text-xs font-bold md:hidden">
         {[
           ['/', 'Inicio'],
           ['/tiendas', 'Productos'],
           ['/comercios', 'Mapa'],
           ['/categorias', 'Categorías'],
+          ...(usuario && rolUsuario === 'cliente' ? [['/pedidos', 'Pedidos']] : []),
         ].map(([href, label]) => (
-          <Link key={href} href={href} aria-current={isActive(href) ? 'page' : undefined} className="header-link shrink-0 rounded-lg px-3 py-2 transition-colors">
+          <Link key={href} href={href} aria-current={isActive(href) ? 'page' : undefined} className="header-link shrink-0 rounded-lg px-2 py-2 min-[400px]:px-2.5 transition-colors">
             {label}
           </Link>
         ))}
