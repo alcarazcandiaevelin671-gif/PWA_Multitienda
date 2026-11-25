@@ -196,13 +196,13 @@ export default function NotificationBell({ userId, role }: { userId: string; rol
   };
 
   return (
-    <div ref={rootRef} className="relative">
-      <button type="button" onClick={() => setOpen((value) => !value)} aria-label={unreadCount ? `Notificaciones, ${unreadCount} sin leer` : 'Notificaciones'} aria-expanded={open} aria-haspopup="menu" className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:border-accent-300 hover:bg-accent-50 hover:text-accent-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-600">
+    <div ref={rootRef} className="sm:relative">
+      <button type="button" onClick={() => setOpen((value) => !value)} aria-label={unreadCount ? `Notificaciones, ${unreadCount} sin leer` : 'Notificaciones'} aria-expanded={open} aria-haspopup="menu" className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white sm:h-10 sm:w-10 text-slate-600 transition hover:border-accent-300 hover:bg-accent-50 hover:text-accent-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-600">
         <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
         {unreadCount > 0 && <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-black leading-none text-white ring-2 ring-white">{unreadCount > 99 ? '99+' : unreadCount}</span>}
       </button>
 
-      {open && <div role="menu" aria-label="Notificaciones recientes" className="absolute right-0 top-[calc(100%+0.65rem)] z-[80] w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+      {open && <div role="menu" aria-label="Notificaciones recientes" className="absolute inset-x-4 top-[calc(100%+0.25rem)] z-[80] sm:inset-x-auto sm:right-0 sm:top-[calc(100%+0.65rem)] sm:w-[22rem] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
           <h2 className="text-sm font-extrabold text-slate-900">Notificaciones</h2>
           {unreadCount > 0 && <span className="text-[11px] font-bold text-accent-700">{unreadCount} sin leer</span>}
