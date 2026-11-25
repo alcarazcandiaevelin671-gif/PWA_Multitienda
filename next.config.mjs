@@ -8,14 +8,14 @@ const supabaseHost = supabaseUrl ? new URL(supabaseUrl).host : '';
  *   hidratación que genera Next.js 14 y el script de apariencia; bloquea igual cualquier
  *   script de otro dominio inyectado. 'unsafe-eval' solo en desarrollo (recarga en caliente).
  * - Conexiones: propio sitio + Supabase (API, Auth, Realtime por WebSocket, Storage).
- * - Imágenes: propio sitio, Storage de Supabase y mosaicos de OpenStreetMap.
+ * - Imágenes: propio sitio, Storage de Supabase y mosaicos de OpenStreetMap y foto de perfil de Google.
  * - Sin iframes de terceros, sin plugins, formularios solo hacia el propio sitio.
  */
 const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob: ${supabaseHost ? `https://${supabaseHost}` : ''} https://*.tile.openstreetmap.org https://tile.openstreetmap.org`,
+  `img-src 'self' data: blob: ${supabaseHost ? `https://${supabaseHost}` : ''} https://*.tile.openstreetmap.org https://tile.openstreetmap.org https://lh3.googleusercontent.com`,
   "font-src 'self' data:",
   // Los mosaicos del mapa también en connect-src: el service worker los descarga con fetch() para la caché offline.
   `connect-src 'self' ${supabaseHost ? `https://${supabaseHost} wss://${supabaseHost}` : ''} https://*.tile.openstreetmap.org https://tile.openstreetmap.org`,

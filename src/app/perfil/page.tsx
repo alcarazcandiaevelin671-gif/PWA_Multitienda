@@ -4,7 +4,7 @@
  * [PÁGINA] Página /perfil: datos del usuario, historial de búsquedas y accesos según su rol.
  */
 import Link from 'next/link';
-import Image from 'next/image';
+import FotoPerfil from '@/frontend/components/ui/FotoPerfil';
 import { useEffect, useRef, useState } from 'react';
 import { getClientUser, supabase } from '@/shared/supabase/client';
 import { deleteProfileAvatar, updateSettingsIdentity, uploadProfileAvatar } from '@/frontend/services/settings.service';
@@ -283,7 +283,7 @@ export default function PerfilPage() {
           <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-4 sm:gap-5">
               <div className={`relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 bg-white/10 text-2xl font-black shadow-lg ring-4 ring-white/10 sm:h-24 sm:w-24 ${userData.rol === 'admin' ? 'border-violet-200/60' : userData.rol === 'comerciante' ? 'border-emerald-200/60' : 'border-accent-200/60'}`}>
-                {typeof userSession.user_metadata?.avatar_url === 'string' && userSession.user_metadata.avatar_url.trim() ? <Image src={userSession.user_metadata.avatar_url} alt="Foto de perfil" fill unoptimized className="object-cover" /> : <span className="relative z-0">{iniciales}</span>}
+                <FotoPerfil src={userSession.user_metadata?.avatar_url} alt="Foto de perfil" fallback={<span className="relative z-0">{iniciales}</span>} />
                 <span className="absolute bottom-1 right-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-slate-900 bg-emerald-400 shadow-sm" aria-label="Sesión activa" />
               </div>
 

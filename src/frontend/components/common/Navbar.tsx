@@ -5,7 +5,7 @@
  */
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import FotoPerfil from '@/frontend/components/ui/FotoPerfil';
 import { usePathname, useRouter } from 'next/navigation';
 import { personalizationEnabled } from '@/frontend/lib/personalization';
 import { supabase } from '@/shared/supabase/client';
@@ -391,11 +391,7 @@ export default function Navbar() {
               className="flex items-center justify-center rounded-full border border-slate-200 bg-white p-1 shadow-sm transition hover:border-primary-300 hover:shadow-md"
             >
               <span className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-primary-700 to-emerald-600 text-lg text-white shadow-sm ring-2 ring-white">
-                {typeof usuario.user_metadata?.avatar_url === 'string' && usuario.user_metadata.avatar_url.trim() ? (
-                  <Image src={usuario.user_metadata.avatar_url} alt="" fill sizes="40px" unoptimized className="object-cover" />
-                ) : (
-                  <span aria-hidden="true">👤</span>
-                )}
+                <FotoPerfil src={usuario.user_metadata?.avatar_url} alt="" sizes="40px" fallback={<span aria-hidden="true">👤</span>} />
               </span>
             </Link>
           </div>
