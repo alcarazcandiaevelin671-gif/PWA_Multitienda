@@ -4,6 +4,14 @@
 const ERROR_TRANSLATIONS: Array<[RegExp, string]> = [
   [/invalid login credentials|invalid email or password/i, 'El correo o la contraseña son incorrectos.'],
   [/email not confirmed|email address not confirmed/i, 'Confirma tu correo electrónico antes de iniciar sesión.'],
+  // Registro con confirmación por correo: cada fallo con su motivo (antes salía el mensaje genérico).
+  [/email address .*(not authorized|cannot be used)/i, 'El servicio de correo todavía no puede enviar mensajes a esa dirección. Avisa al administrador del portal.'],
+  [/email address .* is invalid/i, 'Ese correo no es válido o su dominio no recibe mensajes. Revísalo o usa otro.'],
+  [/email rate limit|over_email_send_rate/i, 'Se alcanzó el límite de correos de confirmación por hora. Espera una hora e inténtalo de nuevo.'],
+  [/error sending|sending confirmation|smtp/i, 'No se pudo enviar el correo de confirmación, por eso la cuenta no se creó. Avisa al administrador del portal.'],
+  [/database error (saving|creating|finding)/i, 'La base de datos no pudo guardar la cuenta. Avisa al administrador del portal.'],
+  [/signups? not allowed|signup is disabled|signups are disabled/i, 'El registro de cuentas nuevas está desactivado.'],
+  [/for security purposes|after \d+ seconds/i, 'Espera un minuto antes de volver a intentarlo.'],
   [/user already registered|already registered|already exists/i, 'Ya existe una cuenta con ese correo electrónico.'],
   [/invalid email|email address is invalid/i, 'El correo electrónico no tiene un formato válido.'],
   [/weak password|password should|password must|password is too short/i, 'La contraseña no cumple los requisitos de seguridad.'],

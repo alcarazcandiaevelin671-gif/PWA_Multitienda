@@ -73,6 +73,9 @@ export default function RegistroClientePage() {
       if (profileError) throw profileError;
       setRegistered(true);
     } catch (caughtError) {
+      // Motivo técnico solo en la consola, sin datos de la persona.
+      const detalle = caughtError as { code?: string; status?: number; name?: string };
+      console.error('Registro de cliente:', detalle?.name, detalle?.status, detalle?.code);
       setError(userFacingError(caughtError, 'Ocurrió un error al crear la cuenta. Inténtalo de nuevo.'));
     } finally {
       setLoading(false);
