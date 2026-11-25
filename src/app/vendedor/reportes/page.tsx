@@ -6,6 +6,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { getVendorReportData, type VendorReportData } from '@/frontend/services/vendor-reports.service';
+import { getOrderStateLabel } from '@/frontend/services/orders.service';
 import { userFacingError } from '@/shared/lib/user-facing-error';
 
 type Period = 'today' | 'last-7-days' | 'this-month' | 'last-month' | 'custom';
@@ -189,9 +190,9 @@ export default function VendorReportsPage() {
       } else if (kind === 'pedidos') {
         await exportPdf({
           title: 'Reporte de pedidos', merchantName: data.merchantName, storeName, period: periodLabel, filename: base,
-          summary: [`Pedidos: ${data.orders.length}`, ...ORDER_STATES.map((state) => `${state.replaceAll('_', ' ')}: ${filtered.ordersByState[state]}`)],
+          summary: [`Pedidos: ${data.orders.length}`, ...ORDER_STATES.map((state) => `${getOrderStateLabel(state)}: ${filtered.ordersByState[state]}`)],
           head: ['Pedido', 'Tienda', 'Fecha', 'Estado', 'Total'],
-          rows: data.orders.map((order) => [order.numero_pedido, filtered.storeNames.get(order.tienda_id) || '', date(order.created_at), order.estado.replaceAll('_', ' '), currency(Number(order.total))]),
+          rows: data.orders.map((order) => [order.numero_pedido, filtered.storeNames.get(order.tienda_id) || '', date(order.created_at), getOrderStateLabel(order.estado), currency(Number(order.total))]),
         });
       } else if (kind === 'productos') {
         await exportPdf({
@@ -250,8 +251,8 @@ export default function VendorReportsPage() {
 
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-start justify-between gap-3"><div><h2 className="font-bold text-slate-900">Pedidos por estado</h2><p className="mt-1 text-xs text-slate-500">Conteos en el período elegido.</p></div><button type="button" onClick={() => void handleExport('pedidos')} disabled={exporting !== null} className="rounded-xl bg-primary-600 px-3 py-2 text-xs font-bold text-white hover:bg-primary-700 disabled:opacity-50">{exporting === 'pedidos' ? 'Generando…' : 'Exportar PDF'}</button></div>
-            <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">{ORDER_STATES.map((state) => <div key={state} className="rounded-xl bg-slate-50 p-3"><p className="text-[10px] font-bold uppercase text-slate-500">{state.replaceAll('_', ' ')}</p><p className="mt-1 text-xl font-black text-slate-900">{filtered.ordersByState[state]}</p></div>)}</div>
-            <div className="mt-5 space-y-3" aria-label="Gráfico de pedidos por estado">{ORDER_STATES.map((state) => <div key={state} className="grid grid-cols-[110px_minmax(0,1fr)_32px] items-center gap-3 text-xs"><span className="truncate capitalize text-slate-600">{state.replaceAll('_', ' ')}</span><span className="h-2 overflow-hidden rounded-full bg-slate-100"><span className="block h-full rounded-full bg-amber-500" style={{ width: `${filtered.ordersByState[state] / maxOrdersByState * 100}%` }} /></span><span className="text-right font-semibold tabular-nums text-slate-700">{filtered.ordersByState[state]}</span></div>)}</div>
+            <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">{ORDER_STATES.map((state) => <div key={state} className="rounded-xl bg-slate-50 p-3"><p className="text-[10px] font-bold uppercase text-slate-500">{getOrderStateLabel(state)}</p><p className="mt-1 text-xl font-black text-slate-900">{filtered.ordersByState[state]}</p></div>)}</div>
+            <div className="mt-5 space-y-3" aria-label="Gráfico de pedidos por estado">{ORDER_STATES.map((state) => <div key={state} className="grid grid-cols-[110px_minmax(0,1fr)_32px] items-center gap-3 text-xs"><span className="truncate text-slate-600">{getOrderStateLabel(state)}</span><span className="h-2 overflow-hidden rounded-full bg-slate-100"><span className="block h-full rounded-full bg-amber-500" style={{ width: `${filtered.ordersByState[state] / maxOrdersByState * 100}%` }} /></span><span className="text-right font-semibold tabular-nums text-slate-700">{filtered.ordersByState[state]}</span></div>)}</div>
             <p className="mt-4 text-xs text-slate-500">Pedidos en el período: {data.orders.length.toLocaleString('es-PY')}</p>
           </section>
 

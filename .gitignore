@@ -5,3 +5,10 @@ node_modules/
 tsconfig.tsbuildinfo
 /.next-prod/
 /backups/
+
+# Documentos de la tesis: solo en la computadora, nunca en el repositorio.
+*.docx
+*.doc
+/docs/**/*.pdf
+/docs/manual/
+/docs/evaluacion/capturas/

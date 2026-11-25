@@ -4,7 +4,7 @@
  * [FRONTEND] Perfil del cliente (compras, favoritos, preferencias). Sin uso actualmente: solo lo usa PerfilRolGate.
  */
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
+import FotoPerfil from '@/frontend/components/ui/FotoPerfil';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getClientUser, supabase } from '@/shared/supabase/client';
@@ -319,7 +319,7 @@ const role = normalizeRole(profile?.rol || 'cliente');
         <section className="grid w-full grid-cols-1 gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
           <div className="h-full w-full rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
             <div className="relative mx-auto h-28 w-28 overflow-hidden rounded-full border border-slate-200 bg-slate-100 shadow-md ring-4 ring-primary-50">
-              {profile?.avatar_url ? <Image src={profile.avatar_url} alt="Avatar del cliente" fill unoptimized className="object-cover" /> : <span className="flex h-full items-center justify-center text-5xl">👤</span>}
+              <FotoPerfil src={profile?.avatar_url} alt="Avatar del cliente" fallback={<span className="flex h-full items-center justify-center text-5xl">👤</span>} />
             </div>
             <label className="mt-5 inline-block cursor-pointer rounded-xl bg-primary-600 px-4 py-2 text-xs font-bold text-white hover:bg-primary-700">
               {uploadingAvatar ? 'Subiendo...' : 'Actualizar foto'}

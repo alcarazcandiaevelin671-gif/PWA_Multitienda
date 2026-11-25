@@ -3,7 +3,7 @@
 /**
  * [FRONTEND] Configuración > identidad: nombre, teléfono y foto de perfil.
  */
-import Image from 'next/image';
+import FotoPerfil from '@/frontend/components/ui/FotoPerfil';
 import { useEffect, useState } from 'react';
 import { showAppConfirm } from '@/frontend/lib/app-message';
 import {
@@ -159,7 +159,7 @@ export default function IdentidadSection({
         <h2 className="text-lg font-extrabold text-slate-900">Foto de perfil</h2>
         <div className="mt-4 flex flex-wrap items-center gap-4">
           <div className="relative h-20 w-20 overflow-hidden rounded-full border border-slate-200 bg-slate-100">
-            {avatar ? <Image src={avatar} alt="Vista previa de la foto de perfil" fill unoptimized className="object-cover" /> : <span className="flex h-full items-center justify-center text-3xl" aria-hidden="true">👤</span>}
+            <FotoPerfil src={avatar} alt="Vista previa de la foto de perfil" fallback={<span className="flex h-full items-center justify-center text-3xl" aria-hidden="true">👤</span>} />
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <label className="cursor-pointer rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50">

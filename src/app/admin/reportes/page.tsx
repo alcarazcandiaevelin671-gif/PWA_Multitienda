@@ -4,6 +4,7 @@
  * [PÁGINA] Página /admin/reportes: reporte global por período, con exportación a PDF y CSV.
  */
 import { useEffect, useState } from 'react';
+import { getOrderStateLabel } from '@/frontend/services/orders.service';
 import type { AdminReport } from '@/shared/lib/admin-report';
 
 const currency = (value: number) => `Gs. ${Math.round(value).toLocaleString('es-PY')}`;
@@ -86,7 +87,7 @@ export default function AdminReportsPage() {
       pdf.setFontSize(9);
       pdf.text(`Período: ${period} · Generado: ${new Date().toLocaleString('es-PY')}`, 14, 23);
       autoTable(pdf, { startY: 28, head: [['Indicador', 'Valor']], body: summary(report), ...style });
-      autoTable(pdf, { head: [['Estado del pedido', 'Cantidad']], body: states.map(([state, total]) => [label(state), total]), ...style });
+      autoTable(pdf, { head: [['Estado del pedido', 'Cantidad']], body: states.map(([state, total]) => [getOrderStateLabel(state), total]), ...style });
       autoTable(pdf, { head: [HEAD], body: rows.map((row) => [...row.slice(0, 5), currency(Number(row[5]))]), ...style });
       pdf.save(`${fileName}.pdf`);
     } catch {
@@ -124,7 +125,7 @@ export default function AdminReportsPage() {
         <div className="grid gap-5 xl:grid-cols-2">
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3 className="font-bold text-slate-900">Pedidos por estado</h3>
-            <div className="mt-4 space-y-3">{states.map(([state, total]) => <div key={state} className="grid grid-cols-[110px_minmax(0,1fr)_40px] items-center gap-3 text-xs"><span className="capitalize text-slate-600">{label(state)}</span><span className="h-2 overflow-hidden rounded-full bg-slate-100"><span className="block h-full rounded-full bg-primary-500" style={{ width: `${total / maxState * 100}%` }} /></span><span className="text-right font-semibold text-slate-700">{total}</span></div>)}</div>
+            <div className="mt-4 space-y-3">{states.map(([state, total]) => <div key={state} className="grid grid-cols-[110px_minmax(0,1fr)_40px] items-center gap-3 text-xs"><span className="text-slate-600">{getOrderStateLabel(state)}</span><span className="h-2 overflow-hidden rounded-full bg-slate-100"><span className="block h-full rounded-full bg-primary-500" style={{ width: `${total / maxState * 100}%` }} /></span><span className="text-right font-semibold text-slate-700">{total}</span></div>)}</div>
           </section>
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3 className="font-bold text-slate-900">Por distrito</h3>
