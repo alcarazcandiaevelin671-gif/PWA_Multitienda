@@ -18,7 +18,7 @@ const IMAGES_CACHE = `pg-images-${VERSION}`;
 const ALL_CACHES = [STATIC_CACHE, PAGES_CACHE, DATA_CACHE, IMAGES_CACHE];
 
 const OFFLINE_URL = '/offline';
-const PRECACHE = [OFFLINE_URL, '/manifest.webmanifest', '/icon.svg', '/icon-maskable.svg'];
+const PRECACHE = [OFFLINE_URL, '/manifest.webmanifest', '/icon-192.png', '/logo-128.png', '/favicon-32.png'];
 
 // Rutas con datos personales: se borran de la caché al cerrar sesión o cambiar de usuario.
 const PRIVATE_PREFIXES = ['/pedidos', '/facturas', '/perfil', '/configuracion', '/checkout', '/favoritos',

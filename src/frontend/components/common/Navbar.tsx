@@ -5,6 +5,7 @@
  */
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import FotoPerfil from '@/frontend/components/ui/FotoPerfil';
 import { usePathname, useRouter } from 'next/navigation';
 import { personalizationEnabled } from '@/frontend/lib/personalization';
@@ -256,12 +257,8 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 flex w-full flex-wrap items-center justify-between gap-x-2 gap-y-1 border-b border-slate-200/80 border-t-2 border-t-accent-600 zone-header px-4 pb-1 pt-2 shadow-sm backdrop-blur-xl sm:px-6 md:gap-x-5 md:gap-y-3 md:py-3 lg:px-8">
       <Link href="/" className="group flex shrink-0 items-center gap-2 rounded-xl sm:gap-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary-600">
-        <span aria-hidden="true" className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br sm:h-10 sm:w-10 from-emerald-700 to-primary-700 text-white shadow-sm transition group-hover:-translate-y-0.5 group-hover:shadow-md">
-          <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6" aria-hidden="true">
-            <path d="M3 10.5 12 4l9 6.5V21h-6v-6H9v6H3V10.5Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-            <path d="M7 11h2m6 0h2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-          </svg>
-        </span>
+        {/* Logo de Portal Guairá Multitienda (public/logo-128.png). */}
+        <Image src="/logo-128.png" alt="" width={48} height={48} priority className="h-10 w-10 shrink-0 rounded-full transition group-hover:-translate-y-0.5 group-hover:drop-shadow-md sm:h-12 sm:w-12" />
         {/* Con sesión iniciada, en pantallas angostas el nombre cede su lugar a los accesos (lo leen igual los lectores de pantalla). */}
         <span className={`leading-tight ${usuario ? 'sr-only min-[480px]:not-sr-only' : ''}`}>
           <span className="block text-base font-extrabold text-slate-900 transition group-hover:text-primary-800 sm:text-lg">Portal Guairá</span>
