@@ -113,7 +113,7 @@ export default function VendorHomePage() {
         </section>
       )}
 
-      <section aria-label="Indicadores del negocio" className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <section aria-label="Indicadores del negocio" className="grid w-full grid-cols-2 gap-3 xl:grid-cols-4">
         {loading ? Array.from({ length: 7 }, (_, index) => <div key={index} className="h-24 animate-pulse rounded-2xl border border-slate-200 bg-white" />) : metrics.map((metric) => (
           <article key={metric.label} className="flex h-full w-full min-h-28 items-start justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="min-w-0"><p className="text-xs font-bold uppercase tracking-wide text-slate-500">{metric.label}</p><p className={`mt-2 truncate text-2xl font-black tabular-nums ${metric.color}`} title={metric.value}>{metric.value}</p></div>
@@ -165,7 +165,7 @@ export default function VendorHomePage() {
             <table className="w-full min-w-[650px] text-left text-sm">
               <thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr><th className="px-5 py-3">Pedido</th><th className="px-5 py-3">Tienda</th><th className="px-5 py-3">Fecha</th><th className="px-5 py-3">Estado</th><th className="px-5 py-3 text-right">Total</th></tr></thead>
               <tbody className="divide-y divide-slate-100">
-                {data.recentOrders.map((order) => <tr key={order.id} className="text-slate-700"><td className="px-5 py-3 font-bold text-slate-900"><Link href={`/comerciante/pedidos/${order.id}`} className="hover:text-primary-700">{order.numero_pedido}</Link></td><td className="px-5 py-3">{order.tienda_nombre}</td><td className="px-5 py-3">{new Date(order.created_at).toLocaleDateString('es-PY')}</td><td className="px-5 py-3"><span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold capitalize">{order.estado.replaceAll('_', ' ')}</span></td><td className="px-5 py-3 text-right font-semibold">{currency(Number(order.total))}</td></tr>)}
+                {data.recentOrders.map((order) => <tr key={order.id} className="text-slate-700"><td className="break-all px-5 py-3 font-bold text-slate-900"><Link href={`/comerciante/pedidos/${order.id}`} className="hover:text-primary-700">{order.numero_pedido}</Link></td><td className="px-5 py-3">{order.tienda_nombre}</td><td className="px-5 py-3">{new Date(order.created_at).toLocaleDateString('es-PY')}</td><td className="px-5 py-3"><span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold capitalize">{order.estado.replaceAll('_', ' ')}</span></td><td className="px-5 py-3 text-right font-semibold">{currency(Number(order.total))}</td></tr>)}
               </tbody>
             </table>
           </div>

@@ -864,3 +864,103 @@ html[data-theme='dark'] body .admin-theme :is([class*="bg-emerald-400/10"]) {
     display: none !important;
   }
 }
+
+/* --- Tablas en el celular: cada fila como tarjeta ---------------------------
+   TablasResponsivas copia el título de cada columna a sus celdas (data-label).
+   Debajo de 640 px la tabla deja de deslizarse de costado: cada fila es una
+   tarjeta con "Título  valor" por renglón. Desde 640 px se ve la tabla normal. */
+@media (max-width: 639.98px) {
+  main table:has(> thead) {
+    min-width: 0 !important;
+    width: 100% !important;
+    border-collapse: separate;
+  }
+  main table:has(> thead) > thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  main table:has(> thead) > tbody {
+    display: grid;
+    gap: 0.75rem;
+    padding: 0.25rem 0;
+  }
+  main table:has(> thead) > tbody > tr {
+    display: block;
+    border: 1px solid rgb(var(--c-slate-200));
+    border-radius: calc(0.75rem * var(--radius-scale, 1));
+    background-color: #fff;
+    padding: 0.5rem 0.875rem;
+    box-shadow: 0 1px 2px rgb(var(--c-slate-950) / 0.05);
+  }
+  main table:has(> thead) > tbody > tr > :is(td, th) {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    min-width: 0;
+    max-width: none;
+    padding: 0.4rem 0 !important;
+    border: 0;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+  main table:has(> thead) > tbody > tr > :is(td, th) + :is(td, th) {
+    border-top: 1px solid rgb(var(--c-slate-100));
+  }
+  main table:has(> thead) > tbody > tr > :is(td, th)[data-label]:not([data-label=''])::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    max-width: 45%;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: rgb(var(--c-slate-500));
+  }
+  /* Sin título (botones de acción) o celda que ocupa toda la fila (cargando, sin datos). */
+  main table:has(> thead) > tbody > tr > :is(td, th):is([data-label=''], [colspan]) {
+    justify-content: flex-end;
+  }
+  /* Enlaces de acción (Ver detalle, Ticket…) con altura cómoda para el dedo. */
+  main table:has(> thead) > tbody > tr > td a {
+    display: inline-flex;
+    min-height: 2.25rem;
+    align-items: center;
+  }
+  main table:has(> thead) > tbody > tr > td[colspan] {
+    display: block;
+    text-align: center;
+  }
+  main table:has(> thead) > tbody > tr:has(> td[colspan]) {
+    border-style: dashed;
+    box-shadow: none;
+  }
+  html[data-theme='dark'] main table:has(> thead) > tbody > tr {
+    background-color: rgb(var(--c-slate-900));
+    border-color: rgb(var(--c-slate-700));
+  }
+  html[data-theme='dark'] main table:has(> thead) > tbody > tr > :is(td, th) + :is(td, th) {
+    border-top-color: rgb(var(--c-slate-800));
+  }
+  html[data-theme='dark'] main table:has(> thead) > tbody > tr > :is(td, th)::before {
+    color: rgb(var(--c-slate-400));
+  }
+}
+
+/* --- Legibilidad y toque en pantallas táctiles ------------------------------
+   Ninguna letra por debajo de 11 px (había etiquetas de 9 y 10 px), y los
+   botones de mostrar u ocultar la contraseña con un área cómoda para el dedo. */
+.text-\[9px\],
+.text-\[10px\] {
+  font-size: 0.6875rem !important;
+}
+button:is([aria-label$='contraseña'], [aria-label$='confirmación']) {
+  display: inline-flex;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+}

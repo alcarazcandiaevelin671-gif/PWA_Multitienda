@@ -169,7 +169,7 @@ export default function ProductDirectory({ products, districts }: { products: Fe
                 {location && <p className="mt-2 text-xs font-bold text-accent-700">📍 {formatDistance(distanceKm)}</p>}
                 <div className="mt-4 flex items-end justify-between gap-3 border-t border-slate-100 pt-3">
                   <PriceTag price={product.precio_gs} offer={product.precio_oferta} size="sm" className="text-accent-700" />
-                  <Link href={productPath(product)} className="text-xs font-bold text-slate-600 hover:text-accent-700">Ver producto →</Link>
+                  <Link href={productPath(product)} className="-my-2 inline-flex min-h-10 items-center text-xs font-bold text-slate-600 hover:text-accent-700">Ver producto →</Link>
                 </div>
               </div>
             </article>

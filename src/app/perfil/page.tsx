@@ -398,10 +398,10 @@ export default function PerfilPage() {
         </section>
       )}
 
-      <section aria-label="Accesos rápidos" className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section aria-label="Accesos rápidos" className="grid w-full grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <Link
           href="/configuracion"
-          className="group flex h-full w-full min-h-28 items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-primary-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700"
+          className="group flex h-full w-full min-h-28 flex-col items-start gap-3 rounded-2xl sm:flex-row sm:items-center sm:gap-4 border border-slate-200 bg-white p-4 text-left sm:p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-primary-300 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700"
         >
           <span aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-xl text-primary-800 transition group-hover:bg-primary-100">⚙</span>
           <span><span className="block text-xs font-semibold text-slate-500">Cuenta</span><span className="mt-1 block text-sm font-extrabold text-slate-900">Configurar mi cuenta</span></span>
@@ -411,7 +411,7 @@ export default function PerfilPage() {
           <>
             <Link
               href="/favoritos"
-              className="group flex h-full w-full min-h-28 items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-700"
+              className="group flex h-full w-full min-h-28 flex-col items-start gap-3 rounded-2xl sm:flex-row sm:items-center sm:gap-4 border border-slate-200 bg-white p-4 text-left sm:p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-700"
             >
               <span aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-xl text-rose-700 transition group-hover:bg-rose-100">♡</span>
               <span><span className="block text-xs font-semibold text-slate-500">Acceso rápido</span><span className="mt-1 block text-sm font-extrabold text-slate-900">Mis Favoritos</span></span>
@@ -419,7 +419,7 @@ export default function PerfilPage() {
 
             <Link
               href="/pedidos"
-              className="group flex h-full w-full min-h-28 items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+              className="group flex h-full w-full min-h-28 flex-col items-start gap-3 rounded-2xl sm:flex-row sm:items-center sm:gap-4 border border-slate-200 bg-white p-4 text-left sm:p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
             >
               <span aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-xl text-emerald-800 transition group-hover:bg-emerald-100">▤</span>
               <span><span className="block text-xs font-semibold text-slate-500">Historial</span><span className="mt-1 block text-sm font-extrabold text-slate-900">Mis Pedidos</span></span>
@@ -430,7 +430,7 @@ export default function PerfilPage() {
         <button
           type="button"
           onClick={handleCerrarSesion}
-          className="group flex h-full w-full min-h-28 items-center gap-4 rounded-2xl border border-rose-200 bg-rose-50/70 p-5 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-rose-300 hover:bg-rose-50 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-700"
+          className="group flex h-full w-full min-h-28 flex-col items-start gap-3 rounded-2xl sm:flex-row sm:items-center sm:gap-4 border border-rose-200 bg-rose-50/70 p-4 text-left sm:p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-rose-300 hover:bg-rose-50 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-700"
         >
           <span aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-xl text-rose-700 transition group-hover:bg-rose-100">⇥</span>
           <span><span className="block text-xs font-semibold text-rose-700">Cuenta</span><span className="mt-1 block text-sm font-extrabold text-rose-800">Cerrar sesión</span></span>

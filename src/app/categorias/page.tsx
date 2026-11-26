@@ -34,18 +34,18 @@ export default async function CategoriasPage() {
             <p className="font-semibold text-slate-700">No hay categorías disponibles.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
             {categories.map((category: any) => (
               <Link
                 key={category.id}
                 href={`/categorias/${category.id}`}
-                className="group flex min-h-36 flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:border-primary-200 hover:shadow-lg"
+                className="group flex min-h-28 flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:min-h-36 sm:p-5 transition hover:-translate-y-1 hover:border-primary-200 hover:shadow-lg"
               >
-                <span className="text-4xl" aria-hidden="true">
+                <span className="text-3xl sm:text-4xl" aria-hidden="true">
                   {categoryIcons[category.nombre] || '📦'}
                 </span>
-                <span className="mt-5 flex items-center justify-between gap-3">
-                  <span className="font-bold text-slate-900 group-hover:text-primary-600">{category.nombre}</span>
+                <span className="mt-3 flex items-center justify-between gap-2 sm:mt-5 sm:gap-3">
+                  <span className="min-w-0 break-words text-sm font-bold text-slate-900 group-hover:text-primary-600 sm:text-base">{category.nombre}</span>
                   <span className="text-sm font-bold text-primary-600" aria-hidden="true">→</span>
                 </span>
               </Link>

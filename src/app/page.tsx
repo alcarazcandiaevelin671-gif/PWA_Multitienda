@@ -50,7 +50,7 @@ export default async function Home() {
 
       {/* 2. ICON BANNERS */}
       <section className="border-b border-slate-100 bg-slate-50/50 py-6">
-        <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-4 px-4 text-center sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8">
+        <div className="mx-auto grid w-full max-w-7xl grid-cols-2 gap-2 px-4 text-center sm:gap-4 sm:px-6 lg:grid-cols-4 lg:px-8">
           <div className="h-full w-full p-3">
             <p className="font-bold text-xs text-slate-900">Locales Verificados</p>
             <p className="text-[11px] text-slate-500">Información confiable y directa</p>

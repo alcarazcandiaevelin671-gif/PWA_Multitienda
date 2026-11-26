@@ -101,7 +101,7 @@ export default function ComerciosGuairaSection({ tiendas }: { tiendas: TiendaPub
                   )}
 
                   <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs font-bold text-slate-600">
-                    <Link href={`/tienda/${tienda.slug}`} className="flex items-center gap-1 text-accent-700 hover:text-accent-900">Ver catálogo →</Link>
+                    <Link href={`/tienda/${tienda.slug}`} className="-my-2 flex min-h-10 items-center gap-1 text-accent-700 hover:text-accent-900">Ver catálogo →</Link>
                     {tienda.whatsapp && <span className="text-emerald-600">💬 WhatsApp</span>}
                   </div>
                 </div>

@@ -92,7 +92,7 @@ export default function VendorOrderDetailPage() {
       <header className="mt-5 flex flex-wrap items-end justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
           <p className="text-xs font-black uppercase text-emerald-700">Pedido</p>
-          <h1 className="mt-1 text-2xl font-black text-slate-900">{pedido.numero_pedido}</h1>
+          <h1 className="mt-1 break-all text-xl font-black text-slate-900 sm:text-2xl">{pedido.numero_pedido}</h1>
         </div>
         <div className="text-sm text-slate-600">
           <p>Estado: <strong className="text-slate-900">{getOrderStateLabel(pedido.estado)}</strong></p>
@@ -170,7 +170,7 @@ export default function VendorOrderDetailPage() {
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           {documentos.venta && <article className="rounded-xl border border-slate-200 bg-white p-4">
             <p className="text-[10px] font-black uppercase tracking-wide text-slate-500">Venta</p>
-            <p className="mt-1 font-bold text-slate-900">{documentos.venta.numero_venta}</p>
+            <p className="mt-1 break-all font-bold text-slate-900">{documentos.venta.numero_venta}</p>
             <p className="mt-1 text-xs capitalize text-slate-600">{documentos.venta.estado} · Gs. {Number(documentos.venta.total).toLocaleString('es-PY')}</p>
           </article>}
           {documentos.factura && <Link href={`/comerciante/facturas/${documentos.factura.id}`} className="rounded-xl border border-slate-200 bg-white p-4 transition hover:border-emerald-300 hover:bg-emerald-50/40">

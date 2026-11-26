@@ -248,7 +248,7 @@ export default function CheckoutPage() {
       <main className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
         <section className="no-print border-y border-emerald-200 bg-white px-6 py-10 text-center">
           <p className="text-sm font-bold uppercase text-emerald-700">Pedido recibido</p>
-          <h1 className="mt-2 text-3xl font-black text-slate-900">{createdOrder.numero_pedido}</h1>
+          <h1 className="mt-2 break-all text-2xl font-black text-slate-900 sm:text-3xl">{createdOrder.numero_pedido}</h1>
           <p className="mt-3 text-slate-600">El pedido quedó registrado como pendiente. Guardá tu ticket.</p>
           <Link href={`/pedidos/${createdOrder.id}`} className="mt-6 inline-flex rounded-lg bg-primary-700 px-5 py-3 font-bold text-white hover:bg-primary-800">
             Ver pedido

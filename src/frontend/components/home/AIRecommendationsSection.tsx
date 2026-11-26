@@ -85,7 +85,7 @@ export default function AIRecommendationsSection() {
                   {recommendation.motivo && <p className="mt-1 line-clamp-2 text-[11px] font-semibold text-accent-700">✨ {recommendation.motivo}</p>}
                   <div className="mt-3 flex items-end justify-between gap-2">
                     <PriceTag price={recommendation.precio} offer={recommendation.precio_oferta} size="sm" className="text-accent-700" />
-                    <Link href={recommendation.tienda_slug ? `/tienda/${encodeURIComponent(recommendation.tienda_slug)}#product-${recommendation.id}` : '/tiendas'} className="text-xs font-bold text-slate-500 hover:text-accent-700">Ver producto →</Link>
+                    <Link href={recommendation.tienda_slug ? `/tienda/${encodeURIComponent(recommendation.tienda_slug)}#product-${recommendation.id}` : '/tiendas'} className="-my-2 inline-flex min-h-10 items-center text-xs font-bold text-slate-500 hover:text-accent-700">Ver producto →</Link>
                   </div>
                 </div>
               </article>
