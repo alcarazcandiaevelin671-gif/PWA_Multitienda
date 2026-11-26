@@ -1,6 +1,7 @@
 /**
  * [PÁGINA] Página / (inicio): portada, comercios destacados y recomendaciones. Se regenera cada 30 s (catálogo público).
  */
+import Image from 'next/image';
 import { getFeaturedShops } from '@/backend/catalog/shops';
 import AIRecommendationsSection from '@/frontend/components/home/AIRecommendationsSection';
 import StorefrontAutoRefresh from '@/frontend/components/home/StorefrontAutoRefresh';
@@ -15,41 +16,35 @@ export default async function Home() {
   return (
     <main className="bg-white text-slate-900 min-h-screen">
       <StorefrontAutoRefresh />
-      {/* 1. HERO SECTION */}
-      <section className="zone-hero text-white py-16 md:py-20 border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-          <div>
-            <span className="text-primary-500 font-bold text-xs uppercase tracking-widest block mb-3">
-              DIRECTORIO COMERCIAL DEL GUAIRÁ
-            </span>
-            <h1 className="text-4xl md:text-5xl font-black tracking-tight leading-tight mb-6">
-              Comercio Local.<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-primary-400">
-                Más Cerca Tuyo.
-              </span>
-            </h1>
-            <p className="text-slate-400 text-sm mb-8 max-w-lg leading-relaxed">
-              Descubre tiendas, restaurantes, servicios profesionales y emprendimientos en Villarrica y todo el Departamento del Guairá.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <a
-                href="/tiendas"
-                className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-semibold text-sm px-6 py-3 rounded-xl shadow-lg shadow-primary-500/25 transition-all"
-              >
-                Explorar Productos →
-              </a>
-            </div>
-          </div>
-          
-          <div className="flex justify-center">
-            <div className="zone-hero-card w-full max-w-md h-64 bg-gradient-to-tr from-primary-900/40 to-slate-800/80 rounded-3xl border border-slate-700/60 flex items-center justify-center p-8 shadow-2xl relative overflow-hidden">
-              <div className="text-center z-10">
-                <span className="text-5xl mb-2 block">🏪</span>
-                <p className="text-xl font-bold text-white">Impulsando el Guairá</p>
-                <p className="text-xs text-slate-400 mt-1">Conectando comercios con la comunidad</p>
-              </div>
-            </div>
-          </div>
+      {/* 1. PORTADA: foto con el logo (public/portada-inicio.jpg). El texto va arriba, sobre un
+          oscurecido, y el logo de la foto queda visible abajo. Siempre con texto claro sobre la foto. */}
+      <section className="relative isolate flex min-h-[600px] items-start overflow-hidden border-b border-slate-800 bg-slate-950 text-white md:h-[min(55.8vw,85vh)] md:min-h-[520px]">
+        <Image
+          src="/portada-inicio.jpg"
+          alt="Galería comercial y cerros del Guairá con el logo de Portal Guairá Multitienda"
+          fill
+          priority
+          sizes="100vw"
+          className="-z-20 object-cover object-bottom"
+        />
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-gradient-to-b from-slate-950/85 via-slate-950/45 to-transparent" />
+        <div className="mx-auto w-full max-w-3xl px-5 pb-10 pt-10 text-center sm:px-6 md:pt-14 lg:pt-16">
+          <span className="mb-3 block text-xs font-bold uppercase tracking-widest text-primary-300 [text-shadow:0_1px_8px_rgb(0_0_0/0.5)]">
+            Directorio comercial del Guairá
+          </span>
+          <h1 className="mb-4 text-4xl font-black leading-tight tracking-tight text-white [text-shadow:0_2px_16px_rgb(0_0_0/0.45)] md:text-5xl lg:text-6xl">
+            Comercio Local.
+            <span className="block text-primary-300">Más Cerca Tuyo.</span>
+          </h1>
+          <p className="mx-auto mb-7 max-w-xl text-sm leading-relaxed text-white/90 [text-shadow:0_1px_8px_rgb(0_0_0/0.5)] md:text-base">
+            Descubre tiendas, restaurantes, servicios profesionales y emprendimientos en Villarrica y todo el Departamento del Guairá.
+          </p>
+          <a
+            href="/tiendas"
+            className="inline-flex items-center gap-2 rounded-xl bg-primary-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-black/30 transition-all hover:bg-primary-700"
+          >
+            Explorar Productos →
+          </a>
         </div>
       </section>
 
