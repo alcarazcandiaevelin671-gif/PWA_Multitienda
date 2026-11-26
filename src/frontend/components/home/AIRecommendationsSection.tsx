@@ -65,7 +65,7 @@ export default function AIRecommendationsSection() {
         ) : recommendations.length === 0 ? (
           <p className="rounded-xl border border-slate-200 bg-white px-4 py-8 text-center text-sm text-slate-500">Aún no hay productos recomendados.</p>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
             {recommendations.map((recommendation) => (
               <article
                 key={recommendation.id}
@@ -79,11 +79,11 @@ export default function AIRecommendationsSection() {
                   )}
                   <FavoriteToggle kind="producto" targetId={recommendation.id} className="absolute right-3 top-3 z-10" />
                 </div>
-                <div className="p-4">
+                <div className="p-3 sm:p-4">
                   <p className="truncate text-xs font-semibold text-slate-500">{recommendation.tienda_nombre || 'Comercio local'}</p>
-                  <Link href={recommendation.tienda_slug ? `/tienda/${encodeURIComponent(recommendation.tienda_slug)}#product-${recommendation.id}` : '/tiendas'} className="mt-1 block truncate text-base font-bold text-slate-900 group-hover:text-accent-700">{recommendation.nombre}</Link>
+                  <Link href={recommendation.tienda_slug ? `/tienda/${encodeURIComponent(recommendation.tienda_slug)}#product-${recommendation.id}` : '/tiendas'} className="mt-1 block truncate text-sm font-bold text-slate-900 group-hover:text-accent-700 sm:text-base">{recommendation.nombre}</Link>
                   {recommendation.motivo && <p className="mt-1 line-clamp-2 text-[11px] font-semibold text-accent-700">✨ {recommendation.motivo}</p>}
-                  <div className="mt-3 flex items-end justify-between gap-2">
+                  <div className="mt-2 flex flex-wrap items-end justify-between gap-x-2 gap-y-1 sm:mt-3">
                     <PriceTag price={recommendation.precio} offer={recommendation.precio_oferta} size="sm" className="text-accent-700" />
                     <Link href={recommendation.tienda_slug ? `/tienda/${encodeURIComponent(recommendation.tienda_slug)}#product-${recommendation.id}` : '/tiendas'} className="-my-2 inline-flex min-h-10 items-center text-xs font-bold text-slate-500 hover:text-accent-700">Ver producto →</Link>
                   </div>

@@ -108,7 +108,7 @@ export default function ShopsMap({ shops, userLocation, radiusKm, selectedShop, 
       center={GUAIRA_CENTER}
       zoom={10}
       scrollWheelZoom
-      className={`h-[420px] w-full rounded-2xl ${pickMode ? 'cursor-crosshair' : ''}`}
+      className={`h-[340px] w-full rounded-2xl sm:h-[420px] ${pickMode ? 'cursor-crosshair' : ''}`}
       aria-label="Mapa de comercios del Guairá"
     >
       <TileLayer

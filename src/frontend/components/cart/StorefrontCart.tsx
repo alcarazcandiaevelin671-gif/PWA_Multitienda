@@ -139,7 +139,7 @@ export default function StorefrontCart({ products, categories = [], shop }: Stor
           <p className="mt-2 text-sm text-slate-500">Prueba con otro nombre o categoría dentro de esta tienda.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
           {filteredProducts.map((product) => {
             const name = product.nombre || product.titulo || 'Producto';
             const lowStock = getLowStock(product.stock, product.stock_minimo);
@@ -151,7 +151,7 @@ export default function StorefrontCart({ products, categories = [], shop }: Stor
                 className="flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm outline-none"
               >
                 <div>
-                  <div className="relative flex h-48 w-full items-center justify-center bg-slate-100">
+                  <div className="relative flex h-32 w-full items-center justify-center bg-slate-100 sm:h-48">
                     <FavoriteToggle kind="producto" targetId={product.id} className="absolute right-3 top-3 z-10" />
                     {Number(product.precio_oferta) > 0 && Number(product.precio_oferta) < Number(product.precio_gs) && (
                       <span className="absolute left-3 top-3 z-10 rounded-md bg-rose-600 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-white shadow">Oferta</span>
@@ -162,9 +162,9 @@ export default function StorefrontCart({ products, categories = [], shop }: Stor
                       <span className="text-4xl text-slate-300">📦</span>
                     )}
                   </div>
-                  <div className="p-4">
-                    <h3 className="line-clamp-1 text-base font-bold text-slate-900">{name}</h3>
-                    {product.descripcion && <p className="mt-1 line-clamp-2 text-xs text-slate-500">{product.descripcion}</p>}
+                  <div className="p-3 sm:p-4">
+                    <h3 className="line-clamp-1 text-sm font-bold text-slate-900 sm:text-base">{name}</h3>
+                    {product.descripcion && <p className="mt-1 line-clamp-1 text-xs text-slate-500 sm:line-clamp-2">{product.descripcion}</p>}
                     {lowStock !== null && (
                       <p className="mt-2 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-extrabold text-amber-800">
                         🔥 ¡{lowStock === 1 ? 'Última unidad' : `Últimas ${lowStock} unidades`}!
@@ -172,12 +172,12 @@ export default function StorefrontCart({ products, categories = [], shop }: Stor
                     )}
                   </div>
                 </div>
-                <div className="flex items-end justify-between border-t border-slate-100 p-4">
+                <div className="flex flex-col gap-2 border-t border-slate-100 p-3 sm:flex-row sm:items-end sm:justify-between sm:p-4">
                   <PriceTag price={product.precio_gs} offer={product.precio_oferta} />
                   <button
                     type="button"
                     onClick={() => addProduct(product)}
-                    className="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-bold text-white transition hover:bg-emerald-700"
+                    className="w-full rounded-xl bg-emerald-600 px-3 py-2 text-xs font-bold text-white transition hover:bg-emerald-700 sm:w-auto"
                   >
                     Agregar 🛒
                   </button>

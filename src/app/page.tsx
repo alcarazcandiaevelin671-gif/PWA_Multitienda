@@ -18,7 +18,7 @@ export default async function Home() {
       <StorefrontAutoRefresh />
       {/* 1. PORTADA: foto con el logo (public/portada-inicio.jpg). El texto va arriba, sobre un
           oscurecido, y el logo de la foto queda visible abajo. Siempre con texto claro sobre la foto. */}
-      <section className="relative isolate flex min-h-[600px] items-start overflow-hidden border-b border-slate-800 bg-slate-950 text-white md:h-[min(55.8vw,85vh)] md:min-h-[520px]">
+      <section className="relative isolate flex min-h-[500px] items-start overflow-hidden border-b border-slate-800 bg-slate-950 text-white md:h-[min(55.8vw,85vh)] md:min-h-[520px]">
         <Image
           src="/portada-inicio.jpg"
           alt="Galería comercial y cerros del Guairá con el logo de Portal Guairá Multitienda"

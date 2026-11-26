@@ -54,6 +54,30 @@ html {
   font-size: var(--font-scale, 100%);
 }
 
+/* Celulares: todo más compacto. Tailwind mide letras, espacios, botones y tarjetas en rem,
+   así que bajar la letra base al 87,5 % (14 px) achica todo en la misma proporción.
+   Respeta el tamaño de letra elegido en "Personalizar" (compacto, normal o grande). */
+@media (max-width: 639.98px) {
+  html {
+    font-size: calc(var(--font-scale, 100%) * 0.875);
+  }
+  /* La letra más chica de uso general no baja de unos 11,4 px. */
+  .text-xs {
+    font-size: 0.8125rem;
+    line-height: 1.1rem;
+  }
+}
+/* iPhone agranda la página al tocar un campo con letra menor a 16 px: se evita. */
+@supports (-webkit-touch-callout: none) {
+  @media (max-width: 639.98px) {
+    input:not([type='checkbox'], [type='radio']),
+    select,
+    textarea {
+      font-size: 16px !important;
+    }
+  }
+}
+
 body {
   min-height: 100vh;
   text-rendering: optimizeLegibility;
@@ -953,9 +977,10 @@ html[data-theme='dark'] body .admin-theme :is([class*="bg-emerald-400/10"]) {
 /* --- Legibilidad y toque en pantallas táctiles ------------------------------
    Ninguna letra por debajo de 11 px (había etiquetas de 9 y 10 px), y los
    botones de mostrar u ocultar la contraseña con un área cómoda para el dedo. */
+.text-\[8px\]:not(.admin-chart-label),
 .text-\[9px\],
 .text-\[10px\] {
-  font-size: 0.6875rem !important;
+  font-size: 11px !important;
 }
 button:is([aria-label$='contraseña'], [aria-label$='confirmación']) {
   display: inline-flex;

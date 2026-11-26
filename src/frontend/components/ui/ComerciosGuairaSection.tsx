@@ -47,14 +47,14 @@ export default function ComerciosGuairaSection({ tiendas }: { tiendas: TiendaPub
           </span>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {tiendas.map((tienda) => {
             const distritoNombre = tienda.distritos?.nombre || 'Guairá';
             const nombreComercio = tienda.nombre_comercio || 'Comercio del Guairá';
 
             return (
-              <article key={tienda.id} className="group relative flex flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_18px_35px_rgba(13,10,16,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_50px_rgba(219,39,119,0.12)]">
-                <div className="relative h-36 w-full overflow-hidden bg-slate-800">
+              <article key={tienda.id} className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_18px_35px_rgba(13,10,16,0.06)] sm:rounded-[28px] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_50px_rgba(219,39,119,0.12)]">
+                <div className="relative h-24 w-full overflow-hidden bg-slate-800 sm:h-36">
                   {tienda.portada_url ? (
                     <Image
                       src={tienda.portada_url}
@@ -69,15 +69,15 @@ export default function ComerciosGuairaSection({ tiendas }: { tiendas: TiendaPub
                   )}
 
                   <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-slate-900/45 to-transparent" />
-                  <span className="absolute left-3 top-3 rounded-full border border-white/20 bg-slate-900/60 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur-sm">
+                  <span className="absolute left-2 top-2 max-w-[60%] truncate rounded-full border border-white/20 bg-slate-900/60 px-2 py-0.5 text-[10px] sm:left-3 sm:top-3 sm:max-w-none sm:px-2.5 sm:py-1 font-bold text-white backdrop-blur-sm">
                     📍 {distritoNombre}
                   </span>
                   <FavoriteToggle kind="tienda" targetId={tienda.id} className="absolute right-3 top-3 z-20" />
                 </div>
 
-                <div className="relative flex flex-1 flex-col px-5 pb-5 pt-0">
-                  <div className="-mt-8 mb-3 flex items-end justify-between gap-3">
-                    <div className="relative h-16 w-16 overflow-hidden rounded-[18px] border-4 border-white bg-slate-100 shadow-md">
+                <div className="relative flex flex-1 flex-col px-3 pb-3 pt-0 sm:px-5 sm:pb-5">
+                  <div className="-mt-6 mb-2 flex flex-wrap items-end justify-between gap-1.5 sm:-mt-8 sm:mb-3 sm:gap-3">
+                    <div className="relative h-12 w-12 overflow-hidden rounded-[14px] border-[3px] border-white sm:h-16 sm:w-16 sm:rounded-[18px] sm:border-4 bg-slate-100 shadow-md">
                       {tienda.logo_url ? (
                         <Image src={tienda.logo_url} alt={nombreComercio} fill className="object-cover" />
                       ) : (
@@ -85,22 +85,22 @@ export default function ComerciosGuairaSection({ tiendas }: { tiendas: TiendaPub
                       )}
                     </div>
 
-                    <span className="rounded-full border border-accent-100 bg-accent-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-accent-700">
+                    <span className="max-w-full truncate rounded-full border border-accent-100 bg-accent-50 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-accent-700 sm:px-2.5 sm:py-1 sm:tracking-[0.18em]">
                       {tienda.categoria_principal}
                     </span>
                   </div>
 
-                  <h3 className="line-clamp-1 text-lg font-black text-slate-900 transition-colors group-hover:text-accent-700">
+                  <h3 className="line-clamp-1 text-sm font-black text-slate-900 sm:text-lg transition-colors group-hover:text-accent-700">
                     {nombreComercio}
                   </h3>
 
                   {tienda.descripcion && (
-                    <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-slate-500">
+                    <p className="mt-1 line-clamp-1 text-xs leading-relaxed text-slate-500 sm:mt-2 sm:line-clamp-2 sm:text-sm">
                       {tienda.descripcion}
                     </p>
                   )}
 
-                  <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs font-bold text-slate-600">
+                  <div className="mt-auto flex flex-wrap items-center justify-between gap-x-2 border-t border-slate-100 pt-2 text-xs font-bold text-slate-600 sm:mt-4 sm:pt-3">
                     <Link href={`/tienda/${tienda.slug}`} className="-my-2 flex min-h-10 items-center gap-1 text-accent-700 hover:text-accent-900">Ver catálogo →</Link>
                     {tienda.whatsapp && <span className="text-emerald-600">💬 WhatsApp</span>}
                   </div>
