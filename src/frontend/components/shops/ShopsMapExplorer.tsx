@@ -22,7 +22,7 @@ import { fetchNearbyShops, filterShopsOffline, type NearbyShop } from '@/fronten
 
 const ShopsMap = dynamic(() => import('@/frontend/components/shops/ShopsMap'), {
   ssr: false,
-  loading: () => <div className="flex h-[420px] items-center justify-center rounded-2xl bg-slate-100 text-sm text-slate-500">Cargando mapa…</div>,
+  loading: () => <div className="flex h-[340px] sm:h-[420px] items-center justify-center rounded-2xl bg-slate-100 text-sm text-slate-500">Cargando mapa…</div>,
 });
 
 const RADIUS_OPTIONS = [
@@ -170,7 +170,7 @@ export default function ShopsMapExplorer({ initialShops, districts, categories }
           No hay comercios con esos filtros{filters.radiusKm ? ` dentro de ${filters.radiusKm} km` : ''}.
         </p>
       ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
           {shops.map((shop) => (
             <div key={shop.id} className="flex flex-col gap-2">
               <ShopCard

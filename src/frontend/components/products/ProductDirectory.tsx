@@ -154,20 +154,20 @@ export default function ProductDirectory({ products, districts }: { products: Fe
             : 'No encontramos productos con esa búsqueda.'}
         </p>
       ) : (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
           {filteredProducts.map(({ product, distanceKm }) => (
             <article key={product.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               <div className="relative aspect-[4/3] bg-slate-100">
                 {product.imagen_url ? <Image src={product.imagen_url} alt={product.titulo} fill unoptimized className="object-cover" /> : <div className="flex h-full items-center justify-center text-4xl text-slate-300">□</div>}
                 <FavoriteToggle kind="producto" targetId={product.id || ''} className="absolute right-3 top-3 z-10" />
               </div>
-              <div className="p-4">
+              <div className="p-3 sm:p-4">
                 <p className="truncate text-xs font-semibold text-slate-500">{product.tienda?.nombre_comercio || 'Comercio local'}</p>
-                <h2 className="mt-1 truncate text-base font-bold text-slate-900">{product.titulo}</h2>
-                {product.descripcion && <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-500">{product.descripcion}</p>}
+                <h2 className="mt-1 truncate text-sm font-bold text-slate-900 sm:text-base">{product.titulo}</h2>
+                {product.descripcion && <p className="mt-1 line-clamp-1 text-xs leading-5 text-slate-500 sm:line-clamp-2">{product.descripcion}</p>}
                 {getLowStock(product.stock, product.stock_minimo) !== null && <p className="mt-2 text-[10px] font-extrabold text-amber-700">🔥 ¡Últimas {getLowStock(product.stock, product.stock_minimo)} unidades!</p>}
                 {location && <p className="mt-2 text-xs font-bold text-accent-700">📍 {formatDistance(distanceKm)}</p>}
-                <div className="mt-4 flex items-end justify-between gap-3 border-t border-slate-100 pt-3">
+                <div className="mt-3 flex flex-wrap items-end justify-between gap-x-3 gap-y-1 border-t border-slate-100 pt-2 sm:mt-4 sm:pt-3">
                   <PriceTag price={product.precio_gs} offer={product.precio_oferta} size="sm" className="text-accent-700" />
                   <Link href={productPath(product)} className="-my-2 inline-flex min-h-10 items-center text-xs font-bold text-slate-600 hover:text-accent-700">Ver producto →</Link>
                 </div>
