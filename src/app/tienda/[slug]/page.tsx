@@ -38,7 +38,7 @@ export default async function TiendaPerfilPage(props: Props) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link
             href="/"
-            className="text-xs font-semibold text-primary-400 hover:underline mb-4 inline-block"
+            className="mb-2 inline-flex min-h-10 items-center text-xs font-semibold text-primary-400 hover:underline"
           >
             ← Volver a Comercios
           </Link>

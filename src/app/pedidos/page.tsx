@@ -55,12 +55,12 @@ export default function OrdersPage() {
           <h1 className="mt-1 text-3xl font-black text-slate-900">Mis pedidos</h1>
           <p className="mt-2 text-sm text-slate-600">Consulta tus compras y sigue el estado de tus pedidos.</p>
         </div>
-        <Link href="/tiendas" className="text-sm font-bold text-primary-700 hover:underline">Seguir comprando</Link>
+        <Link href="/tiendas" className="inline-flex min-h-10 items-center text-sm font-bold text-primary-700 hover:underline">Seguir comprando</Link>
       </div>
 
       <QueuedOrdersPanel onSynced={loadOrders} />
 
-      <div className="mb-6 grid w-full grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="mb-6 grid w-full grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         <div className="h-full w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Total</p><p className="mt-3 text-2xl font-black text-slate-900">{stats.total}</p></div>
         <div className="h-full w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Pendientes</p><p className="mt-3 text-2xl font-black text-slate-900">{stats.pendientes}</p></div>
         <div className="h-full w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><p className="text-xs font-bold uppercase text-slate-500">Preparación</p><p className="mt-3 text-2xl font-black text-slate-900">{stats.enPreparacion}</p></div>
@@ -133,7 +133,7 @@ export default function OrdersPage() {
             <tbody className="divide-y divide-slate-200">
               {filteredOrders.map((order) => (
                 <tr key={order.id} className="bg-white">
-                  <td className="px-4 py-4 font-bold text-slate-900">{order.numero_pedido}</td>
+                  <td className="break-all px-4 py-4 font-bold text-slate-900">{order.numero_pedido}</td>
                   <td className="px-4 py-4 text-slate-700">{order.tienda?.nombre_comercio || 'Tienda'}</td>
                   <td className="px-4 py-4 text-slate-600">{new Date(order.created_at).toLocaleDateString('es-PY')}</td>
                   <td className="px-4 py-4 text-slate-600">{order.total > 0 ? 'Pedido' : 'Sin detalle'}</td>

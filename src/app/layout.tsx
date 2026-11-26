@@ -8,6 +8,7 @@ import Navbar from '@/frontend/components/common/Navbar';
 import Footer from '@/frontend/components/common/Footer';
 import RealtimeNotificationListener from '@/frontend/components/common/RealtimeNotificationListener';
 import AppMessageLayer from '@/frontend/components/ui/AppMessageLayer';
+import TablasResponsivas from '@/frontend/components/ui/TablasResponsivas';
 import ThemePreferenceSync from '@/frontend/components/configuracion/ThemePreferenceSync';
 import PwaProvider from '@/frontend/components/pwa/PwaProvider';
 import AppearanceDrawer from '@/frontend/components/apariencia/AppearanceDrawer';
@@ -57,6 +58,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {children}
             </main>
             <Footer />
+            <TablasResponsivas />
             <AppMessageLayer />
             <PwaProvider />
           </div>

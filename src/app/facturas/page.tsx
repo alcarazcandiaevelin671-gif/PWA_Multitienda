@@ -40,7 +40,7 @@ export default function FacturasPage() {
           <p className="text-xs font-black uppercase text-primary-700">Cuenta</p>
           <h1 className="mt-1 text-3xl font-black text-slate-900">Mis facturas</h1>
         </div>
-        <Link href="/pedidos" className="text-sm font-bold text-primary-700 hover:underline">Volver a pedidos</Link>
+        <Link href="/pedidos" className="inline-flex min-h-10 items-center text-sm font-bold text-primary-700 hover:underline">Volver a pedidos</Link>
       </div>
 
       <div className="mb-6 grid gap-4 rounded-2xl border border-slate-200 bg-white p-4 md:grid-cols-3">

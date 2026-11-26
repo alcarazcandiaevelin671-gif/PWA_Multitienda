@@ -53,7 +53,7 @@ export default function ResetPasswordPage() {
           </button>
         </form>
 
-        <Link href="/auth/login" className="mt-6 block text-center text-sm font-semibold text-slate-600 hover:text-accent-700">Volver al inicio de sesión</Link>
+        <Link href="/auth/login" className="mt-4 block py-2.5 text-center text-sm font-semibold text-slate-600 hover:text-accent-700">Volver al inicio de sesión</Link>
       </section>
     </main>
   );

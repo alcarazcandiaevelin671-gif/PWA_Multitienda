@@ -113,13 +113,13 @@ export default function VendorInvoiceDetailPage() {
                   <div className="mt-3 grid gap-3 sm:grid-cols-2">
                     {order ? <Link href={`/comerciante/pedidos/${order.id}`} className="rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:border-emerald-300 hover:bg-emerald-50/50">
                       <p className="text-[10px] font-black uppercase tracking-wide text-slate-500">Pedido</p>
-                      <p className="mt-1 font-bold text-slate-900">{order.numero_pedido}</p>
+                      <p className="mt-1 break-all font-bold text-slate-900">{order.numero_pedido}</p>
                       <p className="mt-1 text-xs capitalize text-slate-600">{order.estado} · pago {order.estado_pago} · {currency(order.total)}</p>
                       <span className="mt-3 inline-block text-xs font-bold text-emerald-700">Abrir pedido →</span>
                     </Link> : <p className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">No hay un pedido vinculado.</p>}
                     {sale ? <article className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                       <p className="text-[10px] font-black uppercase tracking-wide text-slate-500">Venta</p>
-                      <p className="mt-1 font-bold text-slate-900">{sale.numero_venta}</p>
+                      <p className="mt-1 break-all font-bold text-slate-900">{sale.numero_venta}</p>
                       <p className="mt-1 text-xs capitalize text-slate-600">{sale.estado} · {sale.metodo_pago} · {currency(sale.total)}</p>
                     </article> : <p className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">No hay una venta vinculada.</p>}
                   </div>

@@ -75,7 +75,7 @@ export default function OrderDetailPage() {
       <header className="mt-5 flex flex-wrap items-end justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
           <p className="text-xs font-black uppercase text-primary-700">{pedido.tienda?.nombre_comercio || 'Tienda'}</p>
-          <h1 className="mt-1 text-2xl font-black text-slate-900">{pedido.numero_pedido}</h1>
+          <h1 className="mt-1 break-all text-xl font-black text-slate-900 sm:text-2xl">{pedido.numero_pedido}</h1>
         </div>
         <div className="text-sm text-slate-600">
           <p>Estado: <strong className="capitalize text-slate-900">{pedido.estado.replaceAll('_', ' ')}</strong></p>
