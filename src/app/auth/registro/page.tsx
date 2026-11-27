@@ -3,9 +3,12 @@
 /**
  * [PÁGINA] Página /auth/registro: registro de comerciantes (cuenta + tienda pendiente de aprobación, con mapa).
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import type { DireccionEncontrada } from '@/frontend/components/ui/LocationPicker';
+import { avisarRegistro } from '@/frontend/lib/registro-aviso';
 import { supabase } from '@/shared/supabase/client';
 import { userFacingError } from '@/shared/lib/user-facing-error';
 
@@ -20,10 +23,27 @@ const LocationPicker = dynamic(() => import('@/frontend/components/ui/LocationPi
 
 type Opcion = { id: number; nombre: string };
 
+// Compara nombres sin tildes ni mayúsculas ("José A. Fassardi" y "José Fassardi" coinciden).
+const palabras = (texto: string) => texto.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().split(/[^a-z0-9]+/).filter((p) => p.length > 2);
+function distritoDe(localidades: string[], distritos: Opcion[]): Opcion | undefined {
+  for (const localidad of localidades) {
+    const enLugar = new Set(palabras(localidad));
+    const encontrado = distritos.find((d) => {
+      const enDistrito = palabras(d.nombre);
+      return enDistrito.length > 0 && enDistrito.every((p) => enLugar.has(p));
+    });
+    if (encontrado) return encontrado;
+  }
+  return undefined;
+}
+
 const INPUT_CLASS = 'w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-800 outline-none transition focus:border-accent-500 focus:ring-2 focus:ring-accent-200';
 const LABEL_CLASS = 'mb-1 block text-xs font-bold uppercase tracking-[0.16em] text-slate-600';
 
 export default function RegistroComerciantePage() {
+  const router = useRouter();
+  // Lo último que completó el mapa: si la persona lo cambia a mano, el mapa ya no lo pisa.
+  const autocompletado = useRef({ direccion: '', distritoId: '' });
   const [formData, setFormData] = useState({
     nombreCompleto: '',
     email: '',
@@ -76,6 +96,23 @@ export default function RegistroComerciantePage() {
     setFormData((current) => ({ ...current, [name]: value }));
   };
 
+  // Completa la dirección y el distrito con el punto elegido en el mapa (o con el GPS).
+  const completarConMapa = ({ direccion, localidades }: DireccionEncontrada) => {
+    const distrito = distritoDe(localidades, distritos);
+    setFormData((current) => {
+      const next = { ...current };
+      if (direccion && (!current.direccion || current.direccion === autocompletado.current.direccion)) {
+        next.direccion = direccion.slice(0, 250);
+        autocompletado.current.direccion = next.direccion;
+      }
+      if (distrito && (!current.distritoId || current.distritoId === autocompletado.current.distritoId)) {
+        next.distritoId = String(distrito.id);
+        autocompletado.current.distritoId = next.distritoId;
+      }
+      return next;
+    });
+  };
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (loading) return;
@@ -116,7 +153,10 @@ export default function RegistroComerciantePage() {
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'No se pudo completar el registro.');
-      setConfirmationRequired(Boolean(result.confirmationRequired));
+      // Cuenta creada: directo al inicio de sesión, con el aviso de lo que sigue.
+      avisarRegistro({ tipo: 'comerciante', email: formData.email.trim().toLowerCase(), confirmarCorreo: Boolean(result.confirmationRequired) });
+      setConfirmationRequired(true);
+      router.replace('/auth/login?registro=comerciante');
     } catch (caughtError) {
       setError(userFacingError(caughtError, 'Ocurrió un error al registrar el comercio. Inténtalo de nuevo.'));
     } finally {
@@ -188,7 +228,7 @@ export default function RegistroComerciantePage() {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <label htmlFor="telefono" className={LABEL_CLASS}>Teléfono personal *</label>
-                      <input id="telefono" name="telefono" type="tel" autoComplete="tel" inputMode="tel" required pattern="[+0-9() .-]{7,20}" value={formData.telefono} onChange={handleChange} placeholder="0981 123 456" className={INPUT_CLASS} />
+                      <input id="telefono" name="telefono" type="tel" autoComplete="tel" inputMode="tel" required pattern="[\+0-9\(\) .\-]{7,20}" title="Solo números, espacios, +, guiones y paréntesis (7 a 20 caracteres)" value={formData.telefono} onChange={handleChange} placeholder="0981 123 456" className={INPUT_CLASS} />
                     </div>
                     <div>
                       <label htmlFor="email" className={LABEL_CLASS}>Correo electrónico *</label>
@@ -260,10 +300,10 @@ export default function RegistroComerciantePage() {
                     </div>
                     <div>
                       <label htmlFor="telefonoComercial" className={LABEL_CLASS}>Teléfono comercial *</label>
-                      <input id="telefonoComercial" name="telefonoComercial" type="tel" inputMode="tel" required pattern="[+0-9() .-]{7,20}" value={formData.telefonoComercial} onChange={handleChange} placeholder="0981 123 456" className={INPUT_CLASS} />
+                      <input id="telefonoComercial" name="telefonoComercial" type="tel" inputMode="tel" required pattern="[\+0-9\(\) .\-]{7,20}" title="Solo números, espacios, +, guiones y paréntesis (7 a 20 caracteres)" value={formData.telefonoComercial} onChange={handleChange} placeholder="0981 123 456" className={INPUT_CLASS} />
                     </div>
                   </div>
-                  <LocationPicker onLocationChange={(latitud, longitud) => setFormData((current) => ({ ...current, latitud, longitud }))} />
+                  <LocationPicker onLocationChange={(latitud, longitud) => setFormData((current) => ({ ...current, latitud, longitud }))} onAddress={completarConMapa} />
                 </section>
 
                 <div className="rounded-2xl border border-accent-200 bg-accent-50 p-4 text-sm leading-relaxed text-accent-900">
