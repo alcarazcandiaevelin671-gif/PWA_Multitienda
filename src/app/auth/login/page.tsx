@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/shared/supabase/client';
 import { userFacingError } from '@/shared/lib/user-facing-error';
+import { leerAvisoRegistro, type AvisoRegistro } from '@/frontend/lib/registro-aviso';
 
 const normalizeRole = (value: unknown): 'admin' | 'comerciante' | 'cliente' => {
   const normalized = String(value ?? 'cliente').trim().toLowerCase();
@@ -24,11 +25,19 @@ export default function LoginPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [adminAccessNotice, setAdminAccessNotice] = useState(false);
   const [passwordUpdatedNotice, setPasswordUpdatedNotice] = useState(false);
+  const [registroAviso, setRegistroAviso] = useState<AvisoRegistro | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setAdminAccessNotice(params.get('error') === 'admin_required');
     setPasswordUpdatedNotice(params.get('password_updated') === '1');
+    // Recién registrado: aviso de lo que sigue y el correo ya escrito.
+    const tipo = params.get('registro');
+    if (tipo === 'cliente' || tipo === 'comerciante') {
+      const aviso = leerAvisoRegistro();
+      setRegistroAviso(aviso ?? { tipo, email: '', confirmarCorreo: false });
+      if (aviso?.email) setEmail(aviso.email);
+    }
   }, []);
 
   const handleGoogleLogin = async () => {
@@ -143,6 +152,18 @@ export default function LoginPage() {
             {adminAccessNotice && (
               <div role="alert" className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm leading-5 text-amber-900">
                 Iniciaste sesión, pero el perfil de Supabase no tiene el rol administrador o no se pudo leer. Verifica `usuarios.rol` y las políticas RLS.
+              </div>
+            )}
+
+            {registroAviso && (
+              <div role="status" className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm leading-5 text-emerald-800">
+                <p className="font-bold">{registroAviso.tipo === 'comerciante' ? 'Tu solicitud de comerciante fue registrada.' : 'Tu cuenta de cliente fue creada.'}</p>
+                <p className="mt-1">
+                  {registroAviso.confirmarCorreo
+                    ? 'Abre el correo que te enviamos y confirma tu cuenta; después inicia sesión aquí.'
+                    : 'Ya puedes iniciar sesión con tu correo y contraseña.'}
+                  {registroAviso.tipo === 'comerciante' && ' Tu comercio queda pendiente hasta que el administrador lo apruebe.'}
+                </p>
               </div>
             )}
 

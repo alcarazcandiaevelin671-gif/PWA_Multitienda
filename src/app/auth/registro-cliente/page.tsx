@@ -5,10 +5,13 @@
  */
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { avisarRegistro } from '@/frontend/lib/registro-aviso';
 import { supabase } from '@/shared/supabase/client';
 import { userFacingError } from '@/shared/lib/user-facing-error';
 
 export default function RegistroClientePage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     nombreCompleto: '',
     email: '',
@@ -54,7 +57,9 @@ export default function RegistroClientePage() {
       // Con "Confirm email" activo no hay sesión hasta confirmar el correo: el perfil lo crea
       // el trigger handle_new_user de la base (con los metadatos del registro, siempre como cliente).
       if (!data.session) {
+        avisarRegistro({ tipo: 'cliente', email, confirmarCorreo: true });
         setRegistered(true);
+        router.replace('/auth/login?registro=cliente');
         return;
       }
 
@@ -71,7 +76,11 @@ export default function RegistroClientePage() {
       );
 
       if (profileError) throw profileError;
+      // Cuenta lista: se cierra la sesión que abrió el registro y se va al inicio de sesión.
+      await supabase.auth.signOut();
+      avisarRegistro({ tipo: 'cliente', email, confirmarCorreo: false });
       setRegistered(true);
+      router.replace('/auth/login?registro=cliente');
     } catch (caughtError) {
       // Motivo técnico solo en la consola, sin datos de la persona.
       const detalle = caughtError as { code?: string; status?: number; name?: string };
